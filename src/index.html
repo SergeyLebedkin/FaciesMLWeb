@@ -10,7 +10,20 @@
 </head>
 
 <body>
-    <div class="root">
+    <div class="main-panel">
+        <div class="left-panel">
+            Left panel
+        </div>
+        <div class="center-panel">
+            <div class="tab-panel">
+                <button>tab 0</button>
+                <button>tab 1</button>
+                <button>tab 3</button>
+            </div>
+            <div class="plots-panel">
+                This is a main plot panel
+            </div>
+        </div>
     </div>
     <script type="text/javascript" src="<%= htmlWebpackPlugin.files.chunks.index.entry %>"></script>
     <!-- PLEASE, REMOVE THIS COMMENT BEFORE YOU UPLOAD TO THE BACKEND
