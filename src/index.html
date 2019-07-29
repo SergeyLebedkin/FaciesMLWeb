@@ -12,7 +12,40 @@
 <body>
     <div class="main-panel">
         <div class="left-panel">
-            Left panel
+            <!-- Connection  -->
+            <div class="menu-item-title">Connection</div>
+            <div class="bordered-panel">
+                <div class="row-panel">
+                    <label style="width: 90px">Username:</label>
+                    <input id="inputUsername" type="text" style="width: 180px" />
+                </div>
+                <div class="row-panel">
+                    <label style="width: 90px">Session ID:</label>
+                    <input id="inputSessionID" type="text" style="width: 180px" readonly />
+                </div>
+                <div class="row-panel">
+                    <label style="width: 90px">Description:</label>
+                    <input id="inputDescription" type="text" style="width: 180px" />
+                </div>
+            </div>
+            <!-- Open files -->
+            <div class="menu-item-title">Open files</div>
+            <div class="bordered-panel">
+                <button id="buttonLoadData" class="left-panel-button">Load data</button>
+                <input type="file" id="inputLoadData" multiple name="files[]" style="display:none">
+            </div>
+            <!-- Data Values -->
+            <div class="menu-item-title">Data Values</div>
+            <div class="bordered-panel">
+                <div id="divDataValues" class="divDataValues"></div>
+            </div>
+            <!-- Submit -->
+            <div class="menu-item-title">Submit</div>
+            <div class="bordered-panel">
+                <button id="buttonSubmit" class="left-panel-button">Submit</button>
+                <a id="aStatusLabel">Status:</a>
+                <a id="aStatus">Ready</a>
+            </div>
         </div>
         <div class="center-panel">
             <div class="tab-panel">

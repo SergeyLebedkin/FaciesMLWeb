@@ -19,7 +19,7 @@ html, body {
     flex-direction: column;
     width: 100%;
     margin: 0px;
-    padding: 0px;
+    padding: 5px;
     min-width: 300px;
     max-width: 300px;
     overflow: auto;
@@ -51,7 +51,52 @@ html, body {
     overflow: auto;
 }
 
-.row {
+.menu-item-title {
+    padding: 5px 0px;
+}
+
+.bordered-panel {
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.row-panel {
     display: flex;
     flex-direction: row;
+    padding: 0;
+}
+
+.left-panel-button {
+    display: block;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 16px 16px;
+    background-color: #333333;
+    border-radius: 5px;
+    width: 100%;
+}
+
+.left-panel-button:hover {
+    background-color: #ff0000;
+}
+
+.left-panel-button:active {
+    background-color: #ff2222;
+}
+
+.left-panel-button:disabled {
+    background-color: #aaaaaa;
+}
+
+.divDataValues {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    min-height: 300px;
+    max-height: 300px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
 }
