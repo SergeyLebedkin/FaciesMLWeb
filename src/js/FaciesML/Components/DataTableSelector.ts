@@ -60,6 +60,7 @@ export class DataTableSelector {
             checkBoxDataTableValue["dataArray"] = dataArray;
             checkBoxDataTableValue["dataTable"] = dataTable;
             checkBoxDataTableValue["dataArrayIndex"] = dataArrayIndex;
+            checkBoxDataTableValue.onchange = event => event.target["dataArray"].checked = event.target["checked"];
             divDataTableValue.appendChild(checkBoxDataTableValue);
             let labelDataTableValue = document.createElement("label");
             labelDataTableValue.htmlFor = checkBoxDataTableValue.name;
@@ -84,17 +85,7 @@ export class DataTableSelector {
     public clearSelections(): void {
         for (let checkbox of this.dataArrayCheckBoxes)
             checkbox.checked = false;
-    }
-
-    // clearSelections
-    public getSelectedArrays(): Array<{dataTableName: string, dataArrayName: string}> {
-        let result = new Array<{dataTableName: string, dataArrayName: string}>();
-        this.dataArrayCheckBoxes
-            .filter(checkbox => checkbox.checked)
-            .forEach(checkbox => result.push({
-                dataTableName: checkbox["dataTable"].name,
-                dataArrayName: checkbox["dataArray"].name
-            }));
-        return result;
+        for (let dataTable of this.dataTableList)
+            dataTable.clearChecked();
     }
 }

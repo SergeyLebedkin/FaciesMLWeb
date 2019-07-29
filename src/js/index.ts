@@ -37,7 +37,9 @@ function buttonLoadDataOnClick(event: MouseEvent) {
 
 // buttonSubmitOnClick
 function buttonSubmitOnClick(event: MouseEvent) {
-    console.log(gDataTableSelector.getSelectedArrays());
+    for(let dataTable of gDataTableList)
+    for(let dataArray of dataTable.data)
+        if (dataArray.checked) console.log(dataArray.name);
 }
 
 // window.onload

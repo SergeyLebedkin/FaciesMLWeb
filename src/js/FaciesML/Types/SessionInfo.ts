@@ -1,4 +1,5 @@
 import { DataArray } from "./DataArray"
+import { DataTable } from "./DataTable";
 
 // base URL
 export const URL = "http://localhost:8084";
@@ -17,7 +18,7 @@ export class SessionInfo {
     }
 
     // postDataArrays
-    public postDataArrays(dataArray: Array<DataArray>): Promise<string> {
+    public postDataArrays(dataTableList: Array<DataTable>): Promise<string> {
         return new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
             let url = URL + "/post_session_id";

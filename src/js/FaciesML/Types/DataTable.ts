@@ -15,6 +15,12 @@ export class DataTable {
         this.data = [];
     }
 
+    // clearChecked
+    public clearChecked(): void {
+        for (let dataArray of this.data)
+            dataArray.checked = false;
+    }
+
     // loadFromFile
     public loadFromFile(file: File) {
         // check for null
