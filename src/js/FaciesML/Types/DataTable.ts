@@ -4,12 +4,14 @@ import { DataArray } from "./DataArray"
 export class DataTable {
     // fileds
     public fileRef: File = null;
+    public name: string = "";
     public data: Array<DataArray> = [];
     // events
     public onloadFileData: (this: DataTable, dataTable: DataTable) => any = null;
     // constructor
     constructor() {
         this.fileRef = null;
+        this.name = "";
         this.data = [];
     }
 
@@ -19,6 +21,7 @@ export class DataTable {
         if (file === null) return;
         // store name
         this.fileRef = file;
+        this.name = file.name;
         // read file
         var fileReader = new FileReader();
         fileReader.onload = event => {

@@ -87,6 +87,14 @@ export class DataTableSelector {
     }
 
     // clearSelections
-    public getSelectedArrays(): void {
+    public getSelectedArrays(): Array<{dataTableName: string, dataArrayName: string}> {
+        let result = new Array<{dataTableName: string, dataArrayName: string}>();
+        this.dataArrayCheckBoxes
+            .filter(checkbox => checkbox.checked)
+            .forEach(checkbox => result.push({
+                dataTableName: checkbox["dataTable"].name,
+                dataArrayName: checkbox["dataArray"].name
+            }));
+        return result;
     }
 }

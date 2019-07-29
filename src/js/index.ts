@@ -10,12 +10,13 @@ let inputDescription: HTMLInputElement = null;
 let buttonLoadData: HTMLButtonElement = null;
 let inputLoadData: HTMLInputElement = null;
 let divDataValues: HTMLDivElement = null;
+let buttonSubmit: HTMLButtonElement = null;
+let aStatus: HTMLElement = null;
 
 // globals
 let gSessionInfo: SessionInfo = null;
 let gDataTableList: Array<DataTable> = null;
 let gDataTableSelector: DataTableSelector = null;
-
 
 // buttonLoadDataOnClick
 function buttonLoadDataOnClick(event: MouseEvent) {
@@ -34,6 +35,10 @@ function buttonLoadDataOnClick(event: MouseEvent) {
     inputLoadData.click();
 }
 
+// buttonSubmitOnClick
+function buttonSubmitOnClick(event: MouseEvent) {
+    console.log(gDataTableSelector.getSelectedArrays());
+}
 
 // window.onload
 window.onload = event => {
@@ -44,6 +49,8 @@ window.onload = event => {
     buttonLoadData = document.getElementById("buttonLoadData") as HTMLButtonElement;
     inputLoadData = document.getElementById("inputLoadData") as HTMLInputElement;
     divDataValues = document.getElementById("divDataValues") as HTMLDivElement;
+    buttonSubmit = document.getElementById("buttonSubmit") as HTMLButtonElement;
+    aStatus = document.getElementById("aStatus") as HTMLElement;
     // create global objects
     gSessionInfo = new SessionInfo();
     gSessionInfo.sessionID = Math.random().toString(36).slice(2);
@@ -53,4 +60,5 @@ window.onload = event => {
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events
     buttonLoadData.onclick = event => buttonLoadDataOnClick(event);
+    buttonSubmit.onclick = event => buttonSubmitOnClick(event);
 }
