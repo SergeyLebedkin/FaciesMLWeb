@@ -16,7 +16,7 @@ export class SessionInfo {
         this.description = "";
     }
 
-    // postSession
+    // postDataArrays
     public postDataArrays(dataArray: Array<DataArray>): Promise<string> {
         return new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
@@ -33,8 +33,8 @@ export class SessionInfo {
                 }
             };
             xhr.onerror = event => {
-                console.log("postSession onerror " + xhr.responseText);
-                reject("postSession onerror " + xhr.responseText);
+                console.log("postDataArrays onerror " + xhr.responseText);
+                reject("postDataArrays onerror " + xhr.responseText);
             };
             // generate request data
             let data = JSON.stringify({
