@@ -1,7 +1,8 @@
 import { SessionInfo } from "./FaciesML/Types/SessionInfo"
 import { DataTable } from "./FaciesML/Types/DataTable"
 import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
-import { PlotLayout } from "./FaciesML/Components/PlotLayout";
+import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
+import { LayoutInfo } from "./FaciesML/Types/LayoutInfo";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -19,7 +20,8 @@ let divPlotsPanel: HTMLDivElement = null;
 // globals
 let gSessionInfo: SessionInfo = null;
 let gDataTableList: Array<DataTable> = null;
-let gPlotLayoutList: Array<PlotLayout> = null;
+let gLayoutInfoList: Array<LayoutInfo> = null;
+let gLayoutInfoEditor: LayoutInfoEditor = null;
 let gDataTableSelector: DataTableSelector = null;
 
 // buttonLoadDataOnClick
@@ -30,18 +32,6 @@ function buttonLoadDataOnClick(event: MouseEvent) {
         for (let file of files) {
             let dataTable = new DataTable();
             dataTable.onloadFileData = dataTable => {
-                // create plot layout
-                let plotLayout = new PlotLayout(dataTable.name);
-                gPlotLayoutList.push(plotLayout);
-
-                // create new tab button
-                let buttonTab = document.createElement("button");
-                buttonTab.innerText = dataTable.name;
-                buttonTab.className = "tab-button";
-                buttonTab["dataTable"] = dataTable;
-                buttonTab["plotLayout"] = plotLayout;
-                divTabPanelLayots.appendChild(buttonTab);
-                
                 // update selector
                 gDataTableList.push(dataTable);
                 gDataTableSelector.update();
@@ -52,18 +42,26 @@ function buttonLoadDataOnClick(event: MouseEvent) {
     inputLoadData.click();
 }
 
+// buttonTabOnClick
+function buttonTabOnClick(event: MouseEvent) {
+    gLayoutInfoEditor.setLayoutInfo(event.target["layoutInfo"]);
+}
+
 // buttonDrawPlotsOnClick
 function buttonDrawPlotsOnClick(event: MouseEvent) {
-    for(let dataTable of gDataTableList) {
-        if (dataTable.isAnyChecked()) {
-            let plotLayout = gPlotLayoutList.find(pl => pl.name = dataTable.name);
-            if (plotLayout) {
-                plotLayout.addPlots(dataTable.data[0].values, dataTable.getCheched());
-                clearChilds(divPlotsPanel);
-                plotLayout.draw(divPlotsPanel);
-            }
-        }
+    let layoutInfos = gDataTableSelector.createLayoutInfos();
+    for (let layoutInfo of layoutInfos) {
+        let buttonTab = document.createElement("button");
+        buttonTab.className = "tab-button";
+        buttonTab.innerText = layoutInfo.name;
+        buttonTab["layoutInfo"] = layoutInfo;
+        buttonTab.onclick = buttonTabOnClick;
+        divTabPanelLayots.appendChild(buttonTab);
+        // set current layout info
+        if (gLayoutInfoEditor.layoutInfo === null) 
+            gLayoutInfoEditor.setLayoutInfo(layoutInfo);
     }
+    gDataTableSelector.clearSelections();
 }
 
 // buttonSubmitOnClick
@@ -76,7 +74,7 @@ function buttonSubmitOnClick(event: MouseEvent) {
     aStatus.style.color = "blue";
     aStatus.innerText = "Post SessionID...";
     buttonSubmit.disabled = true;
-    gSessionInfo.postDataArrays(gDataTableList)
+    gSessionInfo.postDataArrays(gLayoutInfoList)
         .then(value => {
             aStatus.style.color = "blue";
             aStatus.innerText = "Post data...";
@@ -101,11 +99,6 @@ function buttonSubmitOnClick(event: MouseEvent) {
 
 // utils
 
-// clearChilds
-function clearChilds(node) {
-    while (node.firstChild) { node.removeChild(node.firstChild); }
-}
-
 // window.onload
 window.onload = event => {
     // get elements - left panel
@@ -125,7 +118,7 @@ window.onload = event => {
     gSessionInfo.sessionID = Math.random().toString(36).slice(2);
     gDataTableList = new Array<DataTable>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
-    gPlotLayoutList = new Array<PlotLayout>();
+    gLayoutInfoEditor = new LayoutInfoEditor(divPlotsPanel);
     // init session
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events

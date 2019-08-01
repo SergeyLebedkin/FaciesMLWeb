@@ -1,4 +1,6 @@
 import { DataTable } from "../Types/DataTable";
+import { LayoutInfo } from "../Types/LayoutInfo";
+import { DataArray } from "../Types/DataArray";
 
 // DataTableSelector
 export class DataTableSelector {
@@ -60,7 +62,6 @@ export class DataTableSelector {
             checkBoxDataTableValue["dataArray"] = dataArray;
             checkBoxDataTableValue["dataTable"] = dataTable;
             checkBoxDataTableValue["dataArrayIndex"] = dataArrayIndex;
-            checkBoxDataTableValue.onchange = event => event.target["dataArray"].checked = event.target["checked"];
             divDataTableValue.appendChild(checkBoxDataTableValue);
             let labelDataTableValue = document.createElement("label");
             labelDataTableValue.htmlFor = checkBoxDataTableValue.name;
@@ -94,7 +95,20 @@ export class DataTableSelector {
     public clearSelections(): void {
         for (let checkbox of this.dataArrayCheckBoxes)
             checkbox.checked = false;
-        for (let dataTable of this.dataTableList)
-            dataTable.clearChecked();
+    }
+
+    // createLayoutInfos
+    public createLayoutInfos(): Array<LayoutInfo> {
+        let layoutInfos = new Array<LayoutInfo>();
+        for (let dataTable of this.dataTableList) {
+            // get selected data arrays for current data atable
+            let dataArrays: Array<DataArray> = this.dataArrayCheckBoxes
+                .filter(checkBox => (checkBox["dataTable"] === dataTable) && (checkBox.checked))
+                .map(checkBox => checkBox["dataArray"]);
+            // create data array
+            if (dataArrays.length > 0)
+                layoutInfos.push(new LayoutInfo(dataTable, dataArrays));
+        }
+        return layoutInfos;
     }
 }

@@ -1,5 +1,6 @@
 import { DataArray } from "./DataArray"
 import { DataTable } from "./DataTable";
+import { LayoutInfo } from "./LayoutInfo";
 
 // base URL
 export const URL = "http://localhost:8084";
@@ -18,7 +19,7 @@ export class SessionInfo {
     }
 
     // postDataArrays
-    public postDataArrays(dataTableList: Array<DataTable>): Promise<string> {
+    public postDataArrays(layoutInfos: Array<LayoutInfo>): Promise<string> {
         return new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
             let url = URL + "/clustering";
@@ -45,23 +46,21 @@ export class SessionInfo {
                 }
             };
             // fill by checked values
-            for (let dataTable of dataTableList) {
-                if (dataTable.isAnyChecked()) {
-                    data.logs[dataTable.name] = {};
-                    for (let dataArray of dataTable.data) {
-                        if (dataArray.checked) {
-                            data.logs[dataTable.name][dataArray.name] = {
-                                "unit": dataArray.unit,
-                                "data": dataArray.values
-                            };
-                        }
+            for (let layoutInfo of layoutInfos) {
+                data.logs[layoutInfo.dataTable.name] = {};
+                for (let dataArray of layoutInfo.dataTable.data) {
+                    if (dataArray.checked) {
+                        data.logs[layoutInfo.dataTable.name][dataArray.name] = {
+                            "unit": dataArray.unit,
+                            "data": dataArray.values
+                        };
                     }
                 }
             }
 
             try {
-                    xhr.send(JSON.stringify(data));
-            } catch(error) {
+                xhr.send(JSON.stringify(data));
+            } catch (error) {
                 console.log("catch", error)
                 reject(error)
             }
