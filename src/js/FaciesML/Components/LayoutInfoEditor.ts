@@ -4,6 +4,8 @@ import { LayoutInfo } from "../Types/LayoutInfo";
 
 const LAYOUT_COLUMN_WIDTH: number = 256;
 const LAYOUT_LEGENT_HEIGHT: number = 100;
+const LAYOUT_AXES_HINT_STEP: number = 100;
+const LAYOUT_AXES_HINT_LENGTH: number = 10;
 
 // LayoutInfoEditor
 export class LayoutInfoEditor {
@@ -43,10 +45,15 @@ export class LayoutInfoEditor {
         this.layoutCanvas.width = (this.layoutInfo.dataArrays.length + 1) * LAYOUT_COLUMN_WIDTH;
         this.layoutCanvas.height = this.layoutInfo.dataTable.data[0].values.length + LAYOUT_LEGENT_HEIGHT;
         this.clearCanvas();
-        this.drawPlot(this.layoutInfo.dataTable.data[0], 0, LAYOUT_LEGENT_HEIGHT);
+        this.drawLegend(0, 0, 
+            this.layoutInfo.dataTable.data[0].name + " (" + this.layoutInfo.dataTable.data[0].unit + ")",
+            this.layoutInfo.dataTable.data[0].min,
+            this.layoutInfo.dataTable.data[0].max);
+        this.drawYAxis(this.layoutInfo.dataTable.data[0], 0, LAYOUT_LEGENT_HEIGHT);
         this.layoutInfo.dataArrays.forEach((dataArray, index) => {
             this.drawLegend((index + 1) * LAYOUT_COLUMN_WIDTH, 0, dataArray.name + " (" + dataArray.unit + ")", dataArray.min, dataArray.max);
-            this.drawPlot(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_LEGENT_HEIGHT);
+            this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_LEGENT_HEIGHT);
+            this.drawPlot(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_LEGENT_HEIGHT, gColorTable[index]);
         });
         this.layoutInfo.dataArrays.forEach((dataArray, index) => {
 
@@ -80,7 +87,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.stroke();
         this.layoutCanvasCtx.textBaseline = "middle";
         this.layoutCanvasCtx.textAlign = "center";
-        this.layoutCanvasCtx.font = "16px Arial";
+        this.layoutCanvasCtx.font = "14px Arial";
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.fillStyle = "black";
         this.layoutCanvasCtx.fillText(name, legendWidth * 0.5, legendHeight * 0.25);
@@ -91,12 +98,16 @@ export class LayoutInfoEditor {
     }
 
     // drawLegend
-    private drawPlot(dataArray: DataArray, x: number, y: number): void {
+    private drawPlot(dataArray: DataArray, x: number, y: number, color: string): void {
         // clear legend canvas
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
-        this.layoutCanvasCtx.lineWidth = 1;
-        this.layoutCanvasCtx.strokeStyle = "#000000";
+        this.layoutCanvasCtx.strokeStyle = "#FFFFFF";
+        this.layoutCanvasCtx.strokeRect(0, 0, LAYOUT_COLUMN_WIDTH, dataArray.values.length);
+        this.layoutCanvasCtx.closePath();
+        this.layoutCanvasCtx.beginPath();
+        this.layoutCanvasCtx.lineWidth = 2;
+        this.layoutCanvasCtx.strokeStyle = color;
         this.layoutCanvasCtx.moveTo((dataArray.values[0] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH, 0);
         for (let i = 1; i < dataArray.values.length; i++) {
             let xPoint = (dataArray.values[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
@@ -114,15 +125,49 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
-        this.layoutCanvasCtx.strokeStyle = "#FFFFFF";
-        this.layoutCanvasCtx.moveTo((dataArray.values[0] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH, 0);
-        for (let i = 1; i < dataArray.values.length; i++) {
-            let xPoint = (dataArray.values[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
-            let yPoint = i;
-            this.layoutCanvasCtx.lineTo(xPoint, yPoint);
+        this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
+        for (let i = LAYOUT_AXES_HINT_STEP; i < dataArray.values.length; i += LAYOUT_AXES_HINT_STEP) {
+            this.layoutCanvasCtx.textBaseline = "middle";
+            this.layoutCanvasCtx.textAlign = "center";
+            this.layoutCanvasCtx.font = "24px Arial";
+            this.layoutCanvasCtx.strokeStyle = "BBBBBB";
+            this.layoutCanvasCtx.fillStyle = "black";
+            this.layoutCanvasCtx.fillText(dataArray.values[i].toString(), LAYOUT_COLUMN_WIDTH * 0.5, i);
+            this.layoutCanvasCtx.moveTo(0, i);
+            this.layoutCanvasCtx.lineTo(0 + LAYOUT_AXES_HINT_LENGTH, i);
+            this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH - LAYOUT_AXES_HINT_LENGTH, i);
+            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
+        }
+        this.layoutCanvasCtx.stroke();
+        this.layoutCanvasCtx.closePath();
+        this.layoutCanvasCtx.translate(-x, -y);
+    }
+
+    // drawGrid
+    private drawGrid(dataArray: DataArray, x: number, y: number): void {
+        // clear legend canvas
+        this.layoutCanvasCtx.translate(x, y);
+        this.layoutCanvasCtx.beginPath();
+        this.layoutCanvasCtx.lineWidth = 1;
+        this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
+        this.layoutCanvasCtx.moveTo(0, 0);
+        this.layoutCanvasCtx.lineTo(0, dataArray.values.length);
+        this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH, 0);
+        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataArray.values.length);
+        for (let i = LAYOUT_AXES_HINT_STEP; i < dataArray.values.length; i += LAYOUT_AXES_HINT_STEP) {
+            this.layoutCanvasCtx.moveTo(0, i);
+            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
         }
         this.layoutCanvasCtx.stroke();
         this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
 }
+
+let gColorTable: string[] = [
+    "blue", "red", "green", "orange",
+    "#B0187B","#8B7DA3", "#A545BB","#C7A248",
+    "#39F992","#324CF7", "#D04D5E","#1E88E6",
+    "#92BFB3","#858D1A", "#92E877","#1FDFD9",
+    "#DD7488","#9DACBB", "#934591","#FC9AA4",
+];
