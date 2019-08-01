@@ -16,4 +16,9 @@ export class DataArray {
         this.checked = false;
         this.values = [];
     }
+
+    // getCaption
+    public getCaption(): string {
+        return this.name + "(" + this.unit + ")" + "[" + this.min + ":" + this.max + "]";
+    }
 };

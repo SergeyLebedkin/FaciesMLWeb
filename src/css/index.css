@@ -1,7 +1,8 @@
 html, body {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: 100%;
+    max-height: 100%;
     width: 100%;
     margin: 0px;
     padding: 0px;
@@ -12,6 +13,8 @@ html, body {
     flex-grow: 1;
     display: flex;
     flex-direction: row;
+    min-height: 100%;
+    max-height: 100%;
 }
 
 .left-panel {
@@ -43,11 +46,9 @@ html, body {
 }
 
 .plots-panel {
-    display: flex;
-    flex-direction: row;
+    display: block;
     background: black;
     color: white;
-    height: 100%;
     overflow: auto;
 }
 
@@ -88,6 +89,54 @@ html, body {
 }
 
 .left-panel-button:disabled {
+    background-color: #aaaaaa;
+}
+
+.left-panel-button-sm {
+    display: block;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 4px 4px;
+    background-color: #333333;
+    border-radius: 5px;
+    width: 100%;
+}
+
+.left-panel-button-sm:hover {
+    background-color: #ff0000;
+}
+
+.left-panel-button-sm:active {
+    background-color: #ff2222;
+}
+
+.left-panel-button-sm:disabled {
+    background-color: #aaaaaa;
+}
+
+.tab-button {
+    display: block;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 4px 4px;
+    background-color: #333333;
+    border-radius: 5px;
+    min-width: 100px;
+}
+
+.tab-button:hover {
+    background-color: #ff0000;
+}
+
+.tab-button:active {
+    background-color: #ff2222;
+}
+
+.tab-button:disabled {
     background-color: #aaaaaa;
 }
 

@@ -64,8 +64,17 @@ export class DataTableSelector {
             divDataTableValue.appendChild(checkBoxDataTableValue);
             let labelDataTableValue = document.createElement("label");
             labelDataTableValue.htmlFor = checkBoxDataTableValue.name;
-            labelDataTableValue.innerText = dataArray.name + "(" + dataArray.unit + ")" + "[" + dataArray.min + ":" + dataArray.max + "]";
+            labelDataTableValue.innerText = dataArray.getCaption();
             labelDataTableValue.style.whiteSpace = "nowrap";
+            labelDataTableValue["dataArray"] = dataArray;
+            labelDataTableValue["dataTable"] = dataTable;
+            labelDataTableValue.ondblclick = event => {
+                let newName = prompt("Enter new name", event.target["dataArray"].name);
+                if (newName) {
+                    event.target["dataArray"].name = newName;
+                    event.target["innerText"] = event.target["dataArray"].getCaption();
+                }
+            }
             divDataTableValue.appendChild(labelDataTableValue);
             divDataTableValues.appendChild(divDataTableValue);
             this.dataArrayCheckBoxes.push(checkBoxDataTableValue);

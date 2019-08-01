@@ -39,6 +39,11 @@
             <div class="bordered-panel">
                 <div id="divDataValues" class="divDataValues"></div>
             </div>
+            <!-- Drawing -->
+            <div class="menu-item-title">Drawing</div>
+            <div class="bordered-panel">
+                <button class="left-panel-button-sm" id="buttonDrawPlots">Draw plots</button>
+            </div>
             <!-- Submit -->
             <div class="menu-item-title">Submit</div>
             <div class="bordered-panel">
@@ -48,13 +53,11 @@
             </div>
         </div>
         <div class="center-panel">
-            <div class="tab-panel">
-                <button>tab 0</button>
-                <button>tab 1</button>
-                <button>tab 3</button>
+            <div id="divTabPanelLayots" class="tab-panel">
+                <button class="tab-button" id="buttonTabAll">All</button>
             </div>
-            <div class="plots-panel">
-                This is a main plot panel
+            <div id="divPlotsPanel" class="plots-panel">
+                <canvas style="border: 4px solid green; width: 2000px; height: 1000px"></canvas>
             </div>
         </div>
     </div>

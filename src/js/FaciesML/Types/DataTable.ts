@@ -21,6 +21,16 @@ export class DataTable {
             dataArray.checked = false;
     }
 
+    // isChecked
+    public isAnyChecked(): boolean {
+        return this.data.findIndex(daraArray => daraArray.checked) >= 0;
+    }
+
+    // isChecked
+    public getCheched(): Array<DataArray> {
+        return this.data.filter(daraArray => daraArray.checked);
+    }
+
     // loadFromFile
     public loadFromFile(file: File) {
         // check for null
