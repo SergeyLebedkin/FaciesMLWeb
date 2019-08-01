@@ -9,8 +9,12 @@ export class LayoutInfo {
     public dataArrays: Array<DataArray> = null;
     // constructor
     constructor(dataTable: DataTable, dataArrays: Array<DataArray>) {
+        // set data
         this.dataTable = dataTable;
         this.dataArrays = dataArrays;
-        dataArrays.forEach(dataArray => this.name += dataArray.name + ",");
+        // create some name
+        this.name = "";
+        for (let dataArray of this.dataArrays)
+            this.name += dataArray.name + ",";
     }
 }
