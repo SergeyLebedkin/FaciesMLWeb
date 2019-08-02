@@ -119,6 +119,10 @@ window.onload = event => {
     gDataTableList = new Array<DataTable>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotsPanel);
+    // center panel events
+    divPlotsPanel.onmouseup = event => gLayoutInfoEditor.onMouseUp(event);
+    divPlotsPanel.onmousemove = event => gLayoutInfoEditor.onMouseMove(event);
+    divPlotsPanel.onmousedown = event => gLayoutInfoEditor.onMouseDown(event);
     // init session
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events

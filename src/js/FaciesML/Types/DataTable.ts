@@ -5,7 +5,8 @@ export class DataTable {
     // fileds
     public fileRef: File = null;
     public name: string = "";
-    public data: Array<DataArray> = [];
+    public data: Array<DataArray> = null;
+    public selections: Array<number> = null;
     // events
     public onloadFileData: (this: DataTable, dataTable: DataTable) => any = null;
     // constructor
@@ -13,6 +14,7 @@ export class DataTable {
         this.fileRef = null;
         this.name = "";
         this.data = [];
+        this.selections = [];
     }
 
     // loadFromFile
@@ -81,5 +83,7 @@ export class DataTable {
             dataArray.min = minValue;
             dataArray.max = maxValue;
         })
+        this.selections.length = this.data[0].values.length;
+        this.selections.fill(0);
     }
 };
