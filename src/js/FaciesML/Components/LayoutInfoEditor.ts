@@ -53,7 +53,6 @@ export class LayoutInfoEditor {
             // fill selections array
             this.layoutInfo.dataTable.selections.fill(1, this.selectionStart, this.selectionEnd);
             this.selectionStarted = false;
-            console.log(this.layoutInfo.dataTable.selections);
             // redraw stuff
             this.drawLayoutInfo();
         }
@@ -132,7 +131,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.globalAlpha = 0.85;
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
-        this.layoutCanvasCtx.strokeStyle = "#AAAAAA";
+        this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
         for (let i = 0; i < this.layoutInfo.dataTable.selections.length; i++) {
             if (this.layoutInfo.dataTable.selections[i] > 0) {
                 this.layoutCanvasCtx.moveTo(0, i + LAYOUT_LEGENT_HEIGHT);

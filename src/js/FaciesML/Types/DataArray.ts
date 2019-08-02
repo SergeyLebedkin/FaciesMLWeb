@@ -5,7 +5,6 @@ export class DataArray {
     public unit: string = "";
     public min: number = 0;
     public max: number = 0;
-    public checked: boolean = false;
     public values: Array<number> = [];
     // constructor
     constructor() {
@@ -13,7 +12,6 @@ export class DataArray {
         this.unit = "";
         this.min = 0;
         this.max = 0;
-        this.checked = false;
         this.values = [];
     }
 

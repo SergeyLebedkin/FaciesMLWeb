@@ -19,7 +19,7 @@ export class SessionInfo {
     }
 
     // postDataArrays
-    public postDataArrays(layoutInfos: Array<LayoutInfo>): Promise<string> {
+    public postDataArrays(layoutInfo: LayoutInfo): Promise<string> {
         return new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
             let url = URL + "/clustering";
@@ -42,21 +42,10 @@ export class SessionInfo {
             let data = {
                 "session_id": this.sessionID,
                 "sensitivity": 0.1,
-                "logs": {
-                }
+                "logs": {}
             };
-            // fill by checked values
-            for (let layoutInfo of layoutInfos) {
-                data.logs[layoutInfo.dataTable.name] = {};
-                for (let dataArray of layoutInfo.dataTable.data) {
-                    if (dataArray.checked) {
-                        data.logs[layoutInfo.dataTable.name][dataArray.name] = {
-                            "unit": dataArray.unit,
-                            "data": dataArray.values
-                        };
-                    }
-                }
-            }
+            data.logs[layoutInfo.dataTable.name] = layoutInfo.getJSON();
+            console.log(data);
 
             try {
                 xhr.send(JSON.stringify(data));

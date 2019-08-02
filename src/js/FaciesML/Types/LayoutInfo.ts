@@ -17,4 +17,33 @@ export class LayoutInfo {
         for (let dataArray of this.dataArrays)
             this.name += dataArray.name + ",";
     }
+
+    public getJSON(): object {
+        // create selection data
+        let selectionsData = this.dataTable.selections;
+        if (selectionsData.findIndex(val => val > 0) < 0) {
+            selectionsData = [];
+            selectionsData.length = this.dataTable.selections.length;
+            selectionsData.fill(1);
+        }
+        // selection data node
+        let json = {
+            "Depth": {
+                "unit": this.dataTable.data[0].unit,
+                "data": this.dataTable.data[0].values
+            },
+            "selections": {
+                "unit": "",
+                "data": selectionsData
+            }
+        }
+        // data array node
+        for (let dataArray of this.dataArrays) {
+            json[dataArray.name] = {
+                "unit": dataArray.unit,
+                "data": dataArray.values
+            };
+        };
+        return json;
+    }
 }

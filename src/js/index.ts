@@ -66,6 +66,7 @@ function buttonDrawPlotsOnClick(event: MouseEvent) {
 
 // buttonSubmitOnClick
 function buttonSubmitOnClick(event: MouseEvent) {
+    if (gLayoutInfoEditor.layoutInfo === null) return;
     let timeoutServerWait = setTimeout(() => {
         aStatus.style.color = "red";
         aStatus.innerText = "Server timeout...";
@@ -74,7 +75,7 @@ function buttonSubmitOnClick(event: MouseEvent) {
     aStatus.style.color = "blue";
     aStatus.innerText = "Post SessionID...";
     buttonSubmit.disabled = true;
-    gSessionInfo.postDataArrays(gLayoutInfoList)
+    gSessionInfo.postDataArrays(gLayoutInfoEditor.layoutInfo)
         .then(value => {
             aStatus.style.color = "blue";
             aStatus.innerText = "Post data...";
