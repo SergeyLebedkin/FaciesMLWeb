@@ -3,8 +3,9 @@ import { DataArray } from "../Types/DataArray";
 import { LayoutInfo } from "../Types/LayoutInfo";
 import { SelectionMode } from "../Types/SelectionMode";
 
+const LAYOUT_HEADER_HEIGHT: number = 30;
+const LAYOUT_LEGENT_HEIGHT: number = 60;
 const LAYOUT_COLUMN_WIDTH: number = 200;
-const LAYOUT_LEGENT_HEIGHT: number = 100;
 const LAYOUT_AXES_HINT_STEP: number = 100;
 const LAYOUT_AXES_HINT_LENGTH: number = 10;
 
@@ -16,6 +17,7 @@ export class LayoutInfoEditor {
     public layoutInfo: LayoutInfo = null;
     public layoutScale: number = 1.0;
     // selection
+    private selectionOffset = 0;
     private selectionStarted: boolean = false;
     private selectionMode: SelectionMode = SelectionMode.ADD;
     private selectionStart: number = null;
@@ -33,6 +35,7 @@ export class LayoutInfoEditor {
         // selection
         this.selectionStarted = false;
         this.selectionMode = SelectionMode.ADD;
+        this.selectionOffset = LAYOUT_HEADER_HEIGHT + LAYOUT_LEGENT_HEIGHT;
         this.selectionStart = 0;
         this.selectionEnd = 0;
         // create image canvas
@@ -41,6 +44,7 @@ export class LayoutInfoEditor {
         this.layoutCanvas.onmousemove = this.onMouseMove.bind(this);
         this.layoutCanvas.onmousedown = this.onMouseDown.bind(this);
         this.layoutCanvas.style.border = "1px solid orange";
+        this.layoutCanvas.style.cursor = "row-resize";
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parent.appendChild(this.layoutCanvas);
     }
@@ -75,7 +79,7 @@ export class LayoutInfoEditor {
             // get mouse coords
             let mouseCoords = getMousePosByElement(this.layoutCanvas, event);
             // update selection region width and height
-            this.selectionEnd = mouseCoords.y - LAYOUT_LEGENT_HEIGHT;
+            this.selectionEnd = mouseCoords.y - this.selectionOffset;
             // redraw stuff
             this.drawLayoutInfo();
             this.drawSelectionRange();
@@ -91,8 +95,8 @@ export class LayoutInfoEditor {
             // start selection
             this.selectionStarted = true;
             // check selection mode and set color
-            this.selectionStart = mouseCoords.y - LAYOUT_LEGENT_HEIGHT;
-            this.selectionEnd = mouseCoords.y - LAYOUT_LEGENT_HEIGHT;
+            this.selectionStart = mouseCoords.y - this.selectionOffset;
+            this.selectionEnd = mouseCoords.y - this.selectionOffset;
         };
     }
 
@@ -114,21 +118,23 @@ export class LayoutInfoEditor {
     // drawLayoutInfo
     public drawLayoutInfo(): void {
         this.layoutCanvas.width = (this.layoutInfo.dataArrays.length + 1) * LAYOUT_COLUMN_WIDTH;
-        this.layoutCanvas.height = this.layoutInfo.dataTable.data[0].values.length + LAYOUT_LEGENT_HEIGHT;
+        this.layoutCanvas.height = this.layoutInfo.dataTable.data[0].values.length + LAYOUT_HEADER_HEIGHT + LAYOUT_LEGENT_HEIGHT;
         this.clearCanvas();
         // draw data ranges
-        this.drawLayoutInfoSelections();
+        this.drawLayoutInfoSelections(this.selectionOffset);
+        // draw header
+        this.drawHeader(0, 0);
         // draw base axes
-        this.drawLegend(0, 0,
+        this.drawLegend(0, LAYOUT_HEADER_HEIGHT,
             this.layoutInfo.dataTable.data[0].name + " (" + this.layoutInfo.dataTable.data[0].unit + ")",
             this.layoutInfo.dataTable.data[0].min,
             this.layoutInfo.dataTable.data[0].max);
-        this.drawYAxis(this.layoutInfo.dataTable.data[0], 0, LAYOUT_LEGENT_HEIGHT);
+        this.drawYAxis(this.layoutInfo.dataTable.data[0], 0, this.selectionOffset);
         // draw selected data arrays
         this.layoutInfo.dataArrays.forEach((dataArray, index) => {
-            this.drawLegend((index + 1) * LAYOUT_COLUMN_WIDTH, 0, dataArray.name + " (" + dataArray.unit + ")", dataArray.min, dataArray.max);
-            this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_LEGENT_HEIGHT);
-            this.drawPlot(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_LEGENT_HEIGHT, gColorTable[index]);
+            this.drawLegend((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name + " (" + dataArray.unit + ")", dataArray.min, dataArray.max);
+            this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+            this.drawPlot(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset, gColorTable[index]);
         });
     }
 
@@ -142,21 +148,21 @@ export class LayoutInfoEditor {
                 this.layoutCanvasCtx.globalAlpha = 0.60;
                 this.layoutCanvasCtx.fillStyle = "#DD0000";
             }
-            this.layoutCanvasCtx.fillRect(0, this.selectionStart + LAYOUT_LEGENT_HEIGHT, this.layoutCanvas.width, this.selectionEnd - this.selectionStart);
+            this.layoutCanvasCtx.fillRect(0, this.selectionStart + this.selectionOffset, this.layoutCanvas.width, this.selectionEnd - this.selectionStart);
             this.layoutCanvasCtx.globalAlpha = 1.0;
         }
     }
 
     // drawDataRanges
-    private drawLayoutInfoSelections() {
-        this.layoutCanvasCtx.globalAlpha = 0.85;
+    private drawLayoutInfoSelections(offsetY: number) {
+        this.layoutCanvasCtx.globalAlpha = 1;
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
-        this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
+        this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         for (let i = 0; i < this.layoutInfo.dataTable.selections.length; i++) {
             if (this.layoutInfo.dataTable.selections[i] > 0) {
-                this.layoutCanvasCtx.moveTo(0, i + LAYOUT_LEGENT_HEIGHT);
-                this.layoutCanvasCtx.lineTo(this.layoutCanvas.width, i + LAYOUT_LEGENT_HEIGHT);
+                this.layoutCanvasCtx.moveTo(0, i + offsetY);
+                this.layoutCanvasCtx.lineTo(this.layoutCanvas.width, i + offsetY);
             }
         }
         this.layoutCanvasCtx.stroke();
@@ -205,10 +211,6 @@ export class LayoutInfoEditor {
     private drawPlot(dataArray: DataArray, x: number, y: number, color: string): void {
         // clear legend canvas
         this.layoutCanvasCtx.translate(x, y);
-        // this.layoutCanvasCtx.beginPath();
-        // this.layoutCanvasCtx.strokeStyle = "#FFFFFF";
-        // this.layoutCanvasCtx.strokeRect(0, 0, LAYOUT_COLUMN_WIDTH, dataArray.values.length);
-        // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = color;
@@ -219,6 +221,26 @@ export class LayoutInfoEditor {
             this.layoutCanvasCtx.lineTo(xPoint, yPoint);
         }
         this.layoutCanvasCtx.stroke();
+        this.layoutCanvasCtx.closePath();
+        this.layoutCanvasCtx.translate(-x, -y);
+    }
+
+    // drawHeader
+    private drawHeader(x: number, y: number): void {
+        // clear legend canvas
+        this.layoutCanvasCtx.translate(x, y);
+        this.layoutCanvasCtx.beginPath();
+        this.layoutCanvasCtx.fillStyle = "white";
+        this.layoutCanvasCtx.fillRect(0, 0, this.layoutCanvas.width, LAYOUT_HEADER_HEIGHT);
+        this.layoutCanvasCtx.strokeStyle = "black";
+        this.layoutCanvasCtx.rect(0, 0, this.layoutCanvas.width, LAYOUT_HEADER_HEIGHT);
+        this.layoutCanvasCtx.stroke();
+        this.layoutCanvasCtx.textBaseline = "middle";
+        this.layoutCanvasCtx.textAlign = "center";
+        this.layoutCanvasCtx.font = "14px Arial";
+        this.layoutCanvasCtx.strokeStyle = "black";
+        this.layoutCanvasCtx.fillStyle = "black";
+        this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.name, this.layoutCanvas.width / 2, LAYOUT_HEADER_HEIGHT / 2);
         this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
