@@ -1,6 +1,7 @@
 import { DataTable } from "../Types/DataTable";
 import { DataArray } from "../Types/DataArray";
 import { LayoutInfo } from "../Types/LayoutInfo";
+import { SelectionMode } from "../Types/SelectionMode";
 
 const LAYOUT_COLUMN_WIDTH: number = 200;
 const LAYOUT_LEGENT_HEIGHT: number = 100;
@@ -16,6 +17,7 @@ export class LayoutInfoEditor {
     public layoutScale: number = 1.0;
     // selection
     private selectionStarted: boolean = false;
+    private selectionMode: SelectionMode = SelectionMode.ADD;
     private selectionStart: number = null;
     private selectionEnd: number = null;
     // main canvas
@@ -30,6 +32,7 @@ export class LayoutInfoEditor {
         this.layoutScale = 1.0;
         // selection
         this.selectionStarted = false;
+        this.selectionMode = SelectionMode.ADD;
         this.selectionStart = 0;
         this.selectionEnd = 0;
         // create image canvas
@@ -51,7 +54,11 @@ export class LayoutInfoEditor {
             if (this.selectionStart > this.selectionEnd)
                 [this.selectionStart, this.selectionEnd] = [this.selectionEnd, this.selectionStart];
             // fill selections array
-            this.layoutInfo.dataTable.selections.fill(1, this.selectionStart, this.selectionEnd);
+            if (this.selectionMode === SelectionMode.ADD) {
+                this.layoutInfo.dataTable.selections.fill(1, this.selectionStart, this.selectionEnd);
+            } else if (this.selectionMode === SelectionMode.REMOVE) {
+                this.layoutInfo.dataTable.selections.fill(0, this.selectionStart, this.selectionEnd);
+            }
             this.selectionStarted = false;
             // redraw stuff
             this.drawLayoutInfo();
@@ -95,6 +102,12 @@ export class LayoutInfoEditor {
         }
     }
 
+    // setSelectionMode
+    public setSelectionMode(selectionMode: SelectionMode): void {
+        this.selectionMode = selectionMode;
+        this.drawLayoutInfo();
+    }
+
     // drawLayoutInfo
     public drawLayoutInfo(): void {
         this.layoutCanvas.width = (this.layoutInfo.dataArrays.length + 1) * LAYOUT_COLUMN_WIDTH;
@@ -119,8 +132,13 @@ export class LayoutInfoEditor {
     // drawSelectionRange
     private drawSelectionRange() {
         if (this.selectionStarted) {
-            this.layoutCanvasCtx.globalAlpha = 0.85;
-            this.layoutCanvasCtx.fillStyle = "#DDDDDD";
+            if (this.selectionMode === SelectionMode.ADD) {
+                this.layoutCanvasCtx.globalAlpha = 0.85;
+                this.layoutCanvasCtx.fillStyle = "#DDDDDD";
+            } else if (this.selectionMode === SelectionMode.REMOVE) {
+                this.layoutCanvasCtx.globalAlpha = 0.60;
+                this.layoutCanvasCtx.fillStyle = "#DD0000";
+            }
             this.layoutCanvasCtx.fillRect(0, this.selectionStart + LAYOUT_LEGENT_HEIGHT, this.layoutCanvas.width, this.selectionEnd - this.selectionStart);
             this.layoutCanvasCtx.globalAlpha = 1.0;
         }

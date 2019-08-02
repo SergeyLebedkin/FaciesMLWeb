@@ -3,6 +3,7 @@ import { DataTable } from "./FaciesML/Types/DataTable"
 import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { LayoutInfo } from "./FaciesML/Types/LayoutInfo";
+import { SelectionMode } from "./FaciesML/Types/SelectionMode";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -11,7 +12,8 @@ let inputDescription: HTMLInputElement = null;
 let buttonLoadData: HTMLButtonElement = null;
 let inputLoadData: HTMLInputElement = null;
 let divDataValues: HTMLDivElement = null;
-let button: HTMLButtonElement = null;
+let radioSelectionModeAdd: HTMLInputElement = null;
+let radioSelectionModeRemove: HTMLInputElement = null;
 let buttonDrawPlots: HTMLButtonElement = null;
 let buttonSubmit: HTMLButtonElement = null;
 let aStatus: HTMLElement = null;
@@ -20,7 +22,6 @@ let divPlotsPanel: HTMLDivElement = null;
 // globals
 let gSessionInfo: SessionInfo = null;
 let gDataTableList: Array<DataTable> = null;
-let gLayoutInfoList: Array<LayoutInfo> = null;
 let gLayoutInfoEditor: LayoutInfoEditor = null;
 let gDataTableSelector: DataTableSelector = null;
 
@@ -109,6 +110,8 @@ window.onload = event => {
     buttonLoadData = document.getElementById("buttonLoadData") as HTMLButtonElement;
     inputLoadData = document.getElementById("inputLoadData") as HTMLInputElement;
     divDataValues = document.getElementById("divDataValues") as HTMLDivElement;
+    radioSelectionModeAdd = document.getElementById("radioSelectionModeAdd") as HTMLInputElement;
+    radioSelectionModeRemove = document.getElementById("radioSelectionModeRemove") as HTMLInputElement;
     buttonDrawPlots = document.getElementById("buttonDrawPlots") as HTMLButtonElement;
     buttonSubmit = document.getElementById("buttonSubmit") as HTMLButtonElement;
     aStatus = document.getElementById("aStatus") as HTMLElement;
@@ -128,6 +131,8 @@ window.onload = event => {
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events
     buttonLoadData.onclick = event => buttonLoadDataOnClick(event);
+    radioSelectionModeAdd.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.ADD);
+    radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
     buttonDrawPlots.onclick = event => buttonDrawPlotsOnClick(event);
     buttonSubmit.onclick = event => buttonSubmitOnClick(event);
 }
