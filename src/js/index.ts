@@ -59,8 +59,10 @@ function buttonDrawPlotsOnClick(event: MouseEvent) {
         buttonTab.onclick = buttonTabOnClick;
         divTabPanelLayots.appendChild(buttonTab);
         // set current layout info
-        if (gLayoutInfoEditor.layoutInfo === null) 
+        if (gLayoutInfoEditor.layoutInfo === null) {
             gLayoutInfoEditor.setLayoutInfo(layoutInfo);
+            buttonSubmit.disabled = false;
+        }
     }
     gDataTableSelector.clearSelections();
 }
@@ -124,9 +126,6 @@ window.onload = event => {
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotsPanel);
     // center panel events
-    divPlotsPanel.onmouseup = event => gLayoutInfoEditor.onMouseUp(event);
-    divPlotsPanel.onmousemove = event => gLayoutInfoEditor.onMouseMove(event);
-    divPlotsPanel.onmousedown = event => gLayoutInfoEditor.onMouseDown(event);
     // init session
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events
@@ -135,4 +134,5 @@ window.onload = event => {
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
     buttonDrawPlots.onclick = event => buttonDrawPlotsOnClick(event);
     buttonSubmit.onclick = event => buttonSubmitOnClick(event);
+    buttonSubmit.disabled = true;
 }

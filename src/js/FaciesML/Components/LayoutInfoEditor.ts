@@ -37,6 +37,9 @@ export class LayoutInfoEditor {
         this.selectionEnd = 0;
         // create image canvas
         this.layoutCanvas = document.createElement("canvas");
+        this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
+        this.layoutCanvas.onmousemove = this.onMouseMove.bind(this);
+        this.layoutCanvas.onmousedown = this.onMouseDown.bind(this);
         this.layoutCanvas.style.border = "1px solid orange";
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parent.appendChild(this.layoutCanvas);
