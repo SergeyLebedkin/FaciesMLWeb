@@ -1,4 +1,3 @@
-import { DataTable } from "../Types/DataTable";
 import { DataArray } from "../Types/DataArray";
 import { LayoutInfo } from "../Types/LayoutInfo";
 import { SelectionMode } from "../Types/SelectionMode";
@@ -7,7 +6,7 @@ const LAYOUT_HEADER_HEIGHT: number = 30;
 const LAYOUT_LEGENT_HEIGHT: number = 60;
 const LAYOUT_COLUMN_WIDTH: number = 200;
 const LAYOUT_AXES_HINT_STEP: number = 100;
-const LAYOUT_AXES_HINT_LENGTH: number = 10;
+const LAYOUT_AXES_HINT_LENGTH: number = 30;
 
 // LayoutInfoEditor
 export class LayoutInfoEditor {
