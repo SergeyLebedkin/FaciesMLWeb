@@ -59,10 +59,8 @@ function buttonDrawPlotsOnClick(event: MouseEvent) {
         buttonTab.onclick = buttonTabOnClick;
         divTabPanelLayots.appendChild(buttonTab);
         // set current layout info
-        if (gLayoutInfoEditor.layoutInfo === null) {
-            gLayoutInfoEditor.setLayoutInfo(layoutInfo);
-            buttonSubmit.disabled = false;
-        }
+        gLayoutInfoEditor.setLayoutInfo(layoutInfo);
+        buttonSubmit.disabled = false;
     }
     gDataTableSelector.clearSelections();
 }
