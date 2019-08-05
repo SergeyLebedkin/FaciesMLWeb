@@ -1,10 +1,10 @@
-import { DataArray } from "../Types/DataArray";
+import { DataArray, DataArrayType } from "../Types/DataArray";
 import { LayoutInfo } from "../Types/LayoutInfo";
 import { SelectionMode } from "../Types/SelectionMode";
 
 const LAYOUT_HEADER_HEIGHT: number = 30;
 const LAYOUT_LEGENT_HEIGHT: number = 60;
-const LAYOUT_COLUMN_WIDTH: number = 200;
+const LAYOUT_COLUMN_WIDTH: number = 150;
 const LAYOUT_AXES_HINT_STEP: number = 100;
 const LAYOUT_AXES_HINT_LENGTH: number = 30;
 
@@ -118,6 +118,7 @@ export class LayoutInfoEditor {
     public drawLayoutInfo(): void {
         this.layoutCanvas.width = (this.layoutInfo.dataArrays.length + 1) * LAYOUT_COLUMN_WIDTH;
         this.layoutCanvas.height = this.layoutInfo.dataTable.data[0].values.length + LAYOUT_HEADER_HEIGHT + LAYOUT_LEGENT_HEIGHT;
+        this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.clearCanvas();
         // draw data ranges
         this.drawLayoutInfoSelections(this.selectionOffset);
@@ -131,9 +132,15 @@ export class LayoutInfoEditor {
         this.drawYAxis(this.layoutInfo.dataTable.data[0], 0, this.selectionOffset);
         // draw selected data arrays
         this.layoutInfo.dataArrays.forEach((dataArray, index) => {
-            this.drawLegend((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name + " (" + dataArray.unit + ")", dataArray.min, dataArray.max);
-            this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
-            this.drawPlot(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset, gColorTable[index]);
+            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUE) {
+                this.drawLegend((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name + " (" + dataArray.unit + ")", dataArray.min, dataArray.max);
+                this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+                this.drawPlot(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset, gColorTable[index]);
+            }
+            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_FACIE) {
+                this.drawLegendFacie((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name);
+                this.drawFacies(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+            }
         });
     }
 
@@ -165,17 +172,18 @@ export class LayoutInfoEditor {
             }
         }
         this.layoutCanvasCtx.stroke();
-        this.layoutCanvasCtx.closePath();
+        // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.globalAlpha = 1.0;
     }
 
     // clearCanvas
     private clearCanvas() {
         this.layoutCanvasCtx.beginPath();
+        this.layoutCanvasCtx.globalAlpha = 1.0;
         this.layoutCanvasCtx.fillStyle = "white";
         this.layoutCanvasCtx.fillRect(0, 0, this.layoutCanvas.width, this.layoutCanvas.height);
         this.layoutCanvasCtx.stroke();
-        this.layoutCanvasCtx.closePath();
+        // this.layoutCanvasCtx.closePath();
     }
 
     // drawLegend
@@ -192,7 +200,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.rect(0, 0, legendWidth, legendHeight);
         this.layoutCanvasCtx.rect(0, legendHeight * 0.5, legendWidth * 0.5, legendHeight * 0.5);
-        this.layoutCanvasCtx.rect(legendWidth * 0.5, legendHeight * 0.5, legendWidth, legendHeight * 0.5);
+        this.layoutCanvasCtx.rect(legendWidth * 0.5, legendHeight * 0.5, legendWidth * 0.5, legendHeight * 0.5);
         this.layoutCanvasCtx.stroke();
         this.layoutCanvasCtx.textBaseline = "middle";
         this.layoutCanvasCtx.textAlign = "center";
@@ -200,18 +208,59 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.fillStyle = "black";
         this.layoutCanvasCtx.fillText(name, legendWidth * 0.5, legendHeight * 0.25);
-        this.layoutCanvasCtx.fillText("min:" + min, legendWidth * 0.25, legendHeight * 0.75);
-        this.layoutCanvasCtx.fillText("max:" + max, legendWidth * 0.75, legendHeight * 0.75);
-        this.layoutCanvasCtx.closePath();
+        this.layoutCanvasCtx.fillText(min.toString(), legendWidth * 0.25, legendHeight * 0.75);
+        this.layoutCanvasCtx.fillText(max.toString(), legendWidth * 0.75, legendHeight * 0.75);
+        // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
 
-    // drawLegend
-    private drawPlot(dataArray: DataArray, x: number, y: number, color: string): void {
+    // drawLegendFacie
+    private drawLegendFacie(x: number, y: number, name: string): void {
+        // legend sizes
+        let legendHeight = LAYOUT_LEGENT_HEIGHT;
+        let legendWidth = LAYOUT_COLUMN_WIDTH;
+
         // clear legend canvas
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
-        this.layoutCanvasCtx.lineWidth = 2;
+        this.layoutCanvasCtx.fillStyle = "white";
+        this.layoutCanvasCtx.fillRect(0, 0, legendWidth, legendHeight);
+        this.layoutCanvasCtx.strokeStyle = "black";
+        this.layoutCanvasCtx.rect(0, 0, legendWidth, legendHeight);
+        this.layoutCanvasCtx.stroke();
+        this.layoutCanvasCtx.textBaseline = "middle";
+        this.layoutCanvasCtx.textAlign = "center";
+        this.layoutCanvasCtx.font = "14px Arial";
+        this.layoutCanvasCtx.strokeStyle = "black";
+        this.layoutCanvasCtx.fillStyle = "black";
+        this.layoutCanvasCtx.fillText(name, legendWidth * 0.5, legendHeight * 0.5);
+        // this.layoutCanvasCtx.closePath();
+        this.layoutCanvasCtx.translate(-x, -y);
+    }
+
+    // drawPlot
+    private drawPlot(dataArray: DataArray, x: number, y: number, color: string): void {
+        // draw values
+        this.layoutCanvasCtx.translate(x, y);
+
+        // draw predict (if exists)
+        if (dataArray.isPredict()) {
+            this.layoutCanvasCtx.beginPath();
+            this.layoutCanvasCtx.lineWidth = 2;
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.moveTo((dataArray.valuesPredict[0] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH, 0);
+            for (let i = 1; i < dataArray.valuesPredict.length; i++) {
+                let xPoint = (dataArray.valuesPredict[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
+                let yPoint = i;
+                this.layoutCanvasCtx.lineTo(xPoint, yPoint);
+            }
+            this.layoutCanvasCtx.stroke();
+            // this.layoutCanvasCtx.closePath();
+        }
+
+        // draw values
+        this.layoutCanvasCtx.beginPath();
+        this.layoutCanvasCtx.lineWidth = 1;
         this.layoutCanvasCtx.strokeStyle = color;
         this.layoutCanvasCtx.moveTo((dataArray.values[0] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH, 0);
         for (let i = 1; i < dataArray.values.length; i++) {
@@ -220,7 +269,20 @@ export class LayoutInfoEditor {
             this.layoutCanvasCtx.lineTo(xPoint, yPoint);
         }
         this.layoutCanvasCtx.stroke();
-        this.layoutCanvasCtx.closePath();
+        // this.layoutCanvasCtx.closePath();
+        this.layoutCanvasCtx.translate(-x, -y);
+    }
+
+    // drawFacies
+    private drawFacies(dataArray: DataArray, x: number, y: number): void {
+        this.layoutCanvasCtx.translate(x, y);
+        this.layoutCanvasCtx.globalAlpha = 1.0;
+        for (let i = 0; i < dataArray.values.length; i++) {
+            this.layoutCanvasCtx.fillStyle = gColorTable[dataArray.values[i]];
+            this.layoutCanvasCtx.beginPath();
+            this.layoutCanvasCtx.fillRect(0, i, LAYOUT_COLUMN_WIDTH, 1);
+            this.layoutCanvasCtx.stroke();
+        }
         this.layoutCanvasCtx.translate(-x, -y);
     }
 
@@ -240,7 +302,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.fillStyle = "black";
         this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.name, this.layoutCanvas.width / 2, LAYOUT_HEADER_HEIGHT / 2);
-        this.layoutCanvasCtx.closePath();
+        // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
 
@@ -264,7 +326,7 @@ export class LayoutInfoEditor {
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
         }
         this.layoutCanvasCtx.stroke();
-        this.layoutCanvasCtx.closePath();
+        // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
 
@@ -284,7 +346,7 @@ export class LayoutInfoEditor {
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
         }
         this.layoutCanvasCtx.stroke();
-        this.layoutCanvasCtx.closePath();
+        // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
 }

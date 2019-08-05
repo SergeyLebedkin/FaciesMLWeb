@@ -19,6 +19,7 @@ let buttonSubmit: HTMLButtonElement = null;
 let aStatus: HTMLElement = null;
 let divTabPanelLayots: HTMLDivElement = null;
 let divPlotsPanel: HTMLDivElement = null;
+let buttonSave: HTMLButtonElement = null;
 // globals
 let gSessionInfo: SessionInfo = null;
 let gDataTableList: Array<DataTable> = null;
@@ -39,6 +40,7 @@ function buttonLoadDataOnClick(event: MouseEvent) {
             }
             dataTable.loadFromFile(file);
         }
+        buttonSave.disabled = false;
     }
     inputLoadData.click();
 }
@@ -80,6 +82,7 @@ function buttonSubmitOnClick(event: MouseEvent) {
         .then(value => {
             aStatus.style.color = "blue";
             aStatus.innerText = "Post data...";
+            return value;
         }, reason => {
             aStatus.style.color = "red";
             aStatus.innerText = "Server error... (" + reason + ")";
@@ -91,12 +94,22 @@ function buttonSubmitOnClick(event: MouseEvent) {
             aStatus.innerText = "OK"
             buttonSubmit.disabled = false;
             clearTimeout(timeoutServerWait);
+            updateTablesFromJson(JSON.parse(value));
+            gDataTableSelector.update();
+            gLayoutInfoEditor.drawLayoutInfo();
         }, reason => {
             aStatus.style.color = "red";
             aStatus.innerText = "Server error... (" + reason + ")";
             buttonSubmit.disabled = false;
             clearTimeout(timeoutServerWait);
         });
+}
+
+// buttonSaveOnClick
+function buttonSaveOnClick(event: MouseEvent) {
+    for (let dataTable of gDataTableList) {
+        downloadFile(dataTable.saveToCSV(), dataTable.fileRef.name + ".csv", "text/plain");
+    }
 }
 
 // utils
@@ -117,6 +130,7 @@ window.onload = event => {
     aStatus = document.getElementById("aStatus") as HTMLElement;
     divTabPanelLayots = document.getElementById("divTabPanelLayots") as HTMLDivElement;
     divPlotsPanel = document.getElementById("divPlotsPanel") as HTMLDivElement;
+    buttonSave = document.getElementById("buttonSave") as HTMLButtonElement;
     // create global objects
     gSessionInfo = new SessionInfo();
     gSessionInfo.sessionID = Math.random().toString(36).slice(2);
@@ -133,4 +147,24 @@ window.onload = event => {
     buttonDrawPlots.onclick = event => buttonDrawPlotsOnClick(event);
     buttonSubmit.onclick = event => buttonSubmitOnClick(event);
     buttonSubmit.disabled = true;
+    buttonSave.onclick = event => buttonSaveOnClick(event);
+    buttonSave.disabled = true;
+}
+
+// updateTablesFromJson
+function updateTablesFromJson(json: any) {
+    for (let key in json) {
+        let dataTable = gDataTableList.find(dataTable => dataTable.name === key);
+        if (dataTable)
+            dataTable.updateFromJSON(json[key]);
+    }
+}
+
+// downloadFile
+function downloadFile(text: string, name: string, type: string) {
+    var a = document.createElement("a");
+    var file = new Blob([text], { type: type });
+    a.href = URL.createObjectURL(file);
+    a.download = name;
+    a.click();
 }

@@ -1,4 +1,4 @@
-import { DataArray } from "./DataArray"
+import { DataArray, DataArrayType } from "./DataArray"
 
 // DataTable
 export class DataTable {
@@ -17,6 +17,17 @@ export class DataTable {
         this.selections = [];
     }
 
+    // getOrCreateDataArray - find or create data array
+    public getOrCreateDataArray(name: string): DataArray {
+        let dataArray = this.data.find(dataArray => dataArray.name === name);
+        if (!dataArray) {
+            dataArray = new DataArray();
+            dataArray.name = name;
+            this.data.push(dataArray);
+        }
+        return dataArray;
+    }
+
     // loadFromFile
     public loadFromFile(file: File) {
         // check for null
@@ -31,6 +42,25 @@ export class DataTable {
             this.onloadFileData && this.onloadFileData(this);
         }
         fileReader.readAsText(this.fileRef);
+    }
+
+    // updateFromJSON
+    public updateFromJSON(json: any) {
+        for (let key in json) {
+            if (key === "Depth") {
+                // skip
+            } else if (key === "selections") {
+                // skip
+            } else if (!isNaN(Number(key))) {
+                let dataArray = this.getOrCreateDataArray(key);
+                dataArray.loadValuesFromJSON(json[key])
+                dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_FACIE;
+            } else {
+                let dataArray = this.getOrCreateDataArray(key);
+                dataArray.loadPredictFromJSON(json[key])
+                dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUE;
+            }
+        }
     }
 
     // loadFromString
@@ -70,20 +100,23 @@ export class DataTable {
         }
 
         // update min and max ranges
-        this.data.forEach(dataArray => {
-            // get min and max values
-            let minValue = dataArray.values[0];
-            let maxValue = dataArray.values[0];
-            for (let value of dataArray.values) {
-                if (minValue > value)
-                    minValue = value;
-                if (maxValue < value)
-                    maxValue = value;
-            }
-            dataArray.min = minValue;
-            dataArray.max = maxValue;
-        })
+        this.data.forEach(dataArray => dataArray.updateMinMax());
         this.selections.length = this.data[0].values.length;
         this.selections.fill(0);
+    }
+
+    // saveToCSV
+    public saveToCSV(): string {
+        let scv = "";
+        for (let dataArray of this.data)
+            scv += dataArray.name + ",";
+        scv += "\r\n";
+        for (let i = 0; i < this.data[0].values.length; i++) {
+            for (let dataArray of this.data) {
+                scv += dataArray.values[i] + ",";
+            }
+            scv += "\r\n";
+        }
+        return scv;
     }
 };

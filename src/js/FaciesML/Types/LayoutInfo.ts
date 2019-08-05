@@ -1,5 +1,5 @@
 import { DataTable } from "./DataTable";
-import { DataArray } from "./DataArray";
+import { DataArray, DataArrayType } from "./DataArray";
 
 // LayoutInfo
 export class LayoutInfo {
@@ -18,6 +18,7 @@ export class LayoutInfo {
             this.name += dataArray.name + ",";
     }
 
+    // getJSON
     public getJSON(): object {
         // create selection data
         let selectionsData = this.dataTable.selections;
@@ -39,10 +40,12 @@ export class LayoutInfo {
         }
         // data array node
         for (let dataArray of this.dataArrays) {
-            json[dataArray.name] = {
-                "unit": dataArray.unit,
-                "data": dataArray.values
-            };
+            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUE) {
+                json[dataArray.name] = {
+                    "unit": dataArray.unit,
+                    "data": dataArray.values
+                };
+            }
         };
         return json;
     }

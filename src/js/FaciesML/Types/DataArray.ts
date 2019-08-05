@@ -1,3 +1,9 @@
+// DataArrayType
+export enum DataArrayType {
+    DATA_ARRAY_TYPE_VALUE,
+    DATA_ARRAY_TYPE_FACIE,
+}
+
 // DataArray
 export class DataArray {
     // fields
@@ -6,6 +12,8 @@ export class DataArray {
     public min: number = 0;
     public max: number = 0;
     public values: Array<number> = [];
+    public valuesPredict: Array<number> = [];
+    public dataArrayType: DataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUE;
     // constructor
     constructor() {
         this.name = "";
@@ -13,10 +21,49 @@ export class DataArray {
         this.min = 0;
         this.max = 0;
         this.values = [];
+        this.valuesPredict = null;
+        this.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUE;
     }
 
     // getCaption
     public getCaption(): string {
-        return this.name + "(" + this.unit + ")" + "[" + this.min + ":" + this.max + "]";
+        if (this.isPredict())
+            return this.name + " (with predict)";
+        return this.name;
+    }
+
+    // isPredict
+    public isPredict(): boolean {
+        return this.valuesPredict && (this.values <= this.valuesPredict);
+    }
+
+    // updateMinMax
+    public updateMinMax() {
+        // get min and max values
+        let minValue = this.values[0];
+        let maxValue = this.values[0];
+        for (let value of this.values) {
+            minValue = Math.min(minValue, value);
+            maxValue = Math.max(maxValue, value);
+        }
+        this.min = minValue;
+        this.max = maxValue;
+    }
+
+    // loadValuesFromJSON
+    public loadValuesFromJSON(json: any) {
+        this.values = [];
+        this.values.length = Object.keys(json).length;
+        for (let index in json)
+            this.values[parseInt(index)] = json[index];
+        this.updateMinMax();
+    }
+
+    // loadFromJSON
+    public loadPredictFromJSON(json: any) {
+        this.valuesPredict = [];
+        this.valuesPredict.length = Object.keys(json).length;
+        for (let index in json)
+            this.valuesPredict[parseInt(index)] = json[index];
     }
 };
