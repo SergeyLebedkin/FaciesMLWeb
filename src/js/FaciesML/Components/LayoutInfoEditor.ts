@@ -14,7 +14,7 @@ export class LayoutInfoEditor {
     private parent: HTMLDivElement = null;
     // layoutInfo parameters
     public layoutInfo: LayoutInfo = null;
-    public layoutScale: number = 1.0;
+    public scale: number = 1.0;
     // selection
     private selectionOffset = 0;
     private selectionStarted: boolean = false;
@@ -30,7 +30,7 @@ export class LayoutInfoEditor {
         this.parent = parent;
         // image parameters
         this.layoutInfo = null;
-        this.layoutScale = 1.0;
+        this.scale = 1.0;
         // selection
         this.selectionStarted = false;
         this.selectionMode = SelectionMode.ADD;
@@ -78,7 +78,7 @@ export class LayoutInfoEditor {
             // get mouse coords
             let mouseCoords = getMousePosByElement(this.layoutCanvas, event);
             // update selection region width and height
-            this.selectionEnd = mouseCoords.y - this.selectionOffset;
+            this.selectionEnd = mouseCoords.y / this.scale - this.selectionOffset;
             // redraw stuff
             this.drawLayoutInfo();
             this.drawSelectionRange();
@@ -94,8 +94,8 @@ export class LayoutInfoEditor {
             // start selection
             this.selectionStarted = true;
             // check selection mode and set color
-            this.selectionStart = mouseCoords.y - this.selectionOffset;
-            this.selectionEnd = mouseCoords.y - this.selectionOffset;
+            this.selectionStart = mouseCoords.y / this.scale - this.selectionOffset;
+            this.selectionEnd = mouseCoords.y / this.scale - this.selectionOffset;
         };
     }
 
@@ -114,10 +114,18 @@ export class LayoutInfoEditor {
         this.drawLayoutInfo();
     }
 
+    // setScale
+    public setScale(scale: number): void {
+        if (this.scale !== scale) {
+            this.scale = scale;
+            this.drawLayoutInfo();
+        }
+    }
+
     // drawLayoutInfo
     public drawLayoutInfo(): void {
-        this.layoutCanvas.width = (this.layoutInfo.dataArrays.length + 1) * LAYOUT_COLUMN_WIDTH;
-        this.layoutCanvas.height = this.layoutInfo.dataTable.data[0].values.length + LAYOUT_HEADER_HEIGHT + LAYOUT_LEGENT_HEIGHT;
+        this.layoutCanvas.width = (this.layoutInfo.dataArrays.length + 1) * LAYOUT_COLUMN_WIDTH * this.scale;
+        this.layoutCanvas.height = (this.layoutInfo.dataTable.data[0].values.length + LAYOUT_HEADER_HEIGHT + LAYOUT_LEGENT_HEIGHT) * this.scale;
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.clearCanvas();
         // draw data ranges
@@ -147,6 +155,7 @@ export class LayoutInfoEditor {
     // drawSelectionRange
     private drawSelectionRange() {
         if (this.selectionStarted) {
+            this.layoutCanvasCtx.scale(this.scale, this.scale);
             if (this.selectionMode === SelectionMode.ADD) {
                 this.layoutCanvasCtx.globalAlpha = 0.85;
                 this.layoutCanvasCtx.fillStyle = "#DDDDDD";
@@ -154,26 +163,29 @@ export class LayoutInfoEditor {
                 this.layoutCanvasCtx.globalAlpha = 0.60;
                 this.layoutCanvasCtx.fillStyle = "#DD0000";
             }
-            this.layoutCanvasCtx.fillRect(0, this.selectionStart + this.selectionOffset, this.layoutCanvas.width, this.selectionEnd - this.selectionStart);
+            this.layoutCanvasCtx.fillRect(0, this.selectionStart + this.selectionOffset, this.layoutCanvas.width / this.scale, this.selectionEnd - this.selectionStart);
             this.layoutCanvasCtx.globalAlpha = 1.0;
+            this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
         }
     }
 
     // drawDataRanges
     private drawLayoutInfoSelections(offsetY: number) {
-        this.layoutCanvasCtx.globalAlpha = 1;
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
+        this.layoutCanvasCtx.globalAlpha = 0.8;
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         for (let i = 0; i < this.layoutInfo.dataTable.selections.length; i++) {
             if (this.layoutInfo.dataTable.selections[i] > 0) {
                 this.layoutCanvasCtx.moveTo(0, i + offsetY);
-                this.layoutCanvasCtx.lineTo(this.layoutCanvas.width, i + offsetY);
+                this.layoutCanvasCtx.lineTo(this.layoutCanvas.width / this.scale, i + offsetY);
             }
         }
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.globalAlpha = 1.0;
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }
 
     // clearCanvas
@@ -193,6 +205,7 @@ export class LayoutInfoEditor {
         let legendWidth = LAYOUT_COLUMN_WIDTH;
 
         // clear legend canvas
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.fillStyle = "white";
@@ -212,6 +225,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.fillText(max.toString(), legendWidth * 0.75, legendHeight * 0.75);
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }
 
     // drawLegendFacie
@@ -221,6 +235,7 @@ export class LayoutInfoEditor {
         let legendWidth = LAYOUT_COLUMN_WIDTH;
 
         // clear legend canvas
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.fillStyle = "white";
@@ -236,17 +251,19 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.fillText(name, legendWidth * 0.5, legendHeight * 0.5);
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }
 
     // drawPlot
     private drawPlot(dataArray: DataArray, x: number, y: number, color: string): void {
         // draw values
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
 
         // draw predict (if exists)
         if (dataArray.isPredict()) {
             this.layoutCanvasCtx.beginPath();
-            this.layoutCanvasCtx.lineWidth = 2;
+            this.layoutCanvasCtx.lineWidth = 1;
             this.layoutCanvasCtx.strokeStyle = "black";
             this.layoutCanvasCtx.moveTo((dataArray.valuesPredict[0] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH, 0);
             for (let i = 1; i < dataArray.valuesPredict.length; i++) {
@@ -271,44 +288,49 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }
 
     // drawFacies
     private drawFacies(dataArray: DataArray, x: number, y: number): void {
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
-        this.layoutCanvasCtx.globalAlpha = 1.0;
         for (let i = 0; i < dataArray.values.length; i++) {
             this.layoutCanvasCtx.fillStyle = gColorTable[dataArray.values[i]];
             this.layoutCanvasCtx.beginPath();
-            this.layoutCanvasCtx.fillRect(0, i, LAYOUT_COLUMN_WIDTH, 1);
+            this.layoutCanvasCtx.fillRect(0, i, LAYOUT_COLUMN_WIDTH, 16);
             this.layoutCanvasCtx.stroke();
         }
         this.layoutCanvasCtx.translate(-x, -y);
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }
 
     // drawHeader
     private drawHeader(x: number, y: number): void {
         // clear legend canvas
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.fillStyle = "white";
-        this.layoutCanvasCtx.fillRect(0, 0, this.layoutCanvas.width, LAYOUT_HEADER_HEIGHT);
+        this.layoutCanvasCtx.fillRect(0, 0, this.layoutCanvas.width / this.scale, LAYOUT_HEADER_HEIGHT);
         this.layoutCanvasCtx.strokeStyle = "black";
-        this.layoutCanvasCtx.rect(0, 0, this.layoutCanvas.width, LAYOUT_HEADER_HEIGHT);
+        this.layoutCanvasCtx.rect(0, 0, this.layoutCanvas.width / this.scale, LAYOUT_HEADER_HEIGHT);
         this.layoutCanvasCtx.stroke();
         this.layoutCanvasCtx.textBaseline = "middle";
         this.layoutCanvasCtx.textAlign = "center";
         this.layoutCanvasCtx.font = "14px Arial";
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.fillStyle = "black";
-        this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.name, this.layoutCanvas.width / 2, LAYOUT_HEADER_HEIGHT / 2);
+        this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.name, this.layoutCanvas.width / this.scale * 0.5, LAYOUT_HEADER_HEIGHT * 0.5);
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }
 
     // drawYAxis
     private drawYAxis(dataArray: DataArray, x: number, y: number): void {
         // clear legend canvas
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
@@ -328,11 +350,13 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }
 
     // drawGrid
     private drawGrid(dataArray: DataArray, x: number, y: number): void {
         // clear legend canvas
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
@@ -348,6 +372,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }
 }
 

@@ -43,6 +43,8 @@
             <div class="menu-item-title">Drawing</div>
             <div class="bordered-panel">
                 <button class="left-panel-button-sm" id="buttonDrawPlots">Draw plots</button>
+                <button class="left-panel-button-sm" id="buttonAddToCurrent">Add to current</button>
+                <hr>
                 <a>Selection mode:</a>
                 <input type="radio" id="radioSelectionModeAdd" name="SetectionMode" checked>
                 <label>Add</label>
@@ -64,6 +66,11 @@
         </div>
         <div class="center-panel">
             <div id="divTabPanelLayots" class="tab-panel">
+            </div>
+            <div class="scale-panel">
+                <button id="buttonScaleDown" style="width: 30px">-</button>
+                <button id="buttonScaleUp" style="width: 30px">+</button>
+                <a id="labelScaleFactor">100%</a>
             </div>
             <div id="divPlotsPanel" class="plots-panel">
             </div>

@@ -97,18 +97,35 @@ export class DataTableSelector {
             checkbox.checked = false;
     }
 
+    public getCheckedDataArrays(dataTable: DataTable): Array<DataArray> {
+        return this.dataArrayCheckBoxes
+            .filter(checkBox => (checkBox["dataTable"] === dataTable) && (checkBox.checked))
+            .map(checkBox => checkBox["dataArray"]);
+    }
+
     // createLayoutInfos
     public createLayoutInfos(): Array<LayoutInfo> {
         let layoutInfos = new Array<LayoutInfo>();
         for (let dataTable of this.dataTableList) {
             // get selected data arrays for current data atable
-            let dataArrays: Array<DataArray> = this.dataArrayCheckBoxes
-                .filter(checkBox => (checkBox["dataTable"] === dataTable) && (checkBox.checked))
-                .map(checkBox => checkBox["dataArray"]);
+            let dataArrays = this.getCheckedDataArrays(dataTable);
             // create data array
             if (dataArrays.length > 0)
                 layoutInfos.push(new LayoutInfo(dataTable, dataArrays));
         }
         return layoutInfos;
+    }
+
+    // appendToLayoutInfos
+    public appendToLayoutInfos(layoutInfo: LayoutInfo): void {
+        let dataTable = this.dataTableList.find(dataTable => dataTable === layoutInfo.dataTable);
+        if (dataTable) {
+            // get selected data arrays for current data atable
+            let dataArrays = this.getCheckedDataArrays(dataTable);
+            for (let dataArray of dataArrays) {
+                if (!layoutInfo.isDataArrayExists(dataArray))
+                    layoutInfo.dataArrays.push(dataArray);
+            }
+        }
     }
 }

@@ -4,7 +4,6 @@ import { DataArray, DataArrayType } from "./DataArray";
 // LayoutInfo
 export class LayoutInfo {
     // fields
-    public name: string = "";
     public dataTable: DataTable = null;
     public dataArrays: Array<DataArray> = null;
     // constructor
@@ -12,10 +11,20 @@ export class LayoutInfo {
         // set data
         this.dataTable = dataTable;
         this.dataArrays = dataArrays;
+    }
+
+    // getCaption
+    public getCaption(): string {
         // create some name
-        this.name = "";
+        let caption = "";
         for (let dataArray of this.dataArrays)
-            this.name += dataArray.name + ",";
+            caption += dataArray.name + ",";
+        return caption;
+    }
+
+    // isDataArrayExists
+    public isDataArrayExists(dataArray: DataArray): boolean {
+        return this.dataArrays.findIndex(data => data === dataArray) >= 0;
     }
 
     // getJSON

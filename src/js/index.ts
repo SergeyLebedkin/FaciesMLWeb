@@ -15,11 +15,16 @@ let divDataValues: HTMLDivElement = null;
 let radioSelectionModeAdd: HTMLInputElement = null;
 let radioSelectionModeRemove: HTMLInputElement = null;
 let buttonDrawPlots: HTMLButtonElement = null;
+let buttonAddToCurrent: HTMLButtonElement = null;
 let buttonSubmit: HTMLButtonElement = null;
 let aStatus: HTMLElement = null;
+let buttonSave: HTMLButtonElement = null;
+// get elements - center panel
 let divTabPanelLayots: HTMLDivElement = null;
 let divPlotsPanel: HTMLDivElement = null;
-let buttonSave: HTMLButtonElement = null;
+let labelScaleFactor: HTMLLabelElement = null;
+let buttonScaleDown: HTMLButtonElement = null;
+let buttonScaleUp: HTMLButtonElement = null;
 // globals
 let gSessionInfo: SessionInfo = null;
 let gDataTableList: Array<DataTable> = null;
@@ -41,6 +46,7 @@ function buttonLoadDataOnClick(event: MouseEvent) {
             dataTable.loadFromFile(file);
         }
         buttonSave.disabled = false;
+        buttonDrawPlots.disabled = false;
     }
     inputLoadData.click();
 }
@@ -56,15 +62,27 @@ function buttonDrawPlotsOnClick(event: MouseEvent) {
     for (let layoutInfo of layoutInfos) {
         let buttonTab = document.createElement("button");
         buttonTab.className = "tab-button";
-        buttonTab.innerText = layoutInfo.name;
+        buttonTab.innerText = layoutInfo.getCaption();
         buttonTab["layoutInfo"] = layoutInfo;
         buttonTab.onclick = buttonTabOnClick;
         divTabPanelLayots.appendChild(buttonTab);
         // set current layout info
         gLayoutInfoEditor.setLayoutInfo(layoutInfo);
         buttonSubmit.disabled = false;
+        buttonAddToCurrent.disabled = false;
     }
     gDataTableSelector.clearSelections();
+}
+
+// buttonAddToCurrentOnClick
+function buttonAddToCurrentOnClick(event: MouseEvent) {
+    if (!gLayoutInfoEditor.layoutInfo) return;
+    gDataTableSelector.appendToLayoutInfos(gLayoutInfoEditor.layoutInfo);
+    gDataTableSelector.clearSelections();
+    gLayoutInfoEditor.drawLayoutInfo();
+    let buttons = document.getElementsByClassName("tab-button")
+    for (let i = 0; i < buttons.length; i++)
+        buttons[i]["innerText"] = buttons[i]["layoutInfo"].getCaption();
 }
 
 // buttonSubmitOnClick
@@ -112,6 +130,18 @@ function buttonSaveOnClick(event: MouseEvent) {
     }
 }
 
+// buttonScaleDownOnClick
+function buttonScaleDownOnClick(event: MouseEvent) {
+    gLayoutInfoEditor.setScale(gLayoutInfoEditor.scale / 2);
+    labelScaleFactor.innerText = Math.round(gLayoutInfoEditor.scale * 100) + "%";
+}
+
+// buttonScaleUpOnClick
+function buttonScaleUpOnClick(event: MouseEvent) {
+    gLayoutInfoEditor.setScale(gLayoutInfoEditor.scale * 2);
+    labelScaleFactor.innerText = Math.round(gLayoutInfoEditor.scale * 100) + "%";
+}
+
 // utils
 
 // window.onload
@@ -126,18 +156,24 @@ window.onload = event => {
     radioSelectionModeAdd = document.getElementById("radioSelectionModeAdd") as HTMLInputElement;
     radioSelectionModeRemove = document.getElementById("radioSelectionModeRemove") as HTMLInputElement;
     buttonDrawPlots = document.getElementById("buttonDrawPlots") as HTMLButtonElement;
+    buttonDrawPlots.disabled = true;
+    buttonAddToCurrent = document.getElementById("buttonAddToCurrent") as HTMLButtonElement;
+    buttonAddToCurrent.disabled = true;
     buttonSubmit = document.getElementById("buttonSubmit") as HTMLButtonElement;
     aStatus = document.getElementById("aStatus") as HTMLElement;
+    buttonSave = document.getElementById("buttonSave") as HTMLButtonElement;
+    // center panel
+    labelScaleFactor = document.getElementById("labelScaleFactor") as HTMLLabelElement;
+    buttonScaleDown = document.getElementById("buttonScaleDown") as HTMLButtonElement;
+    buttonScaleUp = document.getElementById("buttonScaleUp") as HTMLButtonElement;
     divTabPanelLayots = document.getElementById("divTabPanelLayots") as HTMLDivElement;
     divPlotsPanel = document.getElementById("divPlotsPanel") as HTMLDivElement;
-    buttonSave = document.getElementById("buttonSave") as HTMLButtonElement;
     // create global objects
     gSessionInfo = new SessionInfo();
     gSessionInfo.sessionID = Math.random().toString(36).slice(2);
     gDataTableList = new Array<DataTable>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotsPanel);
-    // center panel events
     // init session
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events
@@ -145,10 +181,14 @@ window.onload = event => {
     radioSelectionModeAdd.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.ADD);
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
     buttonDrawPlots.onclick = event => buttonDrawPlotsOnClick(event);
+    buttonAddToCurrent.onclick = event => buttonAddToCurrentOnClick(event);
     buttonSubmit.onclick = event => buttonSubmitOnClick(event);
     buttonSubmit.disabled = true;
     buttonSave.onclick = event => buttonSaveOnClick(event);
     buttonSave.disabled = true;
+    // center panel events
+    buttonScaleDown.onclick = event => buttonScaleDownOnClick(event);
+    buttonScaleUp.onclick = event => buttonScaleUpOnClick(event);
 }
 
 // updateTablesFromJson

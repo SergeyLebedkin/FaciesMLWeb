@@ -47,6 +47,12 @@ html, body {
     background: black;
 }
 
+.scale-panel {
+    flex-direction: row;
+    text-align: center;
+    color: white;
+}
+
 .plots-panel {
     display: block;
     background: black;
@@ -101,6 +107,7 @@ html, body {
     outline: none;
     color: white;
     padding: 4px 4px;
+    margin-top: 4px;
     background-color: #333333;
     border-radius: 5px;
     width: 100%;
