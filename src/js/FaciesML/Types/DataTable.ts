@@ -130,6 +130,7 @@ export class DataTable {
         let dataArray = this.getOrCreateDataArray("SampleData");
         dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_SAMPLES;
         dataArray.values.length = this.data[0].values.length;
+        dataArray.values.fill(0);
         for (let i = 0; i < count; i++)
             dataArray.values[Math.floor(Math.random() * dataArray.values.length)] = 1;
     }

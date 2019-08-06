@@ -179,7 +179,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.globalAlpha = 0.8;
         this.layoutCanvasCtx.beginPath();
-        this.layoutCanvasCtx.lineWidth = 1;
+        this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         for (let i = 0; i < this.layoutInfo.dataTable.selections.length; i++) {
             if (this.layoutInfo.dataTable.selections[i] > 0) {
@@ -216,6 +216,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.fillStyle = "white";
         this.layoutCanvasCtx.fillRect(0, 0, legendWidth, legendHeight);
         this.layoutCanvasCtx.strokeStyle = "black";
+        this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.rect(0, 0, legendWidth, legendHeight);
         this.layoutCanvasCtx.rect(0, legendHeight * 0.5, legendWidth * 0.5, legendHeight * 0.5);
         this.layoutCanvasCtx.rect(legendWidth * 0.5, legendHeight * 0.5, legendWidth * 0.5, legendHeight * 0.5);
@@ -245,6 +246,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.fillStyle = "white";
         this.layoutCanvasCtx.fillRect(0, 0, legendWidth, legendHeight);
+        this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.rect(0, 0, legendWidth, legendHeight);
         this.layoutCanvasCtx.stroke();
@@ -271,7 +273,7 @@ export class LayoutInfoEditor {
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.lineWidth = 2;
             this.layoutCanvasCtx.strokeStyle = "lightblue";
-            this.layoutCanvasCtx.setLineDash([10, 5]);
+            this.layoutCanvasCtx.setLineDash([10, 3]);
             for (let i = 0; i < dataArray.valuesPredict.length; i++) {
                 // if value is valid
                 if (dataArray.valuesPredict[i] > DATA_MINIMAL_VALUE) {
@@ -388,7 +390,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
-        this.layoutCanvasCtx.lineWidth = 1;
+        this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         for (let i = LAYOUT_AXES_HINT_STEP; i < dataArray.values.length; i += LAYOUT_AXES_HINT_STEP) {
             this.layoutCanvasCtx.textBaseline = "middle";
@@ -414,7 +416,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
-        this.layoutCanvasCtx.lineWidth = 1;
+        this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         this.layoutCanvasCtx.moveTo(0, 0);
         this.layoutCanvasCtx.lineTo(0, dataArray.values.length);

@@ -39,10 +39,8 @@ export class DataArray {
 
     // isPredict
     public isPredict(): boolean {
-        return 
-            (this.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUE) && 
-            this.valuesPredict && 
-            (this.values.length <= this.valuesPredict.length);
+        return ((this.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUE) && this.valuesPredict && 
+            (this.values.length <= this.valuesPredict.length));
     }
 
     // updateMinMax
