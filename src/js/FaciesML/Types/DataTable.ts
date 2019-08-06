@@ -62,7 +62,7 @@ export class DataTable {
             }
         }
         // FOR DEBUG ONLY
-        this.appendRandomSampleDataArray();
+        this.appendRandomSampleDataArray(15);
     }
 
     // loadFromString
@@ -126,11 +126,11 @@ export class DataTable {
     }
 
     // appendRandomSampleDataArray
-    private appendRandomSampleDataArray(): void {
+    private appendRandomSampleDataArray(count: number = 15): void {
         let dataArray = this.getOrCreateDataArray("SampleData");
         dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_SAMPLES;
         dataArray.values.length = this.data[0].values.length;
-        for (let i = 0; i < 15; i++)
+        for (let i = 0; i < count; i++)
             dataArray.values[Math.floor(Math.random() * dataArray.values.length)] = 1;
     }
 };

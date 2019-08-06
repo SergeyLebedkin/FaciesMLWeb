@@ -322,14 +322,14 @@ export class LayoutInfoEditor {
     private drawFacies(dataArray: DataArray, x: number, y: number): void {
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
+        this.layoutCanvasCtx.lineWidth = 2;
         for (let i = 0; i < dataArray.values.length; i++) {
-            if (dataArray.values[i] >= 0) {
-                this.layoutCanvasCtx.fillStyle = gColorTable[dataArray.values[i]];
-            } else {
-                this.layoutCanvasCtx.fillStyle = "white";
-            }
+            this.layoutCanvasCtx.strokeStyle = "white";
+            if (dataArray.values[i] >= 0)
+                this.layoutCanvasCtx.strokeStyle = gColorTable[dataArray.values[i]];
             this.layoutCanvasCtx.beginPath();
-            this.layoutCanvasCtx.fillRect(0, i, LAYOUT_COLUMN_WIDTH, 16);
+            this.layoutCanvasCtx.moveTo(0, i);
+            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
             this.layoutCanvasCtx.stroke();
         }
         this.layoutCanvasCtx.translate(-x, -y);
