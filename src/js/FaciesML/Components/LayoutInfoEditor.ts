@@ -1,4 +1,4 @@
-import { DataArray, DataArrayType } from "../Types/DataArray";
+import { DataArray, DataArrayType, DATA_MINIMAL_VALUE } from "../Types/DataArray";
 import { LayoutInfo } from "../Types/LayoutInfo";
 import { SelectionMode } from "../Types/SelectionMode";
 
@@ -256,37 +256,57 @@ export class LayoutInfoEditor {
 
     // drawPlot
     private drawPlot(dataArray: DataArray, x: number, y: number, color: string): void {
-        // draw values
+        // start drawing
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
 
-        // draw predict (if exists)
+        // draw predict
         if (dataArray.isPredict()) {
+            let moved = false;
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.lineWidth = 1;
-            this.layoutCanvasCtx.strokeStyle = "black";
-            this.layoutCanvasCtx.moveTo((dataArray.valuesPredict[0] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH, 0);
-            for (let i = 1; i < dataArray.valuesPredict.length; i++) {
-                let xPoint = (dataArray.valuesPredict[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
-                let yPoint = i;
-                this.layoutCanvasCtx.lineTo(xPoint, yPoint);
+            this.layoutCanvasCtx.strokeStyle = color;
+            for (let i = 0; i < dataArray.valuesPredict.length; i++) {
+                // if value is valid
+                if (dataArray.valuesPredict[i] > DATA_MINIMAL_VALUE) {
+                    let xPoint = (dataArray.valuesPredict[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
+                    let yPoint = i;
+                    if (moved)
+                        this.layoutCanvasCtx.lineTo(xPoint, yPoint)
+                    else
+                        this.layoutCanvasCtx.moveTo(xPoint, yPoint)
+                    moved = true;
+                } else { // if value is invalid
+                    this.layoutCanvasCtx.stroke();
+                    moved = false;
+                }
             }
             this.layoutCanvasCtx.stroke();
-            // this.layoutCanvasCtx.closePath();
         }
 
         // draw values
+        let moved = false;
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
         this.layoutCanvasCtx.strokeStyle = color;
-        this.layoutCanvasCtx.moveTo((dataArray.values[0] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH, 0);
-        for (let i = 1; i < dataArray.values.length; i++) {
-            let xPoint = (dataArray.values[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
-            let yPoint = i;
-            this.layoutCanvasCtx.lineTo(xPoint, yPoint);
+        for (let i = 0; i < dataArray.values.length; i++) {
+            // if value is valid
+            if (dataArray.values[i] > DATA_MINIMAL_VALUE) {
+                let xPoint = (dataArray.values[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
+                let yPoint = i;
+                if (moved)
+                    this.layoutCanvasCtx.lineTo(xPoint, yPoint)
+                else
+                    this.layoutCanvasCtx.moveTo(xPoint, yPoint)
+                moved = true;
+            } else { // if value is invalid
+                this.layoutCanvasCtx.stroke();
+                moved = false;
+            }
         }
         this.layoutCanvasCtx.stroke();
-        // this.layoutCanvasCtx.closePath();
+
+        // finish drawing
         this.layoutCanvasCtx.translate(-x, -y);
         this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
     }

@@ -100,6 +100,7 @@ function buttonSubmitOnClick(event: MouseEvent) {
         .then(value => {
             aStatus.style.color = "blue";
             aStatus.innerText = "Post data...";
+            console.log(JSON.parse(value));
             return value;
         }, reason => {
             aStatus.style.color = "red";

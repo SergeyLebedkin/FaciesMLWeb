@@ -113,7 +113,10 @@ export class DataTable {
         scv += "\r\n";
         for (let i = 0; i < this.data[0].values.length; i++) {
             for (let dataArray of this.data) {
-                scv += dataArray.values[i] + ",";
+                if (dataArray.isPredict())
+                    scv += dataArray.valuesPredict[i] + ",";
+                else
+                    scv += dataArray.values[i] + ",";
             }
             scv += "\r\n";
         }

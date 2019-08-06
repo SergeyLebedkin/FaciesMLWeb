@@ -4,6 +4,8 @@ export enum DataArrayType {
     DATA_ARRAY_TYPE_FACIE,
 }
 
+export const DATA_MINIMAL_VALUE = -999;
+
 // DataArray
 export class DataArray {
     // fields
@@ -40,14 +42,28 @@ export class DataArray {
     // updateMinMax
     public updateMinMax() {
         // get min and max values
-        let minValue = this.values[0];
-        let maxValue = this.values[0];
-        for (let value of this.values) {
-            minValue = Math.min(minValue, value);
-            maxValue = Math.max(maxValue, value);
+        let localData = this.values.filter(value => value > DATA_MINIMAL_VALUE);
+        if (localData.length > 0) {
+            let minValue = localData[0];
+            let maxValue = localData[0];
+            for (let value of localData) {
+                minValue = Math.min(minValue, value);
+                maxValue = Math.max(maxValue, value);
+            }
+            this.min = minValue;
+            this.max = maxValue;
+        } else {
+            let minValue = this.values[0];
+            let maxValue = this.values[0];
+            for (let value of this.values) {
+                if (value > DATA_MINIMAL_VALUE) {
+                    minValue = Math.min(minValue, value);
+                    maxValue = Math.max(maxValue, value);
+                }
+            }
+            this.min = minValue;
+            this.max = maxValue;
         }
-        this.min = minValue;
-        this.max = maxValue;
     }
 
     // loadValuesFromJSON

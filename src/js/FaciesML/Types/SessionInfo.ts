@@ -35,7 +35,6 @@ export class SessionInfo {
                 }
             };
             xhr.onerror = event => {
-                console.log("postDataArrays onerror " + xhr.responseText);
                 reject("postDataArrays onerror " + xhr.responseText);
             };
             // generate request data
@@ -45,12 +44,10 @@ export class SessionInfo {
                 "logs": {}
             };
             data.logs[layoutInfo.dataTable.name] = layoutInfo.getJSON();
-            console.log(data);
 
             try {
                 xhr.send(JSON.stringify(data));
             } catch (error) {
-                console.log("catch", error)
                 reject(error)
             }
         });
