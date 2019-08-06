@@ -149,6 +149,11 @@ export class LayoutInfoEditor {
                 this.drawLegendFacie((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name);
                 this.drawFacies(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
             }
+            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_SAMPLES) {
+                this.drawLegendFacie((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name);
+                this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+                this.drawSamples(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+            }
         });
     }
 
@@ -264,8 +269,9 @@ export class LayoutInfoEditor {
         if (dataArray.isPredict()) {
             let moved = false;
             this.layoutCanvasCtx.beginPath();
-            this.layoutCanvasCtx.lineWidth = 1;
-            this.layoutCanvasCtx.strokeStyle = color;
+            this.layoutCanvasCtx.lineWidth = 2;
+            this.layoutCanvasCtx.strokeStyle = "lightblue";
+            this.layoutCanvasCtx.setLineDash([10, 5]);
             for (let i = 0; i < dataArray.valuesPredict.length; i++) {
                 // if value is valid
                 if (dataArray.valuesPredict[i] > DATA_MINIMAL_VALUE) {
@@ -282,6 +288,7 @@ export class LayoutInfoEditor {
                 }
             }
             this.layoutCanvasCtx.stroke();
+            this.layoutCanvasCtx.setLineDash([]);
         }
 
         // draw values
@@ -316,10 +323,38 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         for (let i = 0; i < dataArray.values.length; i++) {
-            this.layoutCanvasCtx.fillStyle = gColorTable[dataArray.values[i]];
+            if (dataArray.values[i] >= 0) {
+                this.layoutCanvasCtx.fillStyle = gColorTable[dataArray.values[i]];
+            } else {
+                this.layoutCanvasCtx.fillStyle = "white";
+            }
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.fillRect(0, i, LAYOUT_COLUMN_WIDTH, 16);
             this.layoutCanvasCtx.stroke();
+        }
+        this.layoutCanvasCtx.translate(-x, -y);
+        this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);
+    }
+
+    // drawSamples
+    private drawSamples(dataArray: DataArray, x: number, y: number): void {
+        this.layoutCanvasCtx.scale(this.scale, this.scale);
+        this.layoutCanvasCtx.translate(x, y);
+
+        for (let i = 0; i < dataArray.values.length; i++) {
+            if (dataArray.values[i] > 0) {
+                this.layoutCanvasCtx.textBaseline = "middle";
+                this.layoutCanvasCtx.textAlign = "left";
+                this.layoutCanvasCtx.font = "14px Arial";
+                this.layoutCanvasCtx.strokeStyle = "black";
+                this.layoutCanvasCtx.fillStyle = "black";
+                this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.data[0].values[i].toString(), 15, i);
+                this.layoutCanvasCtx.strokeStyle = "red";
+                this.layoutCanvasCtx.fillStyle = "red";
+                this.layoutCanvasCtx.beginPath();
+                this.layoutCanvasCtx.arc(10, i, 5, 0, 2 * Math.PI);
+                this.layoutCanvasCtx.fill();
+            }
         }
         this.layoutCanvasCtx.translate(-x, -y);
         this.layoutCanvasCtx.scale(1.0 / this.scale, 1.0 / this.scale);

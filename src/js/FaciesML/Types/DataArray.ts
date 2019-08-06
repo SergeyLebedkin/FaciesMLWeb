@@ -2,6 +2,7 @@
 export enum DataArrayType {
     DATA_ARRAY_TYPE_VALUE,
     DATA_ARRAY_TYPE_FACIE,
+    DATA_ARRAY_TYPE_SAMPLES,
 }
 
 export const DATA_MINIMAL_VALUE = -999;
@@ -36,7 +37,7 @@ export class DataArray {
 
     // isPredict
     public isPredict(): boolean {
-        return this.valuesPredict && (this.values <= this.valuesPredict);
+        return this.valuesPredict && (this.values.length <= this.valuesPredict.length);
     }
 
     // updateMinMax

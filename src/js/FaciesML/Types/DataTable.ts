@@ -61,6 +61,8 @@ export class DataTable {
                 dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUE;
             }
         }
+        // FOR DEBUG ONLY
+        this.appendRandomSampleDataArray();
     }
 
     // loadFromString
@@ -121,5 +123,14 @@ export class DataTable {
             scv += "\r\n";
         }
         return scv;
+    }
+
+    // appendRandomSampleDataArray
+    private appendRandomSampleDataArray(): void {
+        let dataArray = this.getOrCreateDataArray("SampleData");
+        dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_SAMPLES;
+        dataArray.values.length = this.data[0].values.length;
+        for (let i = 0; i < 15; i++)
+            dataArray.values[Math.floor(Math.random() * dataArray.values.length)] = 1;
     }
 };
