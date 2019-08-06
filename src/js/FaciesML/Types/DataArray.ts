@@ -31,13 +31,18 @@ export class DataArray {
     // getCaption
     public getCaption(): string {
         if (this.isPredict())
-            return this.name + " (with predict)";
+            return this.name + " (predict)";
+        if (this.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_SAMPLES)
+            return this.name + " (samples)";
         return this.name;
     }
 
     // isPredict
     public isPredict(): boolean {
-        return this.valuesPredict && (this.values.length <= this.valuesPredict.length);
+        return 
+            (this.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUE) && 
+            this.valuesPredict && 
+            (this.values.length <= this.valuesPredict.length);
     }
 
     // updateMinMax
