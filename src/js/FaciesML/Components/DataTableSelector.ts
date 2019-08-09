@@ -69,16 +69,35 @@ export class DataTableSelector {
             labelDataTableValue.style.whiteSpace = "nowrap";
             labelDataTableValue["dataArray"] = dataArray;
             labelDataTableValue["dataTable"] = dataTable;
-            labelDataTableValue.ondblclick = event => {
-                let newName = prompt("Enter new name", event.target["dataArray"].name);
-                if (newName) {
-                    event.target["dataArray"].name = newName;
-                    event.target["innerText"] = event.target["dataArray"].getCaption();
-                }
-            }
+            // global add
             divDataTableValue.appendChild(labelDataTableValue);
             divDataTableValues.appendChild(divDataTableValue);
             this.dataArrayCheckBoxes.push(checkBoxDataTableValue);
+
+            // add samples values
+            dataArray.sampleMasks.forEach((dataArray, dataArrayIndex) => {
+                let divDataSample = document.createElement("div");
+                divDataSample.style.display = "flex";
+                divDataSample.style.flexDirection = "row";
+                let checkBoxDataSample = document.createElement("input");
+                checkBoxDataSample.type = "checkbox";
+                checkBoxDataSample.name = "checkbox_" + dataTable.fileRef.name + "_" + dataArrayIndex;
+                checkBoxDataSample.style.marginLeft = "40px";
+                checkBoxDataSample["dataArray"] = dataArray;
+                checkBoxDataSample["dataTable"] = dataTable;
+                checkBoxDataSample["dataArrayIndex"] = dataArrayIndex;
+                divDataSample.appendChild(checkBoxDataSample);
+                let labelDataSample = document.createElement("label");
+                labelDataSample.htmlFor = checkBoxDataTableValue.name;
+                labelDataSample.innerText = dataArray.getCaption();
+                labelDataSample.style.whiteSpace = "nowrap";
+                labelDataSample["dataArray"] = dataArray;
+                labelDataSample["dataTable"] = dataTable;
+                // global add
+                divDataSample.appendChild(labelDataSample);
+                divDataTableValues.appendChild(divDataSample);
+                this.dataArrayCheckBoxes.push(checkBoxDataSample);
+            });
         });
         checkBoxTableName["divDataTableValues"] = divDataTableValues;
         checkBoxTableName.onchange = event => {

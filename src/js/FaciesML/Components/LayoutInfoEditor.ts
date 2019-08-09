@@ -140,12 +140,12 @@ export class LayoutInfoEditor {
         this.drawYAxis(this.layoutInfo.dataTable.data[0], 0, this.selectionOffset);
         // draw selected data arrays
         this.layoutInfo.dataArrays.forEach((dataArray, index) => {
-            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUE) {
+            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUES) {
                 this.drawLegend((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name + " (" + dataArray.unit + ")", dataArray.min, dataArray.max);
                 this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
                 this.drawPlot(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset, gColorTable[index]);
             }
-            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_FACIE) {
+            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_FACIES) {
                 this.drawLegendFacie((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name);
                 this.drawFacies(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
             }
@@ -342,7 +342,7 @@ export class LayoutInfoEditor {
     private drawSamples(dataArray: DataArray, x: number, y: number): void {
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
-
+        console.log("drawSamples");
         for (let i = 0; i < dataArray.values.length; i++) {
             if (dataArray.values[i] > 0) {
                 this.layoutCanvasCtx.textBaseline = "middle";

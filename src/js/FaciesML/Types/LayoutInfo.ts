@@ -49,7 +49,7 @@ export class LayoutInfo {
         }
         // data array node
         for (let dataArray of this.dataArrays) {
-            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUE) {
+            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUES) {
                 json[dataArray.name] = {
                     "unit": dataArray.unit,
                     "data": dataArray.values

@@ -1,7 +1,7 @@
 // DataArrayType
 export enum DataArrayType {
-    DATA_ARRAY_TYPE_VALUE,
-    DATA_ARRAY_TYPE_FACIE,
+    DATA_ARRAY_TYPE_VALUES,
+    DATA_ARRAY_TYPE_FACIES,
     DATA_ARRAY_TYPE_SAMPLES,
 }
 
@@ -14,32 +14,43 @@ export class DataArray {
     public unit: string = "";
     public min: number = 0;
     public max: number = 0;
+    public recomended: boolean = false;
     public values: Array<number> = [];
-    public valuesPredict: Array<number> = [];
-    public dataArrayType: DataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUE;
+    public valuesPredict: Array<number> = null;
+    public sampleMasks: Array<DataArray> = []; // only for DATA_ARRAY_TYPE_FACIES!
+    public dataArrayType: DataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUES;
     // constructor
     constructor() {
         this.name = "";
         this.unit = "";
         this.min = 0;
         this.max = 0;
+        this.recomended = false;
         this.values = [];
         this.valuesPredict = null;
-        this.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUE;
+        this.sampleMasks = [];
+        this.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUES;
     }
 
     // getCaption
     public getCaption(): string {
+        // if array is predict
         if (this.isPredict())
             return this.name + " (predict)";
-        if (this.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_SAMPLES)
-            return this.name + " (samples)";
+        // if array is samples
+        if (this.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_SAMPLES) {
+            if (this.recomended)
+                return this.name + " (recomended)";
+            else
+                return this.name;
+        }
+        // all other
         return this.name;
     }
 
     // isPredict
     public isPredict(): boolean {
-        return ((this.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUE) && this.valuesPredict && 
+        return ((this.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUES) && this.valuesPredict &&
             (this.values.length <= this.valuesPredict.length));
     }
 
@@ -70,6 +81,17 @@ export class DataArray {
         }
     }
 
+    // getOrCreateDataArray - find or create data array
+    public getOrCreateSampleMask(name: string): DataArray {
+        let dataArray = this.sampleMasks.find(dataArray => dataArray.name === name);
+        if (!dataArray) {
+            dataArray = new DataArray();
+            dataArray.name = name;
+            this.sampleMasks.push(dataArray);
+        }
+        return dataArray;
+    }
+
     // loadValuesFromJSON
     public loadValuesFromJSON(json: any) {
         this.values = [];
@@ -85,5 +107,11 @@ export class DataArray {
         this.valuesPredict.length = Object.keys(json).length;
         for (let index in json)
             this.valuesPredict[parseInt(index)] = json[index];
+    }
+
+    // loadFromCommaString
+    public loadFromCommaString(str: string): void {
+        this.values = [];
+        str.split(",").forEach(value => this.values.push(parseInt(value)));
     }
 };

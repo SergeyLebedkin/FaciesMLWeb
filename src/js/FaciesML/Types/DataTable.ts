@@ -45,28 +45,46 @@ export class DataTable {
     }
 
     // updateFromJSON
-    public updateFromJSON(json: any) {
+    public updateFromJSON(json: any): void {
         for (let key in json) {
             if (key === "Depth") {
                 // skip
             } else if (key === "selections") {
                 // skip
             } else if (!isNaN(Number(key))) {
-                let dataArray = this.getOrCreateDataArray(key);
+                let dataArray = this.getOrCreateDataArray(key as string);
                 dataArray.loadValuesFromJSON(json[key])
-                dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_FACIE;
+                dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_FACIES;
             } else {
-                let dataArray = this.getOrCreateDataArray(key);
+                let dataArray = this.getOrCreateDataArray(key as string);
                 dataArray.loadPredictFromJSON(json[key])
-                dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUE;
+                dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUES;
             }
         }
-        // FOR DEBUG ONLY
-        this.appendRandomSampleDataArray(15);
+    }
+
+    // updateSamplesFromJSON
+    public updateSamplesFromJSON(json: any): void {
+        if (!json["samples_mask"]) return;
+        if (!json["num_clusters"]) return;
+
+        // read samples one by one
+        Object.keys(json["samples_mask"]).forEach((value, index) => {
+            let predictName = json["num_clusters"][value] as string;
+            let predict = this.data.find(dataArray => dataArray.name == predictName);
+            if (predict) {
+                // create sample mask
+                let sampleMask = predict.getOrCreateSampleMask(json["num_samples"][value]);
+                sampleMask.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_SAMPLES;
+                sampleMask.recomended = (json["optimized_samples"][value] == 1);
+                sampleMask.loadFromCommaString(json["samples_mask"][value]);
+                sampleMask.updateMinMax();
+            }
+        });
     }
 
     // loadFromString
-    public loadFromString(str: string) {
+    public loadFromString(str: string): void {
         // get strings list
         let strings: Array<string> = str.split('\n');
         // find first row table string index
@@ -123,15 +141,5 @@ export class DataTable {
             scv += "\r\n";
         }
         return scv;
-    }
-
-    // appendRandomSampleDataArray
-    private appendRandomSampleDataArray(count: number = 15): void {
-        let dataArray = this.getOrCreateDataArray("SampleData");
-        dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_SAMPLES;
-        dataArray.values.length = this.data[0].values.length;
-        dataArray.values.fill(0);
-        for (let i = 0; i < count; i++)
-            dataArray.values[Math.floor(Math.random() * dataArray.values.length)] = 1;
     }
 };

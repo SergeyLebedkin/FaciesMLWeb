@@ -94,21 +94,10 @@ function buttonSubmitOnClick(event: MouseEvent) {
         buttonSubmit.disabled = false;
     }, 1000 * 5 * 60);
     aStatus.style.color = "blue";
-    aStatus.innerText = "Post SessionID...";
+    aStatus.innerText = "Working...";
     buttonSubmit.disabled = true;
     gSessionInfo.postDataArrays(gLayoutInfoEditor.layoutInfo)
         .then(value => {
-            aStatus.style.color = "blue";
-            aStatus.innerText = "Post data...";
-            //console.log(JSON.parse(value));
-            return value;
-        }, reason => {
-            aStatus.style.color = "red";
-            aStatus.innerText = "Server error... (" + reason + ")";
-            buttonSubmit.disabled = false;
-            clearTimeout(timeoutServerWait);
-            return Promise.reject(reason);
-        }).then(value => {
             aStatus.style.color = "green";
             aStatus.innerText = "OK"
             buttonSubmit.disabled = false;
@@ -121,6 +110,7 @@ function buttonSubmitOnClick(event: MouseEvent) {
             aStatus.innerText = "Server error... (" + reason + ")";
             buttonSubmit.disabled = false;
             clearTimeout(timeoutServerWait);
+            return Promise.reject(reason);
         });
 }
 
@@ -196,8 +186,10 @@ window.onload = event => {
 function updateTablesFromJson(json: any) {
     for (let key in json) {
         let dataTable = gDataTableList.find(dataTable => dataTable.name === key);
-        if (dataTable)
+        if (dataTable) {
             dataTable.updateFromJSON(json[key]);
+            dataTable.updateSamplesFromJSON(json[key+"_samples_info"]);
+        }
     }
 }
 
