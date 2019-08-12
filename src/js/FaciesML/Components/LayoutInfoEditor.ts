@@ -12,6 +12,7 @@ const LAYOUT_AXES_HINT_LENGTH: number = 30;
 export class LayoutInfoEditor {
     // parent
     private parent: HTMLDivElement = null;
+    private enabled: boolean = true;
     // layoutInfo parameters
     public layoutInfo: LayoutInfo = null;
     public scale: number = 1.0;
@@ -28,6 +29,7 @@ export class LayoutInfoEditor {
     constructor(parent: HTMLDivElement) {
         // setup parent
         this.parent = parent;
+        this.enabled = true;
         // image parameters
         this.layoutInfo = null;
         this.scale = 1.0;
@@ -88,6 +90,7 @@ export class LayoutInfoEditor {
     // onMouseDown
     public onMouseDown(event: MouseEvent): void {
         if (event.button !== 0) return;
+        if (!this.enabled) return;
         if (this.layoutInfo !== null) {
             // get mouse coords
             let mouseCoords = getMousePosByElement(this.layoutCanvas, event);
@@ -97,6 +100,16 @@ export class LayoutInfoEditor {
             this.selectionStart = mouseCoords.y / this.scale - this.selectionOffset;
             this.selectionEnd = mouseCoords.y / this.scale - this.selectionOffset;
         };
+    }
+
+    // setEnabled
+    public setEnabled(enable: boolean) {
+        if (this.enabled !== enable)
+            this.enabled = enable;
+        if (this.enabled)
+            this.layoutCanvas.style.cursor = "row-resize";
+        else
+            this.layoutCanvas.style.cursor = "auto";
     }
 
     // setLayoutInfo

@@ -6,6 +6,7 @@ import { DataArray } from "../Types/DataArray";
 export class DataTableSelector {
     // parent
     private parent: HTMLDivElement = null;
+    private enabled = true;
     // data tables
     private dataTableList: Array<DataTable> = null;
     private dataArrayCheckBoxes: Array<HTMLInputElement> = null;
@@ -13,10 +14,19 @@ export class DataTableSelector {
     constructor(parent: HTMLDivElement, dataTableList: Array<DataTable>) {
         // parent
         this.parent = parent;
+        this.enabled = true;
         // base lists
         this.dataTableList = dataTableList;
         // dataArrayCheckBoxes
         this.dataArrayCheckBoxes = new Array<HTMLInputElement>();
+    }
+
+    // setEnabled
+    public setEnabled(enable: boolean) {
+        if (this.enabled !== enable) {
+            this.enabled = enable;
+            this.dataArrayCheckBoxes.forEach(checkBox => checkBox.disabled = !this.enabled);
+        }
     }
 
     // update

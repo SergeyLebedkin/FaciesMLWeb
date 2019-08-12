@@ -92,16 +92,22 @@ function buttonSubmitOnClick(event: MouseEvent) {
     let timeoutServerWait = setTimeout(() => {
         aStatus.style.color = "red";
         aStatus.innerText = "Server timeout...";
+        gDataTableSelector.setEnabled(true);
+        gLayoutInfoEditor.setEnabled(true);
         buttonSubmit.disabled = false;
     }, 1000 * 5 * 60);
     aStatus.style.color = "blue";
     aStatus.innerText = "Working...";
+    gDataTableSelector.setEnabled(false);
+    gLayoutInfoEditor.setEnabled(false);
     buttonSubmit.disabled = true;
     gSessionInfo.postDataArrays(gLayoutInfoEditor.layoutInfo)
         .then(value => {
             aStatus.style.color = "green";
             aStatus.innerText = "OK"
             buttonSubmit.disabled = false;
+            gDataTableSelector.setEnabled(true);
+            gLayoutInfoEditor.setEnabled(true);
             clearTimeout(timeoutServerWait);
             updateTablesFromJson(JSON.parse(value));
             gDataTableSelector.update();
@@ -192,7 +198,7 @@ function updateTablesFromJson(json: any) {
         let dataTable = gDataTableList.find(dataTable => dataTable.name === key);
         if (dataTable) {
             dataTable.updateFromJSON(json[key]);
-            dataTable.updateSamplesFromJSON(json[key+"_samples_info"]);
+            dataTable.updateSamplesFromJSON(json[key + "_samples_info"]);
         }
     }
 }
