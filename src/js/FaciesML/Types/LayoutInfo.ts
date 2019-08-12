@@ -58,4 +58,26 @@ export class LayoutInfo {
         };
         return json;
     }
+
+    // saveToCSV
+    public saveToCSV(): string {
+        // check for empty
+        if (this.dataArrays.length === 0) return "";
+        // add heades
+        let scv = "";
+        for (let dataArray of this.dataArrays)
+            scv += dataArray.name + ",";
+        scv += "\r\n";
+        for (let i = 0; i < this.dataArrays[0].values.length; i++) {
+            for (let dataArray of this.dataArrays) {
+                // add values
+                if (dataArray.isPredict())
+                    scv += dataArray.valuesPredict[i] + ",";
+                else
+                    scv += dataArray.values[i] + ",";
+            }
+            scv += "\r\n";
+        }
+        return scv;
+    }
 }

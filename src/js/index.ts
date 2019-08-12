@@ -4,6 +4,7 @@ import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { LayoutInfo } from "./FaciesML/Types/LayoutInfo";
 import { SelectionMode } from "./FaciesML/Types/SelectionMode";
+import { DataArray } from "./FaciesML/Types/DataArray";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -116,9 +117,12 @@ function buttonSubmitOnClick(event: MouseEvent) {
 
 // buttonSaveOnClick
 function buttonSaveOnClick(event: MouseEvent) {
-    for (let dataTable of gDataTableList) {
-        downloadFile(dataTable.saveToCSV(), dataTable.fileRef.name + ".csv", "text/plain");
-    }
+    // check for null
+    if (!gLayoutInfoEditor.layoutInfo) return;
+    downloadFile(gLayoutInfoEditor.layoutInfo.saveToCSV(), gLayoutInfoEditor.layoutInfo.getCaption() + ".csv", "text/plain");
+    //for (let dataTable of gDataTableList) {
+    //    downloadFile(dataTable.saveToCSV(), dataTable.fileRef.name + ".csv", "text/plain");
+    //}
 }
 
 // buttonScaleDownOnClick
