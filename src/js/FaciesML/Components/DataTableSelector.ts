@@ -7,6 +7,7 @@ export class DataTableSelector {
     // parent
     private parent: HTMLDivElement = null;
     private enabled = true;
+    private optimizedСlusterNum: number = 0.0;
     // data tables
     private dataTableList: Array<DataTable> = null;
     private dataArrayCheckBoxes: Array<HTMLInputElement> = null;
@@ -15,6 +16,7 @@ export class DataTableSelector {
         // parent
         this.parent = parent;
         this.enabled = true;
+        this.optimizedСlusterNum = 0.0;
         // base lists
         this.dataTableList = dataTableList;
         // dataArrayCheckBoxes
@@ -26,6 +28,13 @@ export class DataTableSelector {
         if (this.enabled !== enable) {
             this.enabled = enable;
             this.dataArrayCheckBoxes.forEach(checkBox => checkBox.disabled = !this.enabled);
+        }
+    }
+
+    // setOptimizedСlusterNum
+    public setOptimizedСlusterNum(optimizedСlusterNum: number) {
+        if (this.optimizedСlusterNum !== optimizedСlusterNum) {
+            this.optimizedСlusterNum = optimizedСlusterNum;
         }
     }
 
@@ -75,7 +84,10 @@ export class DataTableSelector {
             divDataTableValue.appendChild(checkBoxDataTableValue);
             let labelDataTableValue = document.createElement("label");
             labelDataTableValue.htmlFor = checkBoxDataTableValue.name;
-            labelDataTableValue.innerText = dataArray.getCaption();
+            if(parseInt(dataArray.name) === this.optimizedСlusterNum)
+                labelDataTableValue.innerText = dataArray.getCaption() + " (recomnded)"
+            else
+                labelDataTableValue.innerText = dataArray.getCaption();
             labelDataTableValue.style.whiteSpace = "nowrap";
             labelDataTableValue["dataArray"] = dataArray;
             labelDataTableValue["dataTable"] = dataTable;

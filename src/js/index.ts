@@ -109,7 +109,9 @@ function buttonSubmitOnClick(event: MouseEvent) {
             gDataTableSelector.setEnabled(true);
             gLayoutInfoEditor.setEnabled(true);
             clearTimeout(timeoutServerWait);
-            updateTablesFromJson(JSON.parse(value));
+            let json = JSON.parse(value);
+            updateTablesFromJson(json);
+            gDataTableSelector.setOptimizedСlusterNum(json["optimized_cluster_num"]);
             gDataTableSelector.update();
             gLayoutInfoEditor.drawLayoutInfo();
         }, reason => {
