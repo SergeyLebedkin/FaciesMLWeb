@@ -1,4 +1,3 @@
-import { DataArray } from "./DataArray"
 import { DataTable } from "./DataTable";
 import { LayoutInfo } from "./LayoutInfo";
 
@@ -43,7 +42,7 @@ export class SessionInfo {
                 "sensitivity": 0.1,
                 "logs": {}
             };
-            data.logs[layoutInfo.dataTable.name] = layoutInfo.getJSON();
+            //data.logs[layoutInfo.dataTable.name] = layoutInfo.getJSON();
 
             try {
                 xhr.send(JSON.stringify(data));

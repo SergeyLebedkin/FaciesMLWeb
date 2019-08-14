@@ -1,35 +1,55 @@
-import { DataArray, DataArrayType } from "./DataArray"
+import { DataValues } from "./DataValues"
+import { DataFacies } from "./DataFacies"
 
 // DataTable
 export class DataTable {
     // fileds
     public fileRef: File = null;
     public name: string = "";
-    public data: Array<DataArray> = null;
-    public selections: Array<number> = null;
+    public dataValues: Array<DataValues> = [];
+    public dataFacies: Array<DataFacies> = [];
+    public selections: Array<number> = [];
+    public optimizedСlusterNum: number = 0.0;
     // events
     public onloadFileData: (this: DataTable, dataTable: DataTable) => any = null;
     // constructor
     constructor() {
         this.fileRef = null;
         this.name = "";
-        this.data = [];
+        this.dataValues = [];
+        this.dataFacies = [];
         this.selections = [];
+        this.optimizedСlusterNum = 0.0;
     }
 
-    // getOrCreateDataArray - find or create data array
-    public getOrCreateDataArray(name: string): DataArray {
-        let dataArray = this.data.find(dataArray => dataArray.name === name);
-        if (!dataArray) {
-            dataArray = new DataArray();
-            dataArray.name = name;
-            this.data.push(dataArray);
+    // setOptimizedСlusterNum
+    public setOptimizedСlusterNum(optimizedСlusterNum: number) {
+        if (this.optimizedСlusterNum !== optimizedСlusterNum) {
+            this.optimizedСlusterNum = optimizedСlusterNum;
+            // TODO: change data facies recomendations
         }
-        return dataArray;
     }
 
-    // loadFromFile
-    public loadFromFile(file: File) {
+    // getSelectedCount
+    public getSelectedCount(): number {
+        let count = 0;
+        // get count of data values selected
+        for (let dataValues of this.dataValues) {
+            if (dataValues.selected) count++;
+        }
+        // get count of data facies selected
+        for (let dataFacies of this.dataFacies) {
+            if (dataFacies.selected) count++;
+            // get count of data samples selected
+            for (let dataSamples of dataFacies.samples) {
+                if (dataSamples.selected) count++;
+            }
+        }
+        return count;
+    }
+
+    // loadFromFileLAS
+    public loadFromFileLAS(file: File) {
         // check for null
         if (file === null) return;
         // store name
@@ -38,53 +58,14 @@ export class DataTable {
         // read file
         var fileReader = new FileReader();
         fileReader.onload = event => {
-            this.loadFromString(event.currentTarget["result"]);
+            this.loadFromStringLAS(event.currentTarget["result"]);
             this.onloadFileData && this.onloadFileData(this);
         }
         fileReader.readAsText(this.fileRef);
     }
 
-    // updateFromJSON
-    public updateFromJSON(json: any): void {
-        for (let key in json) {
-            if (key === "Depth") {
-                // skip
-            } else if (key === "selections") {
-                // skip
-            } else if (!isNaN(Number(key))) {
-                let dataArray = this.getOrCreateDataArray(key as string);
-                dataArray.loadValuesFromJSON(json[key])
-                dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_FACIES;
-            } else {
-                let dataArray = this.getOrCreateDataArray(key as string);
-                dataArray.loadPredictFromJSON(json[key])
-                dataArray.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_VALUES;
-            }
-        }
-    }
-
-    // updateSamplesFromJSON
-    public updateSamplesFromJSON(json: any): void {
-        if (!json["samples_mask"]) return;
-        if (!json["num_clusters"]) return;
-
-        // read samples one by one
-        Object.keys(json["samples_mask"]).forEach((value, index) => {
-            let predictName = json["num_clusters"][value] as string;
-            let predict = this.data.find(dataArray => dataArray.name == predictName);
-            if (predict) {
-                // create sample mask
-                let sampleMask = predict.getOrCreateSampleMask(json["num_samples"][value]);
-                sampleMask.dataArrayType = DataArrayType.DATA_ARRAY_TYPE_SAMPLES;
-                sampleMask.recomended = (json["optimized_samples"][value] == 1);
-                sampleMask.loadFromCommaString(json["samples_mask"][value]);
-                sampleMask.updateMinMax();
-            }
-        });
-    }
-
-    // loadFromString
-    public loadFromString(str: string): void {
+    // loadFromStringLAS
+    public loadFromStringLAS(str: string): void {
         // get strings list
         let strings: Array<string> = str.split('\n');
         // find first row table string index
@@ -93,18 +74,18 @@ export class DataTable {
         firstRowTableStringIndex++;
 
         // create daеa table
-        this.data = [];
+        this.dataValues = [];
         let paramsStr = strings[firstRowTableStringIndex].trim();
         let valuesCount = paramsStr.split(" ").filter(val => val != "").length;
         for (let i = 0; i < valuesCount; i++) {
-            this.data.push(new DataArray());
+            this.dataValues.push(new DataValues());
         }
 
         // parce rows
         for (let rowIndex = firstRowTableStringIndex; rowIndex < strings.length; rowIndex++) {
             let paramsStr = strings[rowIndex].trim();
             let values = paramsStr.split(" ").filter(val => val != "");
-            values.forEach((value, index) => this.data[index].values.push(parseFloat(value)));
+            values.forEach((value, index) => this.dataValues[index].values.push(parseFloat(value)));
         }
 
         // find first row table string index
@@ -115,31 +96,13 @@ export class DataTable {
         // parce name and unit
         for (let rowIndex = 0; rowIndex < valuesCount; rowIndex++) {
             let params = strings[firstRowNameUnit + rowIndex];
-            this.data[rowIndex].name = params.split(".")[0].trim();
-            this.data[rowIndex].unit = params.split(".")[1].split(" ")[0].trim();
+            this.dataValues[rowIndex].name = params.split(".")[0].trim();
+            this.dataValues[rowIndex].unit = params.split(".")[1].split(" ")[0].trim();
         }
 
         // update min and max ranges
-        this.data.forEach(dataArray => dataArray.updateMinMax());
-        this.selections.length = this.data[0].values.length;
+        this.dataValues.forEach(dataArray => dataArray.updateMinMax());
+        this.selections.length = this.dataValues[0].values.length;
         this.selections.fill(0);
-    }
-
-    // saveToCSV
-    public saveToCSV(): string {
-        let scv = "";
-        for (let dataArray of this.data)
-            scv += dataArray.name + ",";
-        scv += "\r\n";
-        for (let i = 0; i < this.data[0].values.length; i++) {
-            for (let dataArray of this.data) {
-                if (dataArray.isPredict())
-                    scv += dataArray.valuesPredict[i] + ",";
-                else
-                    scv += dataArray.values[i] + ",";
-            }
-            scv += "\r\n";
-        }
-        return scv;
     }
 };

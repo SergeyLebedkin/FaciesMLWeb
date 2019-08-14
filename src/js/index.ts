@@ -4,7 +4,6 @@ import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { LayoutInfo } from "./FaciesML/Types/LayoutInfo";
 import { SelectionMode } from "./FaciesML/Types/SelectionMode";
-import { DataArray } from "./FaciesML/Types/DataArray";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -16,7 +15,6 @@ let divDataValues: HTMLDivElement = null;
 let radioSelectionModeAdd: HTMLInputElement = null;
 let radioSelectionModeRemove: HTMLInputElement = null;
 let buttonDrawPlots: HTMLButtonElement = null;
-let buttonAddToCurrent: HTMLButtonElement = null;
 let buttonSubmit: HTMLButtonElement = null;
 let aStatus: HTMLElement = null;
 let buttonSave: HTMLButtonElement = null;
@@ -26,6 +24,7 @@ let divPlotsPanel: HTMLDivElement = null;
 let labelScaleFactor: HTMLLabelElement = null;
 let buttonScaleDown: HTMLButtonElement = null;
 let buttonScaleUp: HTMLButtonElement = null;
+
 // globals
 let gSessionInfo: SessionInfo = null;
 let gDataTableList: Array<DataTable> = null;
@@ -40,11 +39,25 @@ function buttonLoadDataOnClick(event: MouseEvent) {
         for (let file of files) {
             let dataTable = new DataTable();
             dataTable.onloadFileData = dataTable => {
+                // create layout info
+                let layoutInfo = new LayoutInfo(dataTable);
+                // create tab buttor
+                let buttonTab = document.createElement("button");
+                buttonTab.className = "tab-button";
+                buttonTab.innerText = layoutInfo.dataTable.name;
+                buttonTab["layoutInfo"] = layoutInfo;
+                buttonTab.onclick = buttonTabOnClick;
+                divTabPanelLayots.appendChild(buttonTab);
                 // update selector
                 gDataTableList.push(dataTable);
                 gDataTableSelector.update();
+                // update editor
+                if (gLayoutInfoEditor.layoutInfo === null) {
+                    gLayoutInfoEditor.setLayoutInfo(layoutInfo);
+                    gLayoutInfoEditor.drawLayoutInfo();
+                }
             }
-            dataTable.loadFromFile(file);
+            dataTable.loadFromFileLAS(file);
         }
         buttonSave.disabled = false;
         buttonDrawPlots.disabled = false;
@@ -59,78 +72,11 @@ function buttonTabOnClick(event: MouseEvent) {
 
 // buttonDrawPlotsOnClick
 function buttonDrawPlotsOnClick(event: MouseEvent) {
-    let layoutInfos = gDataTableSelector.createLayoutInfos();
-    for (let layoutInfo of layoutInfos) {
-        let buttonTab = document.createElement("button");
-        buttonTab.className = "tab-button";
-        buttonTab.innerText = layoutInfo.getCaption();
-        buttonTab["layoutInfo"] = layoutInfo;
-        buttonTab.onclick = buttonTabOnClick;
-        divTabPanelLayots.appendChild(buttonTab);
-        // set current layout info
-        gLayoutInfoEditor.setLayoutInfo(layoutInfo);
-        buttonSubmit.disabled = false;
-        buttonAddToCurrent.disabled = false;
-    }
-    gDataTableSelector.clearSelections();
-}
-
-// buttonAddToCurrentOnClick
-function buttonAddToCurrentOnClick(event: MouseEvent) {
-    if (!gLayoutInfoEditor.layoutInfo) return;
-    gDataTableSelector.appendToLayoutInfos(gLayoutInfoEditor.layoutInfo);
-    gDataTableSelector.clearSelections();
     gLayoutInfoEditor.drawLayoutInfo();
-    let buttons = document.getElementsByClassName("tab-button")
-    for (let i = 0; i < buttons.length; i++)
-        buttons[i]["innerText"] = buttons[i]["layoutInfo"].getCaption();
-}
-
-// buttonSubmitOnClick
-function buttonSubmitOnClick(event: MouseEvent) {
-    if (gLayoutInfoEditor.layoutInfo === null) return;
-    let timeoutServerWait = setTimeout(() => {
-        aStatus.style.color = "red";
-        aStatus.innerText = "Server timeout...";
-        gDataTableSelector.setEnabled(true);
-        gLayoutInfoEditor.setEnabled(true);
-        buttonSubmit.disabled = false;
-    }, 1000 * 5 * 60);
-    aStatus.style.color = "blue";
-    aStatus.innerText = "Working...";
-    gDataTableSelector.setEnabled(false);
-    gLayoutInfoEditor.setEnabled(false);
-    buttonSubmit.disabled = true;
-    gSessionInfo.postDataArrays(gLayoutInfoEditor.layoutInfo)
-        .then(value => {
-            aStatus.style.color = "green";
-            aStatus.innerText = "OK"
-            buttonSubmit.disabled = false;
-            gDataTableSelector.setEnabled(true);
-            gLayoutInfoEditor.setEnabled(true);
-            clearTimeout(timeoutServerWait);
-            let json = JSON.parse(value);
-            updateTablesFromJson(json);
-            gDataTableSelector.setOptimizedСlusterNum(json["optimized_cluster_num"]);
-            gDataTableSelector.update();
-            gLayoutInfoEditor.drawLayoutInfo();
-        }, reason => {
-            aStatus.style.color = "red";
-            aStatus.innerText = "Server error... (" + reason + ")";
-            buttonSubmit.disabled = false;
-            clearTimeout(timeoutServerWait);
-            return Promise.reject(reason);
-        });
 }
 
 // buttonSaveOnClick
 function buttonSaveOnClick(event: MouseEvent) {
-    // check for null
-    if (!gLayoutInfoEditor.layoutInfo) return;
-    downloadFile(gLayoutInfoEditor.layoutInfo.saveToCSV(), gLayoutInfoEditor.layoutInfo.getCaption() + ".csv", "text/plain");
-    //for (let dataTable of gDataTableList) {
-    //    downloadFile(dataTable.saveToCSV(), dataTable.fileRef.name + ".csv", "text/plain");
-    //}
 }
 
 // buttonScaleDownOnClick
@@ -160,8 +106,6 @@ window.onload = event => {
     radioSelectionModeRemove = document.getElementById("radioSelectionModeRemove") as HTMLInputElement;
     buttonDrawPlots = document.getElementById("buttonDrawPlots") as HTMLButtonElement;
     buttonDrawPlots.disabled = true;
-    buttonAddToCurrent = document.getElementById("buttonAddToCurrent") as HTMLButtonElement;
-    buttonAddToCurrent.disabled = true;
     buttonSubmit = document.getElementById("buttonSubmit") as HTMLButtonElement;
     aStatus = document.getElementById("aStatus") as HTMLElement;
     buttonSave = document.getElementById("buttonSave") as HTMLButtonElement;
@@ -184,8 +128,7 @@ window.onload = event => {
     radioSelectionModeAdd.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.ADD);
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
     buttonDrawPlots.onclick = event => buttonDrawPlotsOnClick(event);
-    buttonAddToCurrent.onclick = event => buttonAddToCurrentOnClick(event);
-    buttonSubmit.onclick = event => buttonSubmitOnClick(event);
+    //buttonSubmit.onclick = event => buttonSubmitOnClick(event);
     buttonSubmit.disabled = true;
     buttonSave.onclick = event => buttonSaveOnClick(event);
     buttonSave.disabled = true;
@@ -196,13 +139,13 @@ window.onload = event => {
 
 // updateTablesFromJson
 function updateTablesFromJson(json: any) {
-    for (let key in json) {
-        let dataTable = gDataTableList.find(dataTable => dataTable.name === key);
-        if (dataTable) {
-            dataTable.updateFromJSON(json[key]);
-            dataTable.updateSamplesFromJSON(json[key + "_samples_info"]);
-        }
-    }
+    // for (let key in json) {
+    //     let dataTable = gDataTableList.find(dataTable => dataTable.name === key);
+    //     if (dataTable) {
+    //         dataTable.updateFromJSON(json[key]);
+    //         dataTable.updateSamplesFromJSON(json[key + "_samples_info"]);
+    //     }
+    // }
 }
 
 // downloadFile
