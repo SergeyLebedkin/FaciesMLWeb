@@ -51,6 +51,7 @@ function buttonLoadDataOnClick(event: MouseEvent) {
                 // update selector
                 gDataTableList.push(dataTable);
                 gDataTableSelector.update();
+                buttonSubmit.disabled = false;
                 // update editor
                 if (gLayoutInfoEditor.layoutInfo === null) {
                     gLayoutInfoEditor.setLayoutInfo(layoutInfo);
@@ -75,8 +76,50 @@ function buttonDrawPlotsOnClick(event: MouseEvent) {
     gLayoutInfoEditor.drawLayoutInfo();
 }
 
+// buttonSubmitOnClick
+function buttonSubmitOnClick(event: MouseEvent) {
+    if (gLayoutInfoEditor.layoutInfo === null) return;
+    let timeoutServerWait = setTimeout(() => {
+        aStatus.style.color = "red";
+        aStatus.innerText = "Server timeout...";
+        gDataTableSelector.setEnabled(true);
+        gLayoutInfoEditor.setEnabled(true);
+        buttonSubmit.disabled = false;
+    }, 1000 * 5 * 60);
+    aStatus.style.color = "blue";
+    aStatus.innerText = "Working...";
+    gDataTableSelector.setEnabled(false);
+    gLayoutInfoEditor.setEnabled(false);
+    buttonSubmit.disabled = true;
+    gSessionInfo.postDataTables(gDataTableList)
+        .then(value => {
+            aStatus.style.color = "green";
+            aStatus.innerText = "OK"
+            buttonSubmit.disabled = false;
+            gDataTableSelector.setEnabled(true);
+            gLayoutInfoEditor.setEnabled(true);
+            clearTimeout(timeoutServerWait);
+            let json = JSON.parse(value);
+            updateTablesFromJson(json);
+            for (let dataTable of gDataTableList)
+                dataTable.setOptimizedСlusterNum(json["optimized_cluster_num"]);
+            gDataTableSelector.update();
+            gLayoutInfoEditor.drawLayoutInfo();
+        }, reason => {
+            aStatus.style.color = "red";
+            aStatus.innerText = "Server error... (" + reason + ")";
+            buttonSubmit.disabled = false;
+            gDataTableSelector.setEnabled(true);
+            gLayoutInfoEditor.setEnabled(true);
+            clearTimeout(timeoutServerWait);
+            return Promise.reject(reason);
+        });
+}
+
 // buttonSaveOnClick
 function buttonSaveOnClick(event: MouseEvent) {
+    if (!gLayoutInfoEditor.layoutInfo) return;
+    downloadFile(gLayoutInfoEditor.layoutInfo.dataTable.saveToCSV(), gLayoutInfoEditor.layoutInfo.dataTable.name + ".csv", "text/plain");
 }
 
 // buttonScaleDownOnClick
@@ -128,7 +171,7 @@ window.onload = event => {
     radioSelectionModeAdd.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.ADD);
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
     buttonDrawPlots.onclick = event => buttonDrawPlotsOnClick(event);
-    //buttonSubmit.onclick = event => buttonSubmitOnClick(event);
+    buttonSubmit.onclick = event => buttonSubmitOnClick(event);
     buttonSubmit.disabled = true;
     buttonSave.onclick = event => buttonSaveOnClick(event);
     buttonSave.disabled = true;
@@ -139,13 +182,14 @@ window.onload = event => {
 
 // updateTablesFromJson
 function updateTablesFromJson(json: any) {
-    // for (let key in json) {
-    //     let dataTable = gDataTableList.find(dataTable => dataTable.name === key);
-    //     if (dataTable) {
-    //         dataTable.updateFromJSON(json[key]);
-    //         dataTable.updateSamplesFromJSON(json[key + "_samples_info"]);
-    //     }
-    // }
+    console.log(json);
+    for (let key in json) {
+        let dataTable = gDataTableList.find(dataTable => dataTable.name === key);
+        if (dataTable) {
+            dataTable.updateValuesFromJson(json[key]);
+            dataTable.updateSamplesFromJson(json[key + "_samples_info"]);
+        }
+    }
 }
 
 // downloadFile

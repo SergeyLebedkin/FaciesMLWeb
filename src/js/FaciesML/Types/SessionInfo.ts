@@ -17,8 +17,8 @@ export class SessionInfo {
         this.description = "";
     }
 
-    // postDataArrays
-    public postDataArrays(layoutInfo: LayoutInfo): Promise<string> {
+    // postDataTables
+    public postDataTables(dataTables: DataTable[]): Promise<string> {
         return new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
             let url = URL + "/clustering";
@@ -42,8 +42,9 @@ export class SessionInfo {
                 "sensitivity": 0.1,
                 "logs": {}
             };
-            //data.logs[layoutInfo.dataTable.name] = layoutInfo.getJSON();
-
+            for (let dataTable of dataTables)
+                data.logs[dataTable.name] = dataTable.saveSelectedToJson();
+            console.log(data)
             try {
                 xhr.send(JSON.stringify(data));
             } catch (error) {

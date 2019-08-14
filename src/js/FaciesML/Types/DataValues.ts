@@ -46,4 +46,12 @@ export class DataValues {
             this.max = Math.max(this.max, value);
         }
     }
+
+    // loadPredictFromJson
+    public loadPredictFromJson(json: any): void {
+        this.predicts = [];
+        this.predicts.length = Object.keys(json).length;
+        for (let index in json)
+            this.predicts[parseInt(index)] = json[index];
+    }
 }

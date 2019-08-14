@@ -26,7 +26,9 @@ export class DataTable {
     public setOptimizedСlusterNum(optimizedСlusterNum: number) {
         if (this.optimizedСlusterNum !== optimizedСlusterNum) {
             this.optimizedСlusterNum = optimizedСlusterNum;
-            // TODO: change data facies recomendations
+            for(let dataFacies of this.dataFacies) {
+                dataFacies.recommended = (dataFacies.name == this.optimizedСlusterNum.toFixed());
+            }
         }
     }
 
@@ -41,11 +43,101 @@ export class DataTable {
         for (let dataFacies of this.dataFacies) {
             if (dataFacies.selected) count++;
             // get count of data samples selected
-            for (let dataSamples of dataFacies.samples) {
+            for (let dataSamples of dataFacies.dataSamples) {
                 if (dataSamples.selected) count++;
             }
         }
         return count;
+    }
+
+    // getOrCreateDataValue - find or create data array
+    public getOrCreateDataValues(name: string): DataValues {
+        let dataValues = this.dataValues.find(dataValues => dataValues.name === name);
+        if (!dataValues) {
+            dataValues = new DataValues();
+            dataValues.name = name;
+            this.dataValues.push(dataValues);
+        }
+        return dataValues;
+    }
+
+    // getOrCreateDataFacies - find or create data array
+    public getOrCreateDataFacies(name: string): DataFacies {
+        let dataFacies = this.dataFacies.find(dataFacies => dataFacies.name === name);
+        if (!dataFacies) {
+            dataFacies = new DataFacies();
+            dataFacies.name = name;
+            this.dataFacies.push(dataFacies);
+        }
+        return dataFacies;
+    }
+
+    // saveSelectedToJson
+    public saveSelectedToJson(): any {
+        // create selection data
+        let selectionsData = this.selections;
+        if (selectionsData.findIndex(val => val > 0) < 0) {
+            selectionsData = [];
+            selectionsData.length = this.selections.length;
+            selectionsData.fill(1);
+        }
+        // selection data node
+        let json = {
+            "Depth": {
+                "unit": this.dataValues[0].unit,
+                "data": this.dataValues[0].values
+            },
+            "selections": {
+                "unit": "",
+                "data": selectionsData
+            }
+        }
+        // data array node
+        for (let dataValues of this.dataValues) {
+            if (dataValues.selected) {
+                json[dataValues.name] = {
+                    "unit": dataValues.unit,
+                    "data": dataValues.values
+                }
+            }
+        }
+        return json;
+    }
+
+    // updateValuesFromJson
+    public updateValuesFromJson(json: any): void {
+        for (let key in json) {
+            if (key === "Depth") {
+                // skip
+            } else if (key === "selections") {
+                // skip
+            } else if (!isNaN(Number(key))) {
+                let dataFacies = this.getOrCreateDataFacies(key as string);
+                dataFacies.loadFromJson(json[key]);
+                dataFacies.recommended = (dataFacies.name === this.optimizedСlusterNum.toFixed(0));
+            } else {
+                let dataValues = this.getOrCreateDataValues(key as string);
+                dataValues.loadPredictFromJson(json[key])
+            }
+        }
+    }
+
+    // updateSamplesFromJson
+    public updateSamplesFromJson(json: any): void {
+        if (!json["samples_mask"]) return;
+        if (!json["num_clusters"]) return;
+
+        // read samples one by one
+        Object.keys(json["samples_mask"]).forEach((value, index) => {
+            let faciesName = json["num_clusters"][value] as string;
+            let dataFacies = this.dataFacies.find(dataFacies => dataFacies.name == faciesName);
+            if (dataFacies) {
+                // create sample mask
+                let dataSamples = dataFacies.getOrCreateDataDataSamples(json["num_samples"][value]);
+                dataSamples.recommended = (json["optimized_samples"][value] == 1);
+                dataSamples.loadFromCommaString(json["samples_mask"][value]);
+            }
+        });
     }
 
     // loadFromFileLAS
@@ -104,5 +196,41 @@ export class DataTable {
         this.dataValues.forEach(dataArray => dataArray.updateMinMax());
         this.selections.length = this.dataValues[0].values.length;
         this.selections.fill(0);
+    }
+
+    // saveToCSV
+    public saveToCSV(): string {
+        let csv = "";
+        if (this.dataValues.length === 0) return csv;
+        // save depth
+        csv += this.dataValues[0].name + ",";
+        for (let dataValues of this.dataValues)
+            if (dataValues.selected)
+                csv += dataValues.name + ",";
+        for (let dataFacies of this.dataFacies) {
+            if (dataFacies.selected)
+                csv += dataFacies.name + ",";
+            for (let dataSamples of dataFacies.dataSamples) {
+                if (dataSamples.selected)
+                    csv += dataSamples.name + ",";
+            }
+        }
+        csv += "\r\n";
+        for (let i = 0; i < this.dataValues[0].values.length; i++) {
+            csv += this.dataValues[0].values[i] + ",";
+            for (let dataValues of this.dataValues)
+                if (dataValues.selected)
+                    csv += dataValues.values[i] + ",";
+            for (let dataFacies of this.dataFacies) {
+                if (dataFacies.selected)
+                    csv += dataFacies.values[i] + ",";
+                for (let dataSamples of dataFacies.dataSamples) {
+                    if (dataSamples.selected)
+                        csv += dataSamples.values[i] + ",";
+                }
+            }
+            csv += "\r\n";
+        }
+        return csv;
     }
 };

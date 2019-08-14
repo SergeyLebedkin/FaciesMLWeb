@@ -93,11 +93,15 @@ export class DataTableSelector {
         }
         // add facies
         for (let dataFacies of dataTable.dataFacies) {
-            let checkBoxFacies = this.addCheckBox(divDataTable, 20, dataFacies.name, dataFacies.selected, dataTable, null, dataFacies, null);
+            let dataFaciesName = dataFacies.name;
+            if (dataFacies.recommended) dataFaciesName += " (recommended)"
+            let checkBoxFacies = this.addCheckBox(divDataTable, 20, dataFaciesName, dataFacies.selected, dataTable, null, dataFacies, null);
             checkBoxFacies.onchange = this.onChangeChackBoxDataFacies;
             // add samples
-            for (let dataSamples of dataFacies.samples) {
-                let checkBoxSamples = this.addCheckBox(divDataTable, 40, dataSamples.name, dataSamples.selected, dataTable, null, dataFacies, dataSamples);
+            for (let dataSamples of dataFacies.dataSamples) {
+                let dataSamplesName = dataSamples.name;
+                if (dataSamples.recommended) dataSamplesName += " (recommended)"
+                let checkBoxSamples = this.addCheckBox(divDataTable, 40, dataSamplesName, dataSamples.selected, dataTable, null, dataFacies, dataSamples);
                 checkBoxSamples.onchange = this.onChangeChackBoxDataSamples;
             }
         }

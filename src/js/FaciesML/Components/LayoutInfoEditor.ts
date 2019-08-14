@@ -172,7 +172,7 @@ export class LayoutInfoEditor {
                 columnIndex++;
             }
             // add samples
-            for (let dataSamples of dataFacies.samples) {
+            for (let dataSamples of dataFacies.dataSamples) {
                 if (dataSamples.selected) {
                     this.drawLegendFacie(columnIndex * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataSamples.name);
                     this.drawGrid(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
