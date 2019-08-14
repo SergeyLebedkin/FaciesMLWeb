@@ -1,5 +1,4 @@
 import { DataTable } from "./DataTable";
-import { LayoutInfo } from "./LayoutInfo";
 
 // base URL
 export const URL = "http://localhost:8084";
@@ -15,6 +14,23 @@ export class SessionInfo {
         this.username = "";
         this.sessionID = "";
         this.description = "";
+    }
+
+    // verifyDataTables
+    public verifyDataTables(dataTables: DataTable[]): boolean {
+        for (let dataTable1 of dataTables) {
+            let selectedDataValues1 = dataTable1.dataValues.filter(dataValues => dataValues.selected);
+            if (selectedDataValues1.length > 0) {
+                for (let dataTable2 of dataTables) {
+                    let selectedDataValues2 = dataTable2.dataValues.filter(dataValues => dataValues.selected);
+                    for (let dataValues1 of selectedDataValues1) {
+                        if (selectedDataValues2.findIndex(dataValues2 => dataValues1.name === dataValues2.name) < 0)
+                            return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     // postDataTables
@@ -43,7 +59,8 @@ export class SessionInfo {
                 "logs": {}
             };
             for (let dataTable of dataTables)
-                data.logs[dataTable.name] = dataTable.saveSelectedToJson();
+                if (dataTable.getSelectedCount() > 0)
+                    data.logs[dataTable.name] = dataTable.saveSelectedToJson();
             console.log(data)
             try {
                 xhr.send(JSON.stringify(data));

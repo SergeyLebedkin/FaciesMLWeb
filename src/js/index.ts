@@ -79,6 +79,10 @@ function buttonDrawPlotsOnClick(event: MouseEvent) {
 // buttonSubmitOnClick
 function buttonSubmitOnClick(event: MouseEvent) {
     if (gLayoutInfoEditor.layoutInfo === null) return;
+    // if (!gSessionInfo.verifyDataTables(gDataTableList)) {
+    //     alert("All wells should hava the same set of selected variables");
+    //     return;
+    // }
     let timeoutServerWait = setTimeout(() => {
         aStatus.style.color = "red";
         aStatus.innerText = "Server timeout...";
