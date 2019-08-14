@@ -163,6 +163,7 @@ window.onload = event => {
     gSessionInfo.sessionID = Math.random().toString(36).slice(2);
     gDataTableList = new Array<DataTable>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
+    gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotsPanel);
     // init session
     inputSessionID.value = gSessionInfo.sessionID;

@@ -13,6 +13,8 @@ export class DataTableSelector {
     private dataTableList: Array<DataTable> = null;
     private checkBoxes: Array<HTMLInputElement> = [];
     private labels: Array<HTMLLabelElement> = [];
+    // events
+    public onSelectionChanged: (this: DataTableSelector, dataTable: DataTable) => any = null;
     // constructor
     constructor(parent: HTMLDivElement, dataTableList: Array<DataTable>) {
         // parent
@@ -36,6 +38,7 @@ export class DataTableSelector {
         let dataFacies: DataFacies = event.currentTarget["dataFacies"];
         let dataSamples: DataSamples = event.currentTarget["dataSamples"];
         if (dataValues) dataValues.selected = event.currentTarget["checked"];
+        this.onSelectionChanged && this.onSelectionChanged(dataTable);
     }
 
     // onChangeChackBoxDataFacies
@@ -45,6 +48,7 @@ export class DataTableSelector {
         let dataFacies: DataFacies = event.currentTarget["dataFacies"];
         let dataSamples: DataSamples = event.currentTarget["dataSamples"];
         if (dataFacies) dataFacies.selected = event.currentTarget["checked"];
+        this.onSelectionChanged && this.onSelectionChanged(dataTable);
     }
 
     // onChangeChackBoxDataSamples
@@ -54,6 +58,7 @@ export class DataTableSelector {
         let dataFacies: DataFacies = event.currentTarget["dataFacies"];
         let dataSamples: DataSamples = event.currentTarget["dataSamples"];
         if (dataSamples) dataSamples.selected = event.currentTarget["checked"];
+        this.onSelectionChanged && this.onSelectionChanged(dataTable);
     }
 
     // setEnabled
@@ -89,20 +94,20 @@ export class DataTableSelector {
         // add values
         for (let dataValues of dataTable.dataValues) {
             let checkBoxValues = this.addCheckBox(divDataTable, 20, dataValues.name, dataValues.selected, dataTable, dataValues, null, null);
-            checkBoxValues.onchange = this.onChangeChackBoxDataValues;
+            checkBoxValues.onchange = this.onChangeChackBoxDataValues.bind(this);
         }
         // add facies
         for (let dataFacies of dataTable.dataFacies) {
             let dataFaciesName = dataFacies.name;
             if (dataFacies.recommended) dataFaciesName += " (recommended)"
             let checkBoxFacies = this.addCheckBox(divDataTable, 20, dataFaciesName, dataFacies.selected, dataTable, null, dataFacies, null);
-            checkBoxFacies.onchange = this.onChangeChackBoxDataFacies;
+            checkBoxFacies.onchange = this.onChangeChackBoxDataFacies.bind(this);
             // add samples
             for (let dataSamples of dataFacies.dataSamples) {
                 let dataSamplesName = dataSamples.name;
                 if (dataSamples.recommended) dataSamplesName += " (recommended)"
                 let checkBoxSamples = this.addCheckBox(divDataTable, 40, dataSamplesName, dataSamples.selected, dataTable, null, dataFacies, dataSamples);
-                checkBoxSamples.onchange = this.onChangeChackBoxDataSamples;
+                checkBoxSamples.onchange = this.onChangeChackBoxDataSamples.bind(this);
             }
         }
     }

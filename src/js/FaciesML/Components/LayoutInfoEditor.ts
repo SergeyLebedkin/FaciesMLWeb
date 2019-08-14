@@ -159,7 +159,7 @@ export class LayoutInfoEditor {
         for (let dataValues of this.layoutInfo.dataTable.dataValues) {
             if (dataValues.selected) {
                 this.drawLegend(columnIndex * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataValues.name + " (" + dataValues.unit + ")", dataValues.min, dataValues.max);
-                this.drawGrid(dataValues.values, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+                this.drawGrid(this.layoutInfo.dataTable.dataValues[0].values, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
                 this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset, gColorTable[columnIndex]);
                 columnIndex++;
             }
@@ -445,10 +445,10 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         this.layoutCanvasCtx.moveTo(0, 0);
-        this.layoutCanvasCtx.lineTo(0, dataValues.values.length);
+        this.layoutCanvasCtx.lineTo(0, dataValues.length);
         this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH, 0);
-        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataValues.values.length);
-        for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.values.length; i += LAYOUT_AXES_HINT_STEP) {
+        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataValues.length);
+        for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.length; i += LAYOUT_AXES_HINT_STEP) {
             this.layoutCanvasCtx.moveTo(0, i);
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
         }
