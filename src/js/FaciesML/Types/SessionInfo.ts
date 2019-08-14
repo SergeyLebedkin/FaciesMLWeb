@@ -50,7 +50,7 @@ export class SessionInfo {
                 }
             };
             xhr.onerror = event => {
-                reject("postDataArrays onerror " + xhr.responseText);
+                reject(xhr.statusText);
             };
             // generate request data
             let data = {
