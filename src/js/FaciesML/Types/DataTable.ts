@@ -26,7 +26,7 @@ export class DataTable {
     public setOptimizedСlusterNum(optimizedСlusterNum: number) {
         if (this.optimizedСlusterNum !== optimizedСlusterNum) {
             this.optimizedСlusterNum = optimizedСlusterNum;
-            for(let dataFacies of this.dataFacies) {
+            for (let dataFacies of this.dataFacies) {
                 dataFacies.recommended = (dataFacies.name == this.optimizedСlusterNum.toFixed());
             }
         }
@@ -48,6 +48,24 @@ export class DataTable {
             }
         }
         return count;
+    }
+
+    // getSelectedCaption
+    public getSelectedCaption(): string {
+        let caption: string = "";
+        // get count of data values selected
+        for (let dataValues of this.dataValues) {
+            if (dataValues.selected) caption += dataValues.name + ",";
+        }
+        // get count of data facies selected
+        for (let dataFacies of this.dataFacies) {
+            if (dataFacies.selected) caption += dataFacies.name + ",";
+            // get count of data samples selected
+            for (let dataSamples of dataFacies.dataSamples) {
+                if (dataSamples.selected) caption += dataSamples.name + ",";
+            }
+        }
+        return caption;
     }
 
     // getOrCreateDataValue - find or create data array
@@ -219,8 +237,12 @@ export class DataTable {
         for (let i = 0; i < this.dataValues[0].values.length; i++) {
             csv += this.dataValues[0].values[i] + ",";
             for (let dataValues of this.dataValues)
-                if (dataValues.selected)
-                    csv += dataValues.values[i] + ",";
+                if (dataValues.selected) {
+                    if (dataValues.isPredict())
+                        csv += dataValues.predicts[i] + ","
+                    else
+                        csv += dataValues.values[i] + ","
+                }
             for (let dataFacies of this.dataFacies) {
                 if (dataFacies.selected)
                     csv += dataFacies.values[i] + ",";

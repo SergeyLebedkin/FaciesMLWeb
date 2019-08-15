@@ -122,8 +122,10 @@ function buttonSubmitOnClick(event: MouseEvent) {
 
 // buttonSaveOnClick
 function buttonSaveOnClick(event: MouseEvent) {
-    if (!gLayoutInfoEditor.layoutInfo) return;
-    downloadFile(gLayoutInfoEditor.layoutInfo.dataTable.saveToCSV(), gLayoutInfoEditor.layoutInfo.dataTable.name + ".csv", "text/plain");
+    for (let dataTable of gDataTableList){
+        if (dataTable.getSelectedCount() > 0)
+            downloadFile(dataTable.saveToCSV(), dataTable.getSelectedCaption() + ".csv", "text/plain");
+    }
 }
 
 // buttonScaleDownOnClick
@@ -199,9 +201,12 @@ function updateTablesFromJson(json: any) {
 
 // downloadFile
 function downloadFile(text: string, name: string, type: string) {
-    var a = document.createElement("a");
-    var file = new Blob([text], { type: type });
-    a.href = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.href = URL.createObjectURL(new Blob([text], { type: type }));
     a.download = name;
     a.click();
+    window.URL.revokeObjectURL(a.href);
+    document.body.removeChild(a);
 }
