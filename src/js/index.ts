@@ -4,7 +4,6 @@ import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { LayoutInfo } from "./FaciesML/Types/LayoutInfo";
 import { SelectionMode } from "./FaciesML/Types/SelectionMode";
-import { DataArray } from "./FaciesML/Types/DataArray";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -16,7 +15,6 @@ let divDataValues: HTMLDivElement = null;
 let radioSelectionModeAdd: HTMLInputElement = null;
 let radioSelectionModeRemove: HTMLInputElement = null;
 let buttonDrawPlots: HTMLButtonElement = null;
-let buttonAddToCurrent: HTMLButtonElement = null;
 let buttonSubmit: HTMLButtonElement = null;
 let aStatus: HTMLElement = null;
 let buttonSave: HTMLButtonElement = null;
@@ -26,6 +24,7 @@ let divPlotsPanel: HTMLDivElement = null;
 let labelScaleFactor: HTMLLabelElement = null;
 let buttonScaleDown: HTMLButtonElement = null;
 let buttonScaleUp: HTMLButtonElement = null;
+
 // globals
 let gSessionInfo: SessionInfo = null;
 let gDataTableList: Array<DataTable> = null;
@@ -40,11 +39,26 @@ function buttonLoadDataOnClick(event: MouseEvent) {
         for (let file of files) {
             let dataTable = new DataTable();
             dataTable.onloadFileData = dataTable => {
+                // create layout info
+                let layoutInfo = new LayoutInfo(dataTable);
+                // create tab buttor
+                let buttonTab = document.createElement("button");
+                buttonTab.className = "tab-button";
+                buttonTab.innerText = layoutInfo.dataTable.name;
+                buttonTab["layoutInfo"] = layoutInfo;
+                buttonTab.onclick = buttonTabOnClick;
+                divTabPanelLayots.appendChild(buttonTab);
                 // update selector
                 gDataTableList.push(dataTable);
                 gDataTableSelector.update();
+                buttonSubmit.disabled = false;
+                // update editor
+                if (gLayoutInfoEditor.layoutInfo === null) {
+                    gLayoutInfoEditor.setLayoutInfo(layoutInfo);
+                    gLayoutInfoEditor.drawLayoutInfo();
+                }
             }
-            dataTable.loadFromFile(file);
+            dataTable.loadFromFileLAS(file);
         }
         buttonSave.disabled = false;
         buttonDrawPlots.disabled = false;
@@ -59,36 +73,16 @@ function buttonTabOnClick(event: MouseEvent) {
 
 // buttonDrawPlotsOnClick
 function buttonDrawPlotsOnClick(event: MouseEvent) {
-    let layoutInfos = gDataTableSelector.createLayoutInfos();
-    for (let layoutInfo of layoutInfos) {
-        let buttonTab = document.createElement("button");
-        buttonTab.className = "tab-button";
-        buttonTab.innerText = layoutInfo.getCaption();
-        buttonTab["layoutInfo"] = layoutInfo;
-        buttonTab.onclick = buttonTabOnClick;
-        divTabPanelLayots.appendChild(buttonTab);
-        // set current layout info
-        gLayoutInfoEditor.setLayoutInfo(layoutInfo);
-        buttonSubmit.disabled = false;
-        buttonAddToCurrent.disabled = false;
-    }
-    gDataTableSelector.clearSelections();
-}
-
-// buttonAddToCurrentOnClick
-function buttonAddToCurrentOnClick(event: MouseEvent) {
-    if (!gLayoutInfoEditor.layoutInfo) return;
-    gDataTableSelector.appendToLayoutInfos(gLayoutInfoEditor.layoutInfo);
-    gDataTableSelector.clearSelections();
     gLayoutInfoEditor.drawLayoutInfo();
-    let buttons = document.getElementsByClassName("tab-button")
-    for (let i = 0; i < buttons.length; i++)
-        buttons[i]["innerText"] = buttons[i]["layoutInfo"].getCaption();
 }
 
 // buttonSubmitOnClick
 function buttonSubmitOnClick(event: MouseEvent) {
     if (gLayoutInfoEditor.layoutInfo === null) return;
+    // if (!gSessionInfo.verifyDataTables(gDataTableList)) {
+    //     alert("All wells should hava the same set of selected variables");
+    //     return;
+    // }
     let timeoutServerWait = setTimeout(() => {
         aStatus.style.color = "red";
         aStatus.innerText = "Server timeout...";
@@ -101,7 +95,7 @@ function buttonSubmitOnClick(event: MouseEvent) {
     gDataTableSelector.setEnabled(false);
     gLayoutInfoEditor.setEnabled(false);
     buttonSubmit.disabled = true;
-    gSessionInfo.postDataArrays(gLayoutInfoEditor.layoutInfo)
+    gSessionInfo.postDataTables(gDataTableList)
         .then(value => {
             aStatus.style.color = "green";
             aStatus.innerText = "OK"
@@ -111,13 +105,16 @@ function buttonSubmitOnClick(event: MouseEvent) {
             clearTimeout(timeoutServerWait);
             let json = JSON.parse(value);
             updateTablesFromJson(json);
-            gDataTableSelector.setOptimizedСlusterNum(json["optimized_cluster_num"]);
+            for (let dataTable of gDataTableList)
+                dataTable.setOptimizedСlusterNum(json["optimized_cluster_num"]);
             gDataTableSelector.update();
             gLayoutInfoEditor.drawLayoutInfo();
         }, reason => {
             aStatus.style.color = "red";
             aStatus.innerText = "Server error... (" + reason + ")";
             buttonSubmit.disabled = false;
+            gDataTableSelector.setEnabled(true);
+            gLayoutInfoEditor.setEnabled(true);
             clearTimeout(timeoutServerWait);
             return Promise.reject(reason);
         });
@@ -125,12 +122,10 @@ function buttonSubmitOnClick(event: MouseEvent) {
 
 // buttonSaveOnClick
 function buttonSaveOnClick(event: MouseEvent) {
-    // check for null
-    if (!gLayoutInfoEditor.layoutInfo) return;
-    downloadFile(gLayoutInfoEditor.layoutInfo.saveToCSV(), gLayoutInfoEditor.layoutInfo.getCaption() + ".csv", "text/plain");
-    //for (let dataTable of gDataTableList) {
-    //    downloadFile(dataTable.saveToCSV(), dataTable.fileRef.name + ".csv", "text/plain");
-    //}
+    for (let dataTable of gDataTableList){
+        if (dataTable.getSelectedCount() > 0)
+            downloadFile(dataTable.saveToCSV(), dataTable.getSelectedCaption() + ".csv", "text/plain");
+    }
 }
 
 // buttonScaleDownOnClick
@@ -160,8 +155,6 @@ window.onload = event => {
     radioSelectionModeRemove = document.getElementById("radioSelectionModeRemove") as HTMLInputElement;
     buttonDrawPlots = document.getElementById("buttonDrawPlots") as HTMLButtonElement;
     buttonDrawPlots.disabled = true;
-    buttonAddToCurrent = document.getElementById("buttonAddToCurrent") as HTMLButtonElement;
-    buttonAddToCurrent.disabled = true;
     buttonSubmit = document.getElementById("buttonSubmit") as HTMLButtonElement;
     aStatus = document.getElementById("aStatus") as HTMLElement;
     buttonSave = document.getElementById("buttonSave") as HTMLButtonElement;
@@ -176,6 +169,7 @@ window.onload = event => {
     gSessionInfo.sessionID = Math.random().toString(36).slice(2);
     gDataTableList = new Array<DataTable>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
+    gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotsPanel);
     // init session
     inputSessionID.value = gSessionInfo.sessionID;
@@ -184,7 +178,6 @@ window.onload = event => {
     radioSelectionModeAdd.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.ADD);
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
     buttonDrawPlots.onclick = event => buttonDrawPlotsOnClick(event);
-    buttonAddToCurrent.onclick = event => buttonAddToCurrentOnClick(event);
     buttonSubmit.onclick = event => buttonSubmitOnClick(event);
     buttonSubmit.disabled = true;
     buttonSave.onclick = event => buttonSaveOnClick(event);
@@ -196,20 +189,24 @@ window.onload = event => {
 
 // updateTablesFromJson
 function updateTablesFromJson(json: any) {
+    console.log(json);
     for (let key in json) {
         let dataTable = gDataTableList.find(dataTable => dataTable.name === key);
         if (dataTable) {
-            dataTable.updateFromJSON(json[key]);
-            dataTable.updateSamplesFromJSON(json[key + "_samples_info"]);
+            dataTable.updateValuesFromJson(json[key]);
+            dataTable.updateSamplesFromJson(json[key + "_samples_info"]);
         }
     }
 }
 
 // downloadFile
 function downloadFile(text: string, name: string, type: string) {
-    var a = document.createElement("a");
-    var file = new Blob([text], { type: type });
-    a.href = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.href = URL.createObjectURL(new Blob([text], { type: type }));
     a.download = name;
     a.click();
+    window.URL.revokeObjectURL(a.href);
+    document.body.removeChild(a);
 }

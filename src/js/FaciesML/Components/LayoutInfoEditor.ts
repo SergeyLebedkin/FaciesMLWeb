@@ -1,6 +1,8 @@
-import { DataArray, DataArrayType, DATA_MINIMAL_VALUE } from "../Types/DataArray";
 import { LayoutInfo } from "../Types/LayoutInfo";
 import { SelectionMode } from "../Types/SelectionMode";
+import { DataValues, DATA_MINIMAL_VALUE } from "../Types/DataValues";
+import { DataFacies } from "../Types/DataFacies";
+import { DataSamples } from "../Types/DataSamples";
 
 const LAYOUT_HEADER_HEIGHT: number = 30;
 const LAYOUT_LEGENT_HEIGHT: number = 60;
@@ -56,9 +58,9 @@ export class LayoutInfoEditor {
         if (this.selectionStarted) {
             // normalize
             this.selectionStart = Math.max(this.selectionStart, 0);
-            this.selectionStart = Math.min(this.selectionStart, this.layoutInfo.dataTable.data[0].values.length - 1);
+            this.selectionStart = Math.min(this.selectionStart, this.layoutInfo.dataTable.dataValues[0].values.length - 1);
             this.selectionEnd = Math.max(this.selectionEnd, 0);
-            this.selectionEnd = Math.min(this.selectionEnd, this.layoutInfo.dataTable.data[0].values.length - 1);
+            this.selectionEnd = Math.min(this.selectionEnd, this.layoutInfo.dataTable.dataValues[0].values.length - 1);
             if (this.selectionStart > this.selectionEnd)
                 [this.selectionStart, this.selectionEnd] = [this.selectionEnd, this.selectionStart];
             // fill selections array
@@ -137,8 +139,9 @@ export class LayoutInfoEditor {
 
     // drawLayoutInfo
     public drawLayoutInfo(): void {
-        this.layoutCanvas.width = (this.layoutInfo.dataArrays.length + 1) * LAYOUT_COLUMN_WIDTH * this.scale;
-        this.layoutCanvas.height = (this.layoutInfo.dataTable.data[0].values.length + LAYOUT_HEADER_HEIGHT + LAYOUT_LEGENT_HEIGHT) * this.scale;
+        let columsCount = this.layoutInfo.dataTable.getSelectedCount();
+        this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH * this.scale;
+        this.layoutCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length + LAYOUT_HEADER_HEIGHT + LAYOUT_LEGENT_HEIGHT) * this.scale;
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.clearCanvas();
         // draw data ranges
@@ -147,27 +150,37 @@ export class LayoutInfoEditor {
         this.drawHeader(0, 0);
         // draw base axes
         this.drawLegend(0, LAYOUT_HEADER_HEIGHT,
-            this.layoutInfo.dataTable.data[0].name + " (" + this.layoutInfo.dataTable.data[0].unit + ")",
-            this.layoutInfo.dataTable.data[0].min,
-            this.layoutInfo.dataTable.data[0].max);
-        this.drawYAxis(this.layoutInfo.dataTable.data[0], 0, this.selectionOffset);
-        // draw selected data arrays
-        this.layoutInfo.dataArrays.forEach((dataArray, index) => {
-            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_VALUES) {
-                this.drawLegend((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name + " (" + dataArray.unit + ")", dataArray.min, dataArray.max);
-                this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
-                this.drawPlot(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset, gColorTable[index]);
+            this.layoutInfo.dataTable.dataValues[0].name + " (" + this.layoutInfo.dataTable.dataValues[0].unit + ")",
+            this.layoutInfo.dataTable.dataValues[0].min,
+            this.layoutInfo.dataTable.dataValues[0].max);
+        this.drawYAxis(this.layoutInfo.dataTable.dataValues[0], 0, this.selectionOffset);
+        // draw selected data values
+        let columnIndex = 1;
+        for (let dataValues of this.layoutInfo.dataTable.dataValues) {
+            if (dataValues.selected) {
+                this.drawLegend(columnIndex * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataValues.name + " (" + dataValues.unit + ")", dataValues.min, dataValues.max);
+                this.drawGrid(this.layoutInfo.dataTable.dataValues[0].values, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+                this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset, gColorTable[columnIndex]);
+                columnIndex++;
             }
-            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_FACIES) {
-                this.drawLegendFacie((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name);
-                this.drawFacies(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+        }
+        // // draw selected datafacies
+        for (let dataFacies of this.layoutInfo.dataTable.dataFacies) {
+            if (dataFacies.selected) {
+                this.drawLegendFacie(columnIndex * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataFacies.name);
+                this.drawFacies(dataFacies, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+                columnIndex++;
             }
-            if (dataArray.dataArrayType === DataArrayType.DATA_ARRAY_TYPE_SAMPLES) {
-                this.drawLegendFacie((index + 1) * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataArray.name);
-                this.drawGrid(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
-                this.drawSamples(dataArray, (index + 1) * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+            // add samples
+            for (let dataSamples of dataFacies.dataSamples) {
+                if (dataSamples.selected) {
+                    this.drawLegendFacie(columnIndex * LAYOUT_COLUMN_WIDTH, LAYOUT_HEADER_HEIGHT, dataSamples.name);
+                    this.drawGrid(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+                    this.drawSamples(dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH, this.selectionOffset);
+                    columnIndex++;
+                }
             }
-        });
+        }
     }
 
     // drawSelectionRange
@@ -275,22 +288,22 @@ export class LayoutInfoEditor {
     }
 
     // drawPlot
-    private drawPlot(dataArray: DataArray, x: number, y: number, color: string): void {
+    private drawPlot(dataValues: DataValues, x: number, y: number, color: string): void {
         // start drawing
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
 
         // draw predict
-        if (dataArray.isPredict()) {
+        if (dataValues.isPredict()) {
             let moved = false;
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.lineWidth = 2;
             this.layoutCanvasCtx.strokeStyle = "lightblue";
             this.layoutCanvasCtx.setLineDash([10, 3]);
-            for (let i = 0; i < dataArray.valuesPredict.length; i++) {
+            for (let i = 0; i < dataValues.predicts.length; i++) {
                 // if value is valid
-                if (dataArray.valuesPredict[i] > DATA_MINIMAL_VALUE) {
-                    let xPoint = (dataArray.valuesPredict[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
+                if (dataValues.predicts[i] > DATA_MINIMAL_VALUE) {
+                    let xPoint = (dataValues.predicts[i] - dataValues.min) / (dataValues.max - dataValues.min) * LAYOUT_COLUMN_WIDTH;
                     let yPoint = i;
                     if (moved)
                         this.layoutCanvasCtx.lineTo(xPoint, yPoint)
@@ -311,10 +324,10 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
         this.layoutCanvasCtx.strokeStyle = color;
-        for (let i = 0; i < dataArray.values.length; i++) {
+        for (let i = 0; i < dataValues.values.length; i++) {
             // if value is valid
-            if (dataArray.values[i] > DATA_MINIMAL_VALUE) {
-                let xPoint = (dataArray.values[i] - dataArray.min) / (dataArray.max - dataArray.min) * LAYOUT_COLUMN_WIDTH;
+            if (dataValues.values[i] > DATA_MINIMAL_VALUE) {
+                let xPoint = (dataValues.values[i] - dataValues.min) / (dataValues.max - dataValues.min) * LAYOUT_COLUMN_WIDTH;
                 let yPoint = i;
                 if (moved)
                     this.layoutCanvasCtx.lineTo(xPoint, yPoint)
@@ -334,14 +347,14 @@ export class LayoutInfoEditor {
     }
 
     // drawFacies
-    private drawFacies(dataArray: DataArray, x: number, y: number): void {
+    private drawFacies(dataFacies: DataFacies, x: number, y: number): void {
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.lineWidth = 2;
-        for (let i = 0; i < dataArray.values.length; i++) {
+        for (let i = 0; i < dataFacies.values.length; i++) {
             this.layoutCanvasCtx.strokeStyle = "white";
-            if (dataArray.values[i] >= 0)
-                this.layoutCanvasCtx.strokeStyle = gColorTable[dataArray.values[i]];
+            if (dataFacies.values[i] >= 0)
+                this.layoutCanvasCtx.strokeStyle = gColorTable[dataFacies.values[i]];
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.moveTo(0, i);
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
@@ -352,18 +365,18 @@ export class LayoutInfoEditor {
     }
 
     // drawSamples
-    private drawSamples(dataArray: DataArray, x: number, y: number): void {
+    private drawSamples(dataSamples: DataSamples, x: number, y: number): void {
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         console.log("drawSamples");
-        for (let i = 0; i < dataArray.values.length; i++) {
-            if (dataArray.values[i] > 0) {
+        for (let i = 0; i < dataSamples.values.length; i++) {
+            if (dataSamples.values[i] > 0) {
                 this.layoutCanvasCtx.textBaseline = "middle";
                 this.layoutCanvasCtx.textAlign = "left";
                 this.layoutCanvasCtx.font = "14px Arial";
                 this.layoutCanvasCtx.strokeStyle = "black";
                 this.layoutCanvasCtx.fillStyle = "black";
-                this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.data[0].values[i].toString(), 15, i);
+                this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.dataValues[0].values[i].toString(), 15, i);
                 this.layoutCanvasCtx.strokeStyle = "red";
                 this.layoutCanvasCtx.fillStyle = "red";
                 this.layoutCanvasCtx.beginPath();
@@ -398,20 +411,20 @@ export class LayoutInfoEditor {
     }
 
     // drawYAxis
-    private drawYAxis(dataArray: DataArray, x: number, y: number): void {
+    private drawYAxis(dataValues: DataValues, x: number, y: number): void {
         // clear legend canvas
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
-        for (let i = LAYOUT_AXES_HINT_STEP; i < dataArray.values.length; i += LAYOUT_AXES_HINT_STEP) {
+        for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.values.length; i += LAYOUT_AXES_HINT_STEP) {
             this.layoutCanvasCtx.textBaseline = "middle";
             this.layoutCanvasCtx.textAlign = "center";
             this.layoutCanvasCtx.font = "24px Arial";
             this.layoutCanvasCtx.strokeStyle = "BBBBBB";
             this.layoutCanvasCtx.fillStyle = "black";
-            this.layoutCanvasCtx.fillText(dataArray.values[i].toString(), LAYOUT_COLUMN_WIDTH * 0.5, i);
+            this.layoutCanvasCtx.fillText(dataValues.values[i].toString(), LAYOUT_COLUMN_WIDTH * 0.5, i);
             this.layoutCanvasCtx.moveTo(0, i);
             this.layoutCanvasCtx.lineTo(0 + LAYOUT_AXES_HINT_LENGTH, i);
             this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH - LAYOUT_AXES_HINT_LENGTH, i);
@@ -424,7 +437,7 @@ export class LayoutInfoEditor {
     }
 
     // drawGrid
-    private drawGrid(dataArray: DataArray, x: number, y: number): void {
+    private drawGrid(dataValues: number[], x: number, y: number): void {
         // clear legend canvas
         this.layoutCanvasCtx.scale(this.scale, this.scale);
         this.layoutCanvasCtx.translate(x, y);
@@ -432,10 +445,10 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         this.layoutCanvasCtx.moveTo(0, 0);
-        this.layoutCanvasCtx.lineTo(0, dataArray.values.length);
+        this.layoutCanvasCtx.lineTo(0, dataValues.length);
         this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH, 0);
-        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataArray.values.length);
-        for (let i = LAYOUT_AXES_HINT_STEP; i < dataArray.values.length; i += LAYOUT_AXES_HINT_STEP) {
+        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataValues.length);
+        for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.length; i += LAYOUT_AXES_HINT_STEP) {
             this.layoutCanvasCtx.moveTo(0, i);
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
         }

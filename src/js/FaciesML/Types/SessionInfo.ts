@@ -1,6 +1,4 @@
-import { DataArray } from "./DataArray"
 import { DataTable } from "./DataTable";
-import { LayoutInfo } from "./LayoutInfo";
 
 // base URL
 export const URL = "http://localhost:8084";
@@ -18,8 +16,25 @@ export class SessionInfo {
         this.description = "";
     }
 
-    // postDataArrays
-    public postDataArrays(layoutInfo: LayoutInfo): Promise<string> {
+    // verifyDataTables
+    public verifyDataTables(dataTables: DataTable[]): boolean {
+        for (let dataTable1 of dataTables) {
+            let selectedDataValues1 = dataTable1.dataValues.filter(dataValues => dataValues.selected);
+            if (selectedDataValues1.length > 0) {
+                for (let dataTable2 of dataTables) {
+                    let selectedDataValues2 = dataTable2.dataValues.filter(dataValues => dataValues.selected);
+                    for (let dataValues1 of selectedDataValues1) {
+                        if (selectedDataValues2.findIndex(dataValues2 => dataValues1.name === dataValues2.name) < 0)
+                            return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    // postDataTables
+    public postDataTables(dataTables: DataTable[]): Promise<string> {
         return new Promise((resolve, reject) => {
             let xhr = new XMLHttpRequest();
             let url = URL + "/clustering";
@@ -35,7 +50,7 @@ export class SessionInfo {
                 }
             };
             xhr.onerror = event => {
-                reject("postDataArrays onerror " + xhr.responseText);
+                reject(xhr.statusText);
             };
             // generate request data
             let data = {
@@ -43,8 +58,10 @@ export class SessionInfo {
                 "sensitivity": 0.1,
                 "logs": {}
             };
-            data.logs[layoutInfo.dataTable.name] = layoutInfo.getJSON();
-
+            for (let dataTable of dataTables)
+                if (dataTable.getSelectedCount() > 0)
+                    data.logs[dataTable.name] = dataTable.saveSelectedToJson();
+            console.log(data)
             try {
                 xhr.send(JSON.stringify(data));
             } catch (error) {
