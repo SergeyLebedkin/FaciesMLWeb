@@ -26,10 +26,6 @@ module.exports = {
         rules: [{
             test: /\.(ts|tsx)$/,
             use: 'ts-loader'
-        }, 
-        {
-            test: /\.js$/,
-            loader: 'ify-loader'
         }]
     },
     plugins: [
