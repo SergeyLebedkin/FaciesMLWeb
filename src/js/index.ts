@@ -20,6 +20,7 @@ let aStatus: HTMLElement = null;
 let buttonSave: HTMLButtonElement = null;
 // get elements - center panel
 let divTabPanelLayots: HTMLDivElement = null;
+let divPlotTitle: HTMLDivElement = null;
 let divPlotHeaders: HTMLDivElement = null;
 let divPlotsPanel: HTMLDivElement = null;
 let labelScaleFactor: HTMLLabelElement = null;
@@ -164,6 +165,7 @@ window.onload = event => {
     buttonScaleDown = document.getElementById("buttonScaleDown") as HTMLButtonElement;
     buttonScaleUp = document.getElementById("buttonScaleUp") as HTMLButtonElement;
     divTabPanelLayots = document.getElementById("divTabPanelLayots") as HTMLDivElement;
+    divPlotTitle = document.getElementById("divPlotTitle") as HTMLDivElement;
     divPlotHeaders = document.getElementById("divPlotHeaders") as HTMLDivElement;
     divPlotsPanel = document.getElementById("divPlotsPanel") as HTMLDivElement;
     // create global objects
@@ -172,7 +174,7 @@ window.onload = event => {
     gDataTableList = new Array<DataTable>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
-    gLayoutInfoEditor = new LayoutInfoEditor(divPlotHeaders, divPlotsPanel);
+    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
     // init session
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events

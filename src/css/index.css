@@ -55,6 +55,10 @@ html, body {
 
 /* plots */
 
+.plots-title {
+    color: white;
+}
+
 .plots-main-panel {
     width: 100%;
     height: 100%;

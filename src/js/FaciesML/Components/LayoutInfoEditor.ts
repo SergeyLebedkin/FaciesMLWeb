@@ -13,6 +13,7 @@ const LAYOUT_AXES_HINT_LENGTH: number = 30;
 // LayoutInfoEditor
 export class LayoutInfoEditor {
     // parents
+    private parentTitle: HTMLDivElement;
     private parentHeadrs: HTMLDivElement;
     private parentPlots: HTMLDivElement;
     private enabled: boolean = true;
@@ -28,8 +29,9 @@ export class LayoutInfoEditor {
     private layoutCanvas: HTMLCanvasElement = null;
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
     // constructor
-    constructor(parentHeadrs: HTMLDivElement, parentPlots: HTMLDivElement) {
+    constructor(parentTitle: HTMLDivElement, parentHeadrs: HTMLDivElement, parentPlots: HTMLDivElement) {
         // setup parent
+        this.parentTitle = parentTitle;
         this.parentHeadrs = parentHeadrs;
         this.parentPlots = parentPlots;
         this.enabled = true;
@@ -147,6 +149,7 @@ export class LayoutInfoEditor {
 
     // drawLayoutInfo
     public drawLayoutInfo(): void {
+        this.parentTitle.innerText = this.layoutInfo.dataTable.name;
         let columsCount = this.layoutInfo.dataTable.getSelectedCount();
         this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
         this.layoutCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length) * this.scale;
