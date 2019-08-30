@@ -5,7 +5,7 @@ import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
 
 const LAYOUT_HEADER_HEIGHT: number = 30;
-const LAYOUT_LEGENT_HEIGHT: number = 60;
+const LAYOUT_LEGENT_HEIGHT: number = 0;
 const LAYOUT_COLUMN_WIDTH: number = 150;
 const LAYOUT_AXES_HINT_STEP: number = 100;
 const LAYOUT_AXES_HINT_LENGTH: number = 30;
@@ -241,24 +241,55 @@ export class LayoutInfoEditor {
         // legend sizes
         let legendHeight = LAYOUT_LEGENT_HEIGHT;
         let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
+        // create header
         let divHeader = document.createElement("div");
-        divHeader.style.height = legendHeight.toString() + "px";
+        //divHeader.style.height = legendHeight.toString() + "px";
         divHeader.style.width = legendWidth.toString() + "px";
-        divHeader.style.border = "1px solid #BBBBBB";
-        divHeader.style.textAlign = "center";
-        divHeader.innerText = name;
+        divHeader.style.border = "1px solid black";
+        divHeader.style.display = "flex";
+        divHeader.style.flexDirection = "column";
         this.parentHeadrs.appendChild(divHeader);
+
+        // create div header name
+        let divHeaderName = document.createElement("div");
+        divHeaderName.innerText = name;
+        divHeaderName.style.textAlign = "center";
+        divHeaderName.style.borderBottom = "1px solid black";
+        divHeader.appendChild(divHeaderName);
+
+        // create div header minmax
+        let divHeaderMinMax = document.createElement("div");
+        divHeaderMinMax.style.display = "flex";
+        divHeaderMinMax.style.flexDirection = "row";
+        divHeader.appendChild(divHeaderMinMax);
+
+        // create div header min
+        let divHeaderMin = document.createElement("div");
+        divHeaderMin.style.display = "block";
+        divHeaderMin.style.width = "100%";
+        divHeaderMin.style.textAlign = "center";
+        divHeaderMin.style.borderRight = "1px solid black";
+        divHeaderMin.innerText = min.toString();
+        divHeaderMinMax.appendChild(divHeaderMin);
+
+        // create div header max
+        let divHeaderMax = document.createElement("div");
+        divHeaderMax.style.display = "block";
+        divHeaderMax.style.width = "100%";
+        divHeaderMax.style.textAlign = "center";
+        divHeaderMax.style.borderLeft = "1px solid black";
+        divHeaderMax.innerText = max.toString();
+        divHeaderMinMax.appendChild(divHeaderMax);
     }
 
-    // addHeader
+    // addHeaderFacie
     private addHeaderFacie(name: string): void {
         // legend sizes
         let legendHeight = LAYOUT_LEGENT_HEIGHT;
         let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
         let divHeader = document.createElement("div");
-        divHeader.style.height = legendHeight.toString() + "px";
         divHeader.style.width = legendWidth.toString() + "px";
-        divHeader.style.border = "1px solid #BBBBBB";
+        divHeader.style.border = "1px solid black";
         divHeader.style.textAlign = "center";
         divHeader.innerText = name;
         this.parentHeadrs.appendChild(divHeader);
