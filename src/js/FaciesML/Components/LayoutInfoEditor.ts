@@ -193,7 +193,6 @@ export class LayoutInfoEditor {
     // drawSelectionRange
     private drawSelectionRange() {
         if (this.selectionStarted) {
-            this.layoutCanvasCtx.scale(1, this.scale);
             if (this.selectionMode === SelectionMode.ADD) {
                 this.layoutCanvasCtx.globalAlpha = 0.85;
                 this.layoutCanvasCtx.fillStyle = "#DDDDDD";
@@ -201,29 +200,27 @@ export class LayoutInfoEditor {
                 this.layoutCanvasCtx.globalAlpha = 0.60;
                 this.layoutCanvasCtx.fillStyle = "#DD0000";
             }
-            this.layoutCanvasCtx.fillRect(0, this.selectionStart, this.layoutCanvas.width, this.selectionEnd - this.selectionStart);
+            this.layoutCanvasCtx.fillRect(0, this.selectionStart * this.scale, this.layoutCanvas.width, (this.selectionEnd - this.selectionStart) * this.scale);
             this.layoutCanvasCtx.globalAlpha = 1.0;
-            this.layoutCanvasCtx.scale(1, 1.0 / this.scale);
         }
     }
 
-    // drawDataRanges
+    // drawLayoutInfoSelections
     private drawLayoutInfoSelections(offsetY: number) {
-        this.layoutCanvasCtx.scale(1, this.scale);
         this.layoutCanvasCtx.globalAlpha = 0.8;
         this.layoutCanvasCtx.beginPath();
-        this.layoutCanvasCtx.lineWidth = 2;
-        this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         for (let i = 0; i < this.layoutInfo.dataTable.selections.length; i++) {
             if (this.layoutInfo.dataTable.selections[i] > 0) {
-                this.layoutCanvasCtx.moveTo(0, i + offsetY);
-                this.layoutCanvasCtx.lineTo(this.layoutCanvas.width, i + offsetY);
+                this.layoutCanvasCtx.globalAlpha = 1.0;
+                this.layoutCanvasCtx.fillStyle = "#CCCCCC";
+                this.layoutCanvasCtx.strokeStyle = "#CCCCCC";
+                this.layoutCanvasCtx.fillRect(0, i * this.scale, this.layoutCanvas.width, this.scale);
+                this.layoutCanvasCtx.stroke();
             }
         }
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.globalAlpha = 1.0;
-        this.layoutCanvasCtx.scale(1.0, 1.0 / this.scale);
     }
 
     // clearCanvas
@@ -298,7 +295,6 @@ export class LayoutInfoEditor {
     // drawPlot
     private drawPlot(dataValues: DataValues, x: number, y: number, color: string): void {
         // start drawing
-        this.layoutCanvasCtx.scale(1, this.scale);
         this.layoutCanvasCtx.translate(x, y);
 
         // draw predict
@@ -314,9 +310,9 @@ export class LayoutInfoEditor {
                     let xPoint = (dataValues.predicts[i] - dataValues.min) / (dataValues.max - dataValues.min) * LAYOUT_COLUMN_WIDTH;
                     let yPoint = i;
                     if (moved)
-                        this.layoutCanvasCtx.lineTo(xPoint, yPoint)
+                        this.layoutCanvasCtx.lineTo(xPoint, yPoint * this.scale)
                     else
-                        this.layoutCanvasCtx.moveTo(xPoint, yPoint)
+                        this.layoutCanvasCtx.moveTo(xPoint, yPoint * this.scale);
                     moved = true;
                 } else { // if value is invalid
                     this.layoutCanvasCtx.stroke();
@@ -338,9 +334,9 @@ export class LayoutInfoEditor {
                 let xPoint = (dataValues.values[i] - dataValues.min) / (dataValues.max - dataValues.min) * LAYOUT_COLUMN_WIDTH;
                 let yPoint = i;
                 if (moved)
-                    this.layoutCanvasCtx.lineTo(xPoint, yPoint)
+                    this.layoutCanvasCtx.lineTo(xPoint, yPoint * this.scale)
                 else
-                    this.layoutCanvasCtx.moveTo(xPoint, yPoint)
+                    this.layoutCanvasCtx.moveTo(xPoint, yPoint * this.scale);
                 moved = true;
             } else { // if value is invalid
                 this.layoutCanvasCtx.stroke();
@@ -351,7 +347,6 @@ export class LayoutInfoEditor {
 
         // finish drawing
         this.layoutCanvasCtx.translate(-x, -y);
-        this.layoutCanvasCtx.scale(1.0, 1.0 / this.scale);
     }
 
     // drawFacies
@@ -364,8 +359,8 @@ export class LayoutInfoEditor {
             if (dataFacies.values[i] >= 0)
                 this.layoutCanvasCtx.strokeStyle = gColorTable[dataFacies.values[i]];
             this.layoutCanvasCtx.beginPath();
-            this.layoutCanvasCtx.moveTo(0, i);
-            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
+            this.layoutCanvasCtx.moveTo(0, i * this.scale)
+            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale)
             this.layoutCanvasCtx.stroke();
         }
         this.layoutCanvasCtx.translate(-x, -y);
@@ -374,7 +369,6 @@ export class LayoutInfoEditor {
 
     // drawSamples
     private drawSamples(dataSamples: DataSamples, x: number, y: number): void {
-        this.layoutCanvasCtx.scale(1, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         console.log("drawSamples");
         for (let i = 0; i < dataSamples.values.length; i++) {
@@ -384,48 +378,44 @@ export class LayoutInfoEditor {
                 this.layoutCanvasCtx.font = "14px Arial";
                 this.layoutCanvasCtx.strokeStyle = "black";
                 this.layoutCanvasCtx.fillStyle = "black";
-                this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.dataValues[0].values[i].toString(), 15, i);
+                this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.dataValues[0].values[i].toString(), 15, i * this.scale)
                 this.layoutCanvasCtx.strokeStyle = "red";
                 this.layoutCanvasCtx.fillStyle = "red";
                 this.layoutCanvasCtx.beginPath();
-                this.layoutCanvasCtx.arc(10, i, 5, 0, 2 * Math.PI);
+                this.layoutCanvasCtx.arc(10, i * this.scale, 5, 0, 2 * Math.PI);
                 this.layoutCanvasCtx.fill();
             }
         }
         this.layoutCanvasCtx.translate(-x, -y);
-        this.layoutCanvasCtx.scale(1.0, 1.0 / this.scale);
     }
 
     // drawYAxis
     private drawYAxis(dataValues: DataValues, x: number, y: number): void {
         // clear legend canvas
-        this.layoutCanvasCtx.scale(1.0, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
-        for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.values.length; i += LAYOUT_AXES_HINT_STEP) {
+        for (let i = 0; i < dataValues.values.length; i += (LAYOUT_AXES_HINT_STEP)) {
             this.layoutCanvasCtx.textBaseline = "middle";
             this.layoutCanvasCtx.textAlign = "center";
             this.layoutCanvasCtx.font = "24px Arial";
             this.layoutCanvasCtx.strokeStyle = "BBBBBB";
             this.layoutCanvasCtx.fillStyle = "black";
-            this.layoutCanvasCtx.fillText(dataValues.values[i].toString(), LAYOUT_COLUMN_WIDTH * 0.5, i);
-            this.layoutCanvasCtx.moveTo(0, i);
-            this.layoutCanvasCtx.lineTo(0 + LAYOUT_AXES_HINT_LENGTH, i);
-            this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH - LAYOUT_AXES_HINT_LENGTH, i);
-            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
+            this.layoutCanvasCtx.fillText(dataValues.values[i].toString(), LAYOUT_COLUMN_WIDTH * 0.5, i * this.scale);
+            this.layoutCanvasCtx.moveTo(0, i * this.scale);
+            this.layoutCanvasCtx.lineTo(0 + LAYOUT_AXES_HINT_LENGTH, i * this.scale);
+            this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH - LAYOUT_AXES_HINT_LENGTH, i * this.scale);
+            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale);
         }
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
-        this.layoutCanvasCtx.scale(1.0, 1.0 / this.scale);
     }
 
     // drawGrid
     private drawGrid(dataValues: number[], x: number, y: number): void {
         // clear legend canvas
-        this.layoutCanvasCtx.scale(1.0, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 2;
@@ -435,13 +425,12 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH, 0);
         this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataValues.length);
         for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.length; i += LAYOUT_AXES_HINT_STEP) {
-            this.layoutCanvasCtx.moveTo(0, i);
-            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i);
+            this.layoutCanvasCtx.moveTo(0, i * this.scale);
+            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale);
         }
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
-        this.layoutCanvasCtx.scale(1.0, 1.0 / this.scale);
     }
 }
 
