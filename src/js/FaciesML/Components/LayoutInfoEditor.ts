@@ -48,7 +48,6 @@ export class LayoutInfoEditor {
         this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
         this.layoutCanvas.onmousemove = this.onMouseMove.bind(this);
         this.layoutCanvas.onmousedown = this.onMouseDown.bind(this);
-        this.layoutCanvas.style.border = "1px solid #BBBBBB";
         this.layoutCanvas.style.cursor = "row-resize";
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parentPlots.appendChild(this.layoutCanvas);

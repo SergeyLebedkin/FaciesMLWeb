@@ -82,7 +82,6 @@ html, body {
     display: flex;
     flex-direction: row;
     background: white;
-    padding-left: 1px;
 }
 
 .plots-headers div {
