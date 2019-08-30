@@ -215,7 +215,7 @@ export class LayoutInfoEditor {
             if (this.layoutInfo.dataTable.selections[i] > 0) {
                 this.layoutCanvasCtx.globalAlpha = 1.0;
                 this.layoutCanvasCtx.fillStyle = "#DDDDDD";
-                this.layoutCanvasCtx.fillRect(0, i * this.scale, this.layoutCanvas.width, this.scale);
+                this.layoutCanvasCtx.fillRect(0, i * this.scale, this.layoutCanvas.width, Math.max(1, this.scale));
                 this.layoutCanvasCtx.stroke();
             }
         }
