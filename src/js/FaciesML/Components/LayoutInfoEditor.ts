@@ -212,8 +212,7 @@ export class LayoutInfoEditor {
         for (let i = 0; i < this.layoutInfo.dataTable.selections.length; i++) {
             if (this.layoutInfo.dataTable.selections[i] > 0) {
                 this.layoutCanvasCtx.globalAlpha = 1.0;
-                this.layoutCanvasCtx.fillStyle = "#CCCCCC";
-                this.layoutCanvasCtx.strokeStyle = "#CCCCCC";
+                this.layoutCanvasCtx.fillStyle = "#DDDDDD";
                 this.layoutCanvasCtx.fillRect(0, i * this.scale, this.layoutCanvas.width, this.scale);
                 this.layoutCanvasCtx.stroke();
             }
@@ -351,26 +350,27 @@ export class LayoutInfoEditor {
 
     // drawFacies
     private drawFacies(dataFacies: DataFacies, x: number, y: number): void {
-        this.layoutCanvasCtx.scale(1, this.scale);
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.lineWidth = 2;
         for (let i = 0; i < dataFacies.values.length; i++) {
             this.layoutCanvasCtx.strokeStyle = "white";
             if (dataFacies.values[i] >= 0)
                 this.layoutCanvasCtx.strokeStyle = gColorTable[dataFacies.values[i]];
-            this.layoutCanvasCtx.beginPath();
-            this.layoutCanvasCtx.moveTo(0, i * this.scale)
-            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale)
-            this.layoutCanvasCtx.stroke();
+            let yBeg = i * this.scale;
+            let yEnd = Math.max(yBeg, (i + 1) * this.scale);
+            for (let y = yBeg; y <= yEnd; y++) {
+                this.layoutCanvasCtx.beginPath();
+                this.layoutCanvasCtx.moveTo(0, y)
+                this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, y)
+                this.layoutCanvasCtx.stroke();
+            }
         }
         this.layoutCanvasCtx.translate(-x, -y);
-        this.layoutCanvasCtx.scale(1.0, 1.0 / this.scale);
     }
 
     // drawSamples
     private drawSamples(dataSamples: DataSamples, x: number, y: number): void {
         this.layoutCanvasCtx.translate(x, y);
-        console.log("drawSamples");
         for (let i = 0; i < dataSamples.values.length; i++) {
             if (dataSamples.values[i] > 0) {
                 this.layoutCanvasCtx.textBaseline = "middle";
@@ -396,7 +396,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
-        for (let i = 0; i < dataValues.values.length; i += (LAYOUT_AXES_HINT_STEP)) {
+        for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.values.length; i += (LAYOUT_AXES_HINT_STEP)) {
             this.layoutCanvasCtx.textBaseline = "middle";
             this.layoutCanvasCtx.textAlign = "center";
             this.layoutCanvasCtx.font = "24px Arial";
