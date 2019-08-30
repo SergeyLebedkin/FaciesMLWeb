@@ -53,12 +53,44 @@ html, body {
     color: white;
 }
 
-.plots-panel {
-    display: block;
-    background: black;
-    text-align: center;
-    overflow: auto;
+/* plots */
+
+.plots-main-panel {
+    width: 100%;
+    height: 100%;
 }
+
+.plots-main-row {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    overflow-x: auto;
+}
+
+.plots-main-col {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    white-space: nowrap;
+}
+
+.plots-headers {
+    display: flex;
+    flex-direction: row;
+    background: white;
+    padding-left: 1px;
+}
+
+.plots-headers div {
+    background: white;
+    display: block;
+}
+
+.plots-panel {
+    overflow-y: auto;
+}
+
+/* controls */
 
 .menu-item-title {
     padding: 5px 0px;
