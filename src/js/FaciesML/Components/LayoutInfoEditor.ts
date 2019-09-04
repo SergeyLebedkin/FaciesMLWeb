@@ -158,16 +158,13 @@ export class LayoutInfoEditor {
         // draw data ranges
         this.drawLayoutInfoSelections(0);
         // draw depth
-        this.addHeader(
-            this.layoutInfo.dataTable.dataValues[0].name + " (" + this.layoutInfo.dataTable.dataValues[0].unit + ")",
-            this.layoutInfo.dataTable.dataValues[0].min,
-            this.layoutInfo.dataTable.dataValues[0].max);
+        this.addHeaderBase(this.layoutInfo.dataTable.dataValues[0]);
         this.drawYAxis(this.layoutInfo.dataTable.dataValues[0], 0, 0);
         // draw selected data values
         let columnIndex = 1;
         for (let dataValues of this.layoutInfo.dataTable.dataValues) {
             if (dataValues.selected) {
-                this.addHeader(dataValues.name + " (" + dataValues.unit + ")", dataValues.min, dataValues.max);
+                this.addHeader(dataValues);
                 this.drawGrid(this.layoutInfo.dataTable.dataValues[0].values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                 this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0, gColorTable[columnIndex]);
                 columnIndex++;
@@ -235,7 +232,7 @@ export class LayoutInfoEditor {
     }
 
     // addHeader
-    private addHeader(name: string, min: number, max: number): void {
+    private addHeader(dataValues: DataValues): void {
         // legend sizes
         let legendHeight = LAYOUT_LEGENT_HEIGHT;
         let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
@@ -250,7 +247,7 @@ export class LayoutInfoEditor {
 
         // create div header name
         let divHeaderName = document.createElement("div");
-        divHeaderName.innerText = name;
+        divHeaderName.innerText = dataValues.name + " (" + dataValues.unit + ")";
         divHeaderName.style.textAlign = "center";
         divHeaderName.style.borderBottom = "1px solid black";
         divHeader.appendChild(divHeaderName);
@@ -267,7 +264,7 @@ export class LayoutInfoEditor {
         divHeaderMin.style.width = "100%";
         divHeaderMin.style.textAlign = "center";
         divHeaderMin.style.borderRight = "1px solid black";
-        divHeaderMin.innerText = min.toString();
+        divHeaderMin.innerText = dataValues.min.toString();
         divHeaderMinMax.appendChild(divHeaderMin);
 
         // create div header max
@@ -276,9 +273,95 @@ export class LayoutInfoEditor {
         divHeaderMax.style.width = "100%";
         divHeaderMax.style.textAlign = "center";
         divHeaderMax.style.borderLeft = "1px solid black";
-        divHeaderMax.innerText = max.toString();
+        divHeaderMax.innerText = dataValues.max.toString();
         divHeaderMinMax.appendChild(divHeaderMax);
+
+        // create div header minmax
+        let divHeaderDisplayMinMax = document.createElement("div");
+        divHeaderDisplayMinMax.style.display = "flex";
+        divHeaderDisplayMinMax.style.flexDirection = "row";
+        divHeader.appendChild(divHeaderDisplayMinMax);
+
+        // create input header min
+        let inputHeaderDisplayMin = document.createElement("input");
+        inputHeaderDisplayMin.type = "text";
+        inputHeaderDisplayMin.style.display = "block";
+        inputHeaderDisplayMin.style.width = "100%";
+        inputHeaderDisplayMin.style.textAlign = "center";
+        inputHeaderDisplayMin.value = dataValues.displayMin.toString();
+        inputHeaderDisplayMin["dataValues"] = dataValues;
+        inputHeaderDisplayMin.style.border = "none";
+        inputHeaderDisplayMin.onchange = ((event) => {
+            let dataValues: DataValues = event.target["dataValues"] as DataValues;
+            let newValue: number = event.target.value;
+            dataValues.displayMin = Math.min(dataValues.max, Math.max(dataValues.min, newValue));
+            this.drawLayoutInfo();
+        }).bind(this);
+        divHeaderDisplayMinMax.appendChild(inputHeaderDisplayMin);
+
+        // create input header max
+        let inputHeaderDisplayMax = document.createElement("input");
+        inputHeaderDisplayMax.type = "text";
+        inputHeaderDisplayMax.style.display = "block";
+        inputHeaderDisplayMax.style.width = "100%";
+        inputHeaderDisplayMax.style.textAlign = "center";
+        inputHeaderDisplayMax.value = dataValues.displayMax.toString();
+        inputHeaderDisplayMax["dataValues"] = dataValues;
+        inputHeaderDisplayMax.style.border = "none";
+        inputHeaderDisplayMax.onchange = ((event) => {
+            let dataValues: DataValues = event.target["dataValues"] as DataValues;
+            let newValue: number = event.target.value;
+            dataValues.displayMax = Math.min(dataValues.max, Math.max(dataValues.min, newValue));
+            this.drawLayoutInfo();
+        }).bind(this);
+        divHeaderDisplayMinMax.appendChild(inputHeaderDisplayMax);
     }
+
+        // addHeaderBase
+        private addHeaderBase(dataValues: DataValues): void {
+            // legend sizes
+            let legendHeight = LAYOUT_LEGENT_HEIGHT;
+            let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
+            // create header
+            let divHeader = document.createElement("div");
+            //divHeader.style.height = legendHeight.toString() + "px";
+            divHeader.style.width = legendWidth.toString() + "px";
+            divHeader.style.border = "1px solid black";
+            divHeader.style.display = "flex";
+            divHeader.style.flexDirection = "column";
+            this.parentHeadrs.appendChild(divHeader);
+    
+            // create div header name
+            let divHeaderName = document.createElement("div");
+            divHeaderName.innerText = dataValues.name + " (" + dataValues.unit + ")";
+            divHeaderName.style.textAlign = "center";
+            divHeaderName.style.borderBottom = "1px solid black";
+            divHeader.appendChild(divHeaderName);
+    
+            // create div header minmax
+            let divHeaderMinMax = document.createElement("div");
+            divHeaderMinMax.style.display = "flex";
+            divHeaderMinMax.style.flexDirection = "row";
+            divHeader.appendChild(divHeaderMinMax);
+    
+            // create div header min
+            let divHeaderMin = document.createElement("div");
+            divHeaderMin.style.display = "block";
+            divHeaderMin.style.width = "100%";
+            divHeaderMin.style.textAlign = "center";
+            divHeaderMin.style.borderRight = "1px solid black";
+            divHeaderMin.innerText = dataValues.min.toString();
+            divHeaderMinMax.appendChild(divHeaderMin);
+    
+            // create div header max
+            let divHeaderMax = document.createElement("div");
+            divHeaderMax.style.display = "block";
+            divHeaderMax.style.width = "100%";
+            divHeaderMax.style.textAlign = "center";
+            divHeaderMax.style.borderLeft = "1px solid black";
+            divHeaderMax.innerText = dataValues.max.toString();
+            divHeaderMinMax.appendChild(divHeaderMax);
+        }
 
     // addHeaderFacie
     private addHeaderFacie(name: string): void {
@@ -308,8 +391,9 @@ export class LayoutInfoEditor {
             for (let i = 0; i < dataValues.predicts.length; i++) {
                 // if value is valid
                 if (dataValues.predicts[i] > DATA_MINIMAL_VALUE) {
-                    let xPoint = (dataValues.predicts[i] - dataValues.min) / (dataValues.max - dataValues.min) * LAYOUT_COLUMN_WIDTH;
+                    let xPoint = (dataValues.predicts[i] - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
                     let yPoint = i;
+                    xPoint = Math.min(1.0, Math.max(0, xPoint)) * LAYOUT_COLUMN_WIDTH;
                     if (moved)
                         this.layoutCanvasCtx.lineTo(xPoint, yPoint * this.scale)
                     else
@@ -332,8 +416,9 @@ export class LayoutInfoEditor {
         for (let i = 0; i < dataValues.values.length; i++) {
             // if value is valid
             if (dataValues.values[i] > DATA_MINIMAL_VALUE) {
-                let xPoint = (dataValues.values[i] - dataValues.min) / (dataValues.max - dataValues.min) * LAYOUT_COLUMN_WIDTH;
+                let xPoint = (dataValues.values[i] - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
                 let yPoint = i;
+                xPoint = Math.min(1.0, Math.max(0, xPoint)) * LAYOUT_COLUMN_WIDTH;
                 if (moved)
                     this.layoutCanvasCtx.lineTo(xPoint, yPoint * this.scale)
                 else

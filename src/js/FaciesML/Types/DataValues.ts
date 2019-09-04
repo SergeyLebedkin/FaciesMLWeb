@@ -8,6 +8,8 @@ export class DataValues {
     public unit: string = "";
     public min: number = 0;
     public max: number = 0;
+    public displayMin: number = 0;
+    public displayMax: number = 0;
     public values: Array<number> = [];
     public predicts: Array<number> = [];
     public selected: boolean = false;
@@ -17,6 +19,8 @@ export class DataValues {
         this.unit = "";
         this.min = 0;
         this.max = 0;
+        this.displayMin = 0;
+        this.displayMax = 0;
         this.values = [];
         this.predicts = [];
         this.selected = false;
@@ -45,6 +49,9 @@ export class DataValues {
             this.min = Math.min(this.min, value);
             this.max = Math.max(this.max, value);
         }
+        // update display properties
+        this.displayMin = this.min;
+        this.displayMax = this.max;
     }
 
     // loadPredictFromJson
