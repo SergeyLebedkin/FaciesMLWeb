@@ -165,7 +165,7 @@ export class LayoutInfoEditor {
         for (let dataValues of this.layoutInfo.dataTable.dataValues) {
             if (dataValues.selected) {
                 this.addHeader(dataValues);
-                this.drawGrid(this.layoutInfo.dataTable.dataValues[0].values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
+                this.drawGrid(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                 this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0, gColorTable[columnIndex]);
                 columnIndex++;
             }
@@ -181,7 +181,7 @@ export class LayoutInfoEditor {
             for (let dataSamples of dataFacies.dataSamples) {
                 if (dataSamples.selected) {
                     this.addHeaderFacie(dataSamples.name);
-                    this.drawGrid(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
+                    this.drawGridFacies(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     this.drawSamples(dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     columnIndex++;
                 }
@@ -383,8 +383,7 @@ export class LayoutInfoEditor {
     private drawPlot(dataValues: DataValues, x: number, y: number, color: string): void {
         // start drawing
         this.layoutCanvasCtx.translate(x, y);
-        let numSections = Math.floor(Math.log10(dataValues.displayMax))+1;
-        console.log(numSections);
+        let numSections = Math.floor(Math.log10(dataValues.displayMax)) + 1;
         // draw predict
         if (dataValues.isPredict()) {
             this.layoutCanvasCtx.beginPath();
@@ -393,7 +392,7 @@ export class LayoutInfoEditor {
             this.layoutCanvasCtx.setLineDash([10, 3]);
             for (let i = 0; i < dataValues.values.length - 1; i++) {
                 let value0 = dataValues.predicts[i];
-                let value1 = dataValues.predicts[i+1];
+                let value1 = dataValues.predicts[i + 1];
                 if (value0 > DATA_MINIMAL_VALUE) {
                     let xPoint0 = value0;
                     let xPoint1 = value1;
@@ -402,7 +401,7 @@ export class LayoutInfoEditor {
                         xPoint1 = (value1 - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
                         xPoint0 = Math.min(1.0, Math.max(0.0, xPoint0)) * LAYOUT_COLUMN_WIDTH;
                         xPoint1 = Math.min(1.0, Math.max(0.0, xPoint1)) * LAYOUT_COLUMN_WIDTH;
-                    } 
+                    }
                     else if (dataValues.displayType === DisplayType.LOG) {
                         xPoint0 = Math.log10(value0) / numSections;
                         xPoint1 = Math.log10(value1) / numSections;
@@ -425,7 +424,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.strokeStyle = color;
         for (let i = 0; i < dataValues.values.length - 1; i++) {
             let value0 = dataValues.values[i];
-            let value1 = dataValues.values[i+1];
+            let value1 = dataValues.values[i + 1];
             if (value0 > DATA_MINIMAL_VALUE) {
                 let xPoint0 = value0;
                 let xPoint1 = value1;
@@ -434,7 +433,7 @@ export class LayoutInfoEditor {
                     xPoint1 = (value1 - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
                     xPoint0 = Math.min(1.0, Math.max(0.0, xPoint0)) * LAYOUT_COLUMN_WIDTH;
                     xPoint1 = Math.min(1.0, Math.max(0.0, xPoint1)) * LAYOUT_COLUMN_WIDTH;
-                } 
+                }
                 else if (dataValues.displayType === DisplayType.LOG) {
                     xPoint0 = Math.log10(value0) / numSections;
                     xPoint1 = Math.log10(value1) / numSections;
@@ -519,7 +518,46 @@ export class LayoutInfoEditor {
     }
 
     // drawGrid
-    private drawGrid(dataValues: number[], x: number, y: number): void {
+    private drawGrid(dataValues: DataValues, x: number, y: number): void {
+        // clear legend canvas
+        this.layoutCanvasCtx.translate(x, y);
+        this.layoutCanvasCtx.beginPath();
+        this.layoutCanvasCtx.lineWidth = 1;
+        this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
+        this.layoutCanvasCtx.moveTo(0, 0);
+        this.layoutCanvasCtx.lineTo(0, dataValues.values.length * this.scale);
+        if (dataValues.displayType === DisplayType.LINEAR) {
+            let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
+            for (let i = 0; i < numSections; i++) {
+                for (let j = 1; j < 10; j++) {
+                    let xPoint = (i + j / 10) * dataValues.max;
+                    this.layoutCanvasCtx.moveTo(xPoint*LAYOUT_COLUMN_WIDTH, 0);
+                    this.layoutCanvasCtx.lineTo(xPoint*LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
+                }
+            }
+        }
+        else if (dataValues.displayType === DisplayType.LOG) {
+            let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
+            for (let i = 0; i < numSections; i++) {
+                for (let j = 1; j < 10; j++) {
+                    let xPoint = Math.log10(Math.pow(10, i)*j) / numSections;
+                    this.layoutCanvasCtx.moveTo(xPoint*LAYOUT_COLUMN_WIDTH, 0);
+                    this.layoutCanvasCtx.lineTo(xPoint*LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
+                }
+            }
+        }
+        this.layoutCanvasCtx.stroke();
+        for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.values.length; i += LAYOUT_AXES_HINT_STEP) {
+            this.layoutCanvasCtx.moveTo(0, i * this.scale);
+            this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale);
+        }
+        this.layoutCanvasCtx.stroke();
+        // this.layoutCanvasCtx.closePath();
+        this.layoutCanvasCtx.translate(-x, -y);
+    }
+
+    // drawGridFacies
+    private drawGridFacies(dataValues: number[], x: number, y: number): void {
         // clear legend canvas
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
@@ -528,7 +566,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.moveTo(0, 0);
         this.layoutCanvasCtx.lineTo(0, dataValues.length * this.scale);
         this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH, 0);
-        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataValues.length * this.scale);
+        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
         for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.length; i += LAYOUT_AXES_HINT_STEP) {
             this.layoutCanvasCtx.moveTo(0, i * this.scale);
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale);
