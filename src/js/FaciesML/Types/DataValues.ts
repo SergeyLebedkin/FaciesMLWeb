@@ -1,6 +1,11 @@
 // DATA_MINIMAL_VALUE
 export const DATA_MINIMAL_VALUE = -999;
 
+export enum DisplayType {
+    LINEAR,
+    LOG
+}
+
 // DataValues
 export class DataValues {
     // fields
@@ -10,6 +15,7 @@ export class DataValues {
     public max: number = 0;
     public displayMin: number = 0;
     public displayMax: number = 0;
+    public displayType: DisplayType = DisplayType.LINEAR;
     public values: Array<number> = [];
     public predicts: Array<number> = [];
     public selected: boolean = false;
@@ -21,6 +27,7 @@ export class DataValues {
         this.max = 0;
         this.displayMin = 0;
         this.displayMax = 0;
+        this.displayType = DisplayType.LINEAR;
         this.values = [];
         this.predicts = [];
         this.selected = false;

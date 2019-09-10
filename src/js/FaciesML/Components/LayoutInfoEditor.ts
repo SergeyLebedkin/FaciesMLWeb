@@ -1,6 +1,6 @@
 import { LayoutInfo } from "../Types/LayoutInfo";
 import { SelectionMode } from "../Types/SelectionMode";
-import { DataValues, DATA_MINIMAL_VALUE } from "../Types/DataValues";
+import { DataValues, DATA_MINIMAL_VALUE, DisplayType } from "../Types/DataValues";
 import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
 
@@ -170,7 +170,7 @@ export class LayoutInfoEditor {
                 columnIndex++;
             }
         }
-        // // draw selected datafacies
+        // draw selected datafacies
         for (let dataFacies of this.layoutInfo.dataTable.dataFacies) {
             if (dataFacies.selected) {
                 this.addHeaderFacie(dataFacies.name);
@@ -245,6 +245,95 @@ export class LayoutInfoEditor {
         divHeader.style.flexDirection = "column";
         this.parentHeadrs.appendChild(divHeader);
 
+        // create div controls
+        let divControls = document.createElement("div");
+        divControls.style.display = "flex";
+        divControls.style.flexDirection = "row-reverse";
+        divHeader.appendChild(divControls);
+
+        // button display type
+        let buttonDisplayType = document.createElement("button");
+        buttonDisplayType.innerText = "L";
+        buttonDisplayType.disabled = dataValues.min <= 0;
+        buttonDisplayType["dataValues"] = dataValues;
+        buttonDisplayType.onclick = (event => {
+            let dataValues: DataValues = event.target["dataValues"] as DataValues;
+            if (dataValues.displayType === DisplayType.LINEAR)
+                dataValues.displayType = DisplayType.LOG;
+            else if (dataValues.displayType === DisplayType.LOG)
+                dataValues.displayType = DisplayType.LINEAR;
+            this.drawLayoutInfo();
+        }).bind(this);
+        divControls.appendChild(buttonDisplayType);
+
+        // create div header name
+        let divHeaderName = document.createElement("div");
+        divHeaderName.innerText = dataValues.name;
+        divHeaderName.style.textAlign = "center";
+        divHeaderName.style.borderBottom = "1px solid black";
+        divHeader.appendChild(divHeaderName);
+
+        // create div header minmax
+        let divHeaderDisplayMinMax = document.createElement("div");
+        divHeaderDisplayMinMax.style.display = "flex";
+        divHeaderDisplayMinMax.style.flexDirection = "row";
+        divHeader.appendChild(divHeaderDisplayMinMax);
+
+        // create input header min
+        let inputHeaderDisplayMin = document.createElement("input");
+        inputHeaderDisplayMin.type = "text";
+        inputHeaderDisplayMin.style.display = "block";
+        inputHeaderDisplayMin.style.width = "100%";
+        inputHeaderDisplayMin.style.textAlign = "center";
+        inputHeaderDisplayMin.value = dataValues.displayMin.toFixed(2);
+        inputHeaderDisplayMin["dataValues"] = dataValues;
+        inputHeaderDisplayMin.onchange = ((event) => {
+            let dataValues: DataValues = event.target["dataValues"] as DataValues;
+            let newValue: number = event.target.value;
+            dataValues.displayMin = Math.min(Math.max(newValue, dataValues.min), dataValues.displayMax);
+            this.drawLayoutInfo();
+        }).bind(this);
+        divHeaderDisplayMinMax.appendChild(inputHeaderDisplayMin);
+
+        // create value label
+        // create div header name
+        let divUnitName = document.createElement("div");
+        divUnitName.innerText = dataValues.unit;
+        divUnitName.style.textAlign = "center";
+        divHeaderDisplayMinMax.appendChild(divUnitName);
+
+        // create input header max
+        let inputHeaderDisplayMax = document.createElement("input");
+        inputHeaderDisplayMax.type = "text";
+        inputHeaderDisplayMax.style.display = "block";
+        inputHeaderDisplayMax.style.width = "100%";
+        inputHeaderDisplayMax.style.textAlign = "center";
+        inputHeaderDisplayMax.value = dataValues.displayMax.toFixed(2);
+        inputHeaderDisplayMax["dataValues"] = dataValues;
+        inputHeaderDisplayMax.onchange = ((event) => {
+            let dataValues: DataValues = event.target["dataValues"] as DataValues;
+            let newValue: number = event.target.value;
+            //dataValues.displayMax = Math.min(dataValues.max, Math.max(dataValues.min, newValue));
+            dataValues.displayMax = Math.min(Math.max(newValue, dataValues.displayMin), dataValues.max);
+            this.drawLayoutInfo();
+        }).bind(this);
+        divHeaderDisplayMinMax.appendChild(inputHeaderDisplayMax);
+    }
+
+    // addHeaderBase
+    private addHeaderBase(dataValues: DataValues): void {
+        // legend sizes
+        let legendHeight = LAYOUT_LEGENT_HEIGHT;
+        let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
+        // create header
+        let divHeader = document.createElement("div");
+        //divHeader.style.height = legendHeight.toString() + "px";
+        divHeader.style.width = legendWidth.toString() + "px";
+        divHeader.style.border = "1px solid black";
+        divHeader.style.display = "flex";
+        divHeader.style.flexDirection = "column";
+        this.parentHeadrs.appendChild(divHeader);
+
         // create div header name
         let divHeaderName = document.createElement("div");
         divHeaderName.innerText = dataValues.name + " (" + dataValues.unit + ")";
@@ -275,93 +364,7 @@ export class LayoutInfoEditor {
         divHeaderMax.style.borderLeft = "1px solid black";
         divHeaderMax.innerText = dataValues.max.toString();
         divHeaderMinMax.appendChild(divHeaderMax);
-
-        // create div header minmax
-        let divHeaderDisplayMinMax = document.createElement("div");
-        divHeaderDisplayMinMax.style.display = "flex";
-        divHeaderDisplayMinMax.style.flexDirection = "row";
-        divHeader.appendChild(divHeaderDisplayMinMax);
-
-        // create input header min
-        let inputHeaderDisplayMin = document.createElement("input");
-        inputHeaderDisplayMin.type = "text";
-        inputHeaderDisplayMin.style.display = "block";
-        inputHeaderDisplayMin.style.width = "100%";
-        inputHeaderDisplayMin.style.textAlign = "center";
-        inputHeaderDisplayMin.value = dataValues.displayMin.toString();
-        inputHeaderDisplayMin["dataValues"] = dataValues;
-        inputHeaderDisplayMin.style.border = "none";
-        inputHeaderDisplayMin.onchange = ((event) => {
-            let dataValues: DataValues = event.target["dataValues"] as DataValues;
-            let newValue: number = event.target.value;
-            dataValues.displayMin = Math.min(dataValues.max, Math.max(dataValues.min, newValue));
-            this.drawLayoutInfo();
-        }).bind(this);
-        divHeaderDisplayMinMax.appendChild(inputHeaderDisplayMin);
-
-        // create input header max
-        let inputHeaderDisplayMax = document.createElement("input");
-        inputHeaderDisplayMax.type = "text";
-        inputHeaderDisplayMax.style.display = "block";
-        inputHeaderDisplayMax.style.width = "100%";
-        inputHeaderDisplayMax.style.textAlign = "center";
-        inputHeaderDisplayMax.value = dataValues.displayMax.toString();
-        inputHeaderDisplayMax["dataValues"] = dataValues;
-        inputHeaderDisplayMax.style.border = "none";
-        inputHeaderDisplayMax.onchange = ((event) => {
-            let dataValues: DataValues = event.target["dataValues"] as DataValues;
-            let newValue: number = event.target.value;
-            dataValues.displayMax = Math.min(dataValues.max, Math.max(dataValues.min, newValue));
-            this.drawLayoutInfo();
-        }).bind(this);
-        divHeaderDisplayMinMax.appendChild(inputHeaderDisplayMax);
     }
-
-        // addHeaderBase
-        private addHeaderBase(dataValues: DataValues): void {
-            // legend sizes
-            let legendHeight = LAYOUT_LEGENT_HEIGHT;
-            let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
-            // create header
-            let divHeader = document.createElement("div");
-            //divHeader.style.height = legendHeight.toString() + "px";
-            divHeader.style.width = legendWidth.toString() + "px";
-            divHeader.style.border = "1px solid black";
-            divHeader.style.display = "flex";
-            divHeader.style.flexDirection = "column";
-            this.parentHeadrs.appendChild(divHeader);
-    
-            // create div header name
-            let divHeaderName = document.createElement("div");
-            divHeaderName.innerText = dataValues.name + " (" + dataValues.unit + ")";
-            divHeaderName.style.textAlign = "center";
-            divHeaderName.style.borderBottom = "1px solid black";
-            divHeader.appendChild(divHeaderName);
-    
-            // create div header minmax
-            let divHeaderMinMax = document.createElement("div");
-            divHeaderMinMax.style.display = "flex";
-            divHeaderMinMax.style.flexDirection = "row";
-            divHeader.appendChild(divHeaderMinMax);
-    
-            // create div header min
-            let divHeaderMin = document.createElement("div");
-            divHeaderMin.style.display = "block";
-            divHeaderMin.style.width = "100%";
-            divHeaderMin.style.textAlign = "center";
-            divHeaderMin.style.borderRight = "1px solid black";
-            divHeaderMin.innerText = dataValues.min.toString();
-            divHeaderMinMax.appendChild(divHeaderMin);
-    
-            // create div header max
-            let divHeaderMax = document.createElement("div");
-            divHeaderMax.style.display = "block";
-            divHeaderMax.style.width = "100%";
-            divHeaderMax.style.textAlign = "center";
-            divHeaderMax.style.borderLeft = "1px solid black";
-            divHeaderMax.innerText = dataValues.max.toString();
-            divHeaderMinMax.appendChild(divHeaderMax);
-        }
 
     // addHeaderFacie
     private addHeaderFacie(name: string): void {
@@ -380,28 +383,36 @@ export class LayoutInfoEditor {
     private drawPlot(dataValues: DataValues, x: number, y: number, color: string): void {
         // start drawing
         this.layoutCanvasCtx.translate(x, y);
-
+        let numSections = Math.floor(Math.log10(dataValues.displayMax))+1;
+        console.log(numSections);
         // draw predict
         if (dataValues.isPredict()) {
-            let moved = false;
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.lineWidth = 2;
             this.layoutCanvasCtx.strokeStyle = "lightblue";
             this.layoutCanvasCtx.setLineDash([10, 3]);
-            for (let i = 0; i < dataValues.predicts.length; i++) {
-                // if value is valid
-                if (dataValues.predicts[i] > DATA_MINIMAL_VALUE) {
-                    let xPoint = (dataValues.predicts[i] - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
-                    let yPoint = i;
-                    xPoint = Math.min(1.0, Math.max(0, xPoint)) * LAYOUT_COLUMN_WIDTH;
-                    if (moved)
-                        this.layoutCanvasCtx.lineTo(xPoint, yPoint * this.scale)
-                    else
-                        this.layoutCanvasCtx.moveTo(xPoint, yPoint * this.scale);
-                    moved = true;
-                } else { // if value is invalid
-                    this.layoutCanvasCtx.stroke();
-                    moved = false;
+            for (let i = 0; i < dataValues.values.length - 1; i++) {
+                let value0 = dataValues.predicts[i];
+                let value1 = dataValues.predicts[i+1];
+                if (value0 > DATA_MINIMAL_VALUE) {
+                    let xPoint0 = value0;
+                    let xPoint1 = value1;
+                    if (dataValues.displayType === DisplayType.LINEAR) {
+                        xPoint0 = (value0 - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
+                        xPoint1 = (value1 - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
+                        xPoint0 = Math.min(1.0, Math.max(0.0, xPoint0)) * LAYOUT_COLUMN_WIDTH;
+                        xPoint1 = Math.min(1.0, Math.max(0.0, xPoint1)) * LAYOUT_COLUMN_WIDTH;
+                    } 
+                    else if (dataValues.displayType === DisplayType.LOG) {
+                        xPoint0 = Math.log10(value0) / numSections;
+                        xPoint1 = Math.log10(value1) / numSections;
+                        xPoint0 = Math.min(1.0, Math.max(0.0, xPoint0)) * LAYOUT_COLUMN_WIDTH;
+                        xPoint1 = Math.min(1.0, Math.max(0.0, xPoint1)) * LAYOUT_COLUMN_WIDTH;
+                    }
+                    let yPoint0 = i;
+                    let yPoint1 = i + 1;
+                    this.layoutCanvasCtx.moveTo(xPoint0, yPoint0 * this.scale)
+                    this.layoutCanvasCtx.lineTo(xPoint1, yPoint1 * this.scale)
                 }
             }
             this.layoutCanvasCtx.stroke();
@@ -409,24 +420,31 @@ export class LayoutInfoEditor {
         }
 
         // draw values
-        let moved = false;
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 1;
         this.layoutCanvasCtx.strokeStyle = color;
-        for (let i = 0; i < dataValues.values.length; i++) {
-            // if value is valid
-            if (dataValues.values[i] > DATA_MINIMAL_VALUE) {
-                let xPoint = (dataValues.values[i] - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
-                let yPoint = i;
-                xPoint = Math.min(1.0, Math.max(0, xPoint)) * LAYOUT_COLUMN_WIDTH;
-                if (moved)
-                    this.layoutCanvasCtx.lineTo(xPoint, yPoint * this.scale)
-                else
-                    this.layoutCanvasCtx.moveTo(xPoint, yPoint * this.scale);
-                moved = true;
-            } else { // if value is invalid
-                this.layoutCanvasCtx.stroke();
-                moved = false;
+        for (let i = 0; i < dataValues.values.length - 1; i++) {
+            let value0 = dataValues.values[i];
+            let value1 = dataValues.values[i+1];
+            if (value0 > DATA_MINIMAL_VALUE) {
+                let xPoint0 = value0;
+                let xPoint1 = value1;
+                if (dataValues.displayType === DisplayType.LINEAR) {
+                    xPoint0 = (value0 - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
+                    xPoint1 = (value1 - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
+                    xPoint0 = Math.min(1.0, Math.max(0.0, xPoint0)) * LAYOUT_COLUMN_WIDTH;
+                    xPoint1 = Math.min(1.0, Math.max(0.0, xPoint1)) * LAYOUT_COLUMN_WIDTH;
+                } 
+                else if (dataValues.displayType === DisplayType.LOG) {
+                    xPoint0 = Math.log10(value0) / numSections;
+                    xPoint1 = Math.log10(value1) / numSections;
+                    xPoint0 = Math.min(1.0, Math.max(0.0, xPoint0)) * LAYOUT_COLUMN_WIDTH;
+                    xPoint1 = Math.min(1.0, Math.max(0.0, xPoint1)) * LAYOUT_COLUMN_WIDTH;
+                }
+                let yPoint0 = i;
+                let yPoint1 = i + 1;
+                this.layoutCanvasCtx.moveTo(xPoint0, yPoint0 * this.scale)
+                this.layoutCanvasCtx.lineTo(xPoint1, yPoint1 * this.scale)
             }
         }
         this.layoutCanvasCtx.stroke();
@@ -508,9 +526,9 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
         this.layoutCanvasCtx.moveTo(0, 0);
-        this.layoutCanvasCtx.lineTo(0, dataValues.length);
+        this.layoutCanvasCtx.lineTo(0, dataValues.length * this.scale);
         this.layoutCanvasCtx.moveTo(LAYOUT_COLUMN_WIDTH, 0);
-        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataValues.length);
+        this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, dataValues.length * this.scale);
         for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.length; i += LAYOUT_AXES_HINT_STEP) {
             this.layoutCanvasCtx.moveTo(0, i * this.scale);
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale);
