@@ -534,14 +534,13 @@ export class LayoutInfoEditor {
             for (let i = 0; i < numSections; i++) {
                 for (let j = 1; j < 10; j++) {
                     let value0 = Math.pow(10, i)*j;
-                    console.log(i, j, value0);
                     let xPoint0 = Math.log10(value0) / numSections;
                     this.layoutCanvasCtx.moveTo(xPoint0*LAYOUT_COLUMN_WIDTH, 0);
                     this.layoutCanvasCtx.lineTo(xPoint0*LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
+                    this.layoutCanvasCtx.stroke();
                 }
             }
         }
-        this.layoutCanvasCtx.stroke();
         for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.values.length; i += LAYOUT_AXES_HINT_STEP) {
             this.layoutCanvasCtx.moveTo(0, i * this.scale);
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale);
