@@ -383,7 +383,7 @@ export class LayoutInfoEditor {
     private drawPlot(dataValues: DataValues, x: number, y: number, color: string): void {
         // start drawing
         this.layoutCanvasCtx.translate(x, y);
-        let numSections = Math.floor(Math.log10(dataValues.displayMax)) + 1;
+        let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
         // draw predict
         if (dataValues.isPredict()) {
             this.layoutCanvasCtx.beginPath();
@@ -527,22 +527,17 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.moveTo(0, 0);
         this.layoutCanvasCtx.lineTo(0, dataValues.values.length * this.scale);
         if (dataValues.displayType === DisplayType.LINEAR) {
-            let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
-            for (let i = 0; i < numSections; i++) {
-                for (let j = 1; j < 10; j++) {
-                    let xPoint = (i + j / 10) * dataValues.max;
-                    this.layoutCanvasCtx.moveTo(xPoint*LAYOUT_COLUMN_WIDTH, 0);
-                    this.layoutCanvasCtx.lineTo(xPoint*LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
-                }
-            }
+            // empty
         }
         else if (dataValues.displayType === DisplayType.LOG) {
             let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
             for (let i = 0; i < numSections; i++) {
                 for (let j = 1; j < 10; j++) {
-                    let xPoint = Math.log10(Math.pow(10, i)*j) / numSections;
-                    this.layoutCanvasCtx.moveTo(xPoint*LAYOUT_COLUMN_WIDTH, 0);
-                    this.layoutCanvasCtx.lineTo(xPoint*LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
+                    let value0 = Math.pow(10, i)*j;
+                    console.log(i, j, value0);
+                    let xPoint0 = Math.log10(value0) / numSections;
+                    this.layoutCanvasCtx.moveTo(xPoint0*LAYOUT_COLUMN_WIDTH, 0);
+                    this.layoutCanvasCtx.lineTo(xPoint0*LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
                 }
             }
         }
