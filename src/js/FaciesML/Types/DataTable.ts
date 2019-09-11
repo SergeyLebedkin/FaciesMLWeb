@@ -151,7 +151,7 @@ export class DataTable {
             let dataFacies = this.dataFacies.find(dataFacies => dataFacies.name == faciesName);
             if (dataFacies) {
                 // create sample mask
-                let dataSamples = dataFacies.getOrCreateDataDataSamples(json["num_samples"][value]);
+                let dataSamples = dataFacies.getOrCreateDataSamples(json["num_samples"][value]);
                 dataSamples.recommended = (json["optimized_samples"][value] == 1);
                 dataSamples.loadFromCommaString(json["samples_mask"][value]);
             }

@@ -173,14 +173,14 @@ export class LayoutInfoEditor {
         // draw selected datafacies
         for (let dataFacies of this.layoutInfo.dataTable.dataFacies) {
             if (dataFacies.selected) {
-                this.addHeaderFacie(dataFacies.name);
+                this.addHeaderFacie(dataFacies);
                 this.drawFacies(dataFacies, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                 columnIndex++;
             }
             // add samples
             for (let dataSamples of dataFacies.dataSamples) {
                 if (dataSamples.selected) {
-                    this.addHeaderFacie(dataSamples.name);
+                    this.addHeaderSamples(dataSamples);
                     this.drawGridFacies(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     this.drawSamples(dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     columnIndex++;
@@ -367,7 +367,58 @@ export class LayoutInfoEditor {
     }
 
     // addHeaderFacie
-    private addHeaderFacie(name: string): void {
+    private addHeaderFacie(dataFacies: DataFacies): void {
+        // legend sizes
+        let legendHeight = LAYOUT_LEGENT_HEIGHT;
+        let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
+
+        // create header
+        let divHeader = document.createElement("div");
+        divHeader.style.width = legendWidth.toString() + "px";
+        divHeader.style.border = "1px solid black";
+        divHeader.style.display = "flex";
+        divHeader.style.flexDirection = "column";
+        this.parentHeadrs.appendChild(divHeader);
+
+        // create header name
+        let divHeaderName = document.createElement("div");
+        divHeaderName.style.width = legendWidth.toString() + "px";
+        divHeaderName.style.textAlign = "center";
+        divHeaderName.innerText = dataFacies.name;
+        divHeader.appendChild(divHeaderName);
+
+        // create header color table
+        let divHeaderColorTable = document.createElement("div");
+        divHeaderColorTable.style.width = legendWidth.toString() + "px";
+        divHeaderColorTable.style.display = "flex";
+        divHeaderColorTable.style.flexDirection = "row";
+        divHeaderColorTable.style.width = "100%";
+        divHeaderColorTable.style.height = "100%";
+        divHeaderColorTable.style.background = "red";
+        divHeader.appendChild(divHeaderColorTable);
+        // let samples count 
+        let faciesCount = Math.max(...dataFacies.values) + 1;
+        for (let i = 0; i < faciesCount; i++) {
+            // create header color table
+            let divHeaderColor = document.createElement("div");
+            divHeaderColor.style.flexGrow = "1";
+            divHeaderColor.style.height = "100%";
+            divHeaderColor.style.width = "auto";
+            divHeaderColor.style.background = dataFacies.colorTable[i];
+            divHeaderColor["dataFacies"] = dataFacies;
+            divHeaderColor["colorIndex"] = i;
+            divHeaderColor.onclick = (event => {
+                let dataFacies: DataFacies = event.target["dataFacies"];
+                let colorIndex: number = event.target["colorIndex"];
+                console.log(dataFacies, colorIndex)
+                this.drawLayoutInfo();
+            }).bind(this);
+            divHeaderColorTable.appendChild(divHeaderColor);
+        }
+    }
+
+    // addHeaderSamples
+    private addHeaderSamples(dataSamples: DataSamples): void {
         // legend sizes
         let legendHeight = LAYOUT_LEGENT_HEIGHT;
         let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
@@ -375,7 +426,7 @@ export class LayoutInfoEditor {
         divHeader.style.width = legendWidth.toString() + "px";
         divHeader.style.border = "1px solid black";
         divHeader.style.textAlign = "center";
-        divHeader.innerText = name;
+        divHeader.innerText = dataSamples.name;
         this.parentHeadrs.appendChild(divHeader);
     }
 
@@ -459,7 +510,7 @@ export class LayoutInfoEditor {
         for (let i = 0; i < dataFacies.values.length; i++) {
             this.layoutCanvasCtx.strokeStyle = "white";
             if (dataFacies.values[i] >= 0)
-                this.layoutCanvasCtx.strokeStyle = gColorTable[dataFacies.values[i]];
+                this.layoutCanvasCtx.strokeStyle = dataFacies.colorTable[dataFacies.values[i]];
             let yBeg = i * this.scale;
             let yEnd = Math.max(yBeg, (i + 1) * this.scale);
             for (let y = yBeg; y <= yEnd; y++) {
