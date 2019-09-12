@@ -40,7 +40,7 @@ export class DataFacies {
 }
 
 const gFaciesColorTable: string[] = [
-    "blue", "red", "green", "orange",
+    "#FF0000", "#00FF00", "#0000FF", "#FF8800",
     "#B0187B", "#8B7DA3", "#A545BB", "#C7A248",
     "#39F992", "#324CF7", "#D04D5E", "#1E88E6",
     "#92BFB3", "#858D1A", "#92E877", "#1FDFD9",
