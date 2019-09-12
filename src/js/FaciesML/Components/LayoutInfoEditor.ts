@@ -3,6 +3,8 @@ import { SelectionMode } from "../Types/SelectionMode";
 import { DataValues, DATA_MINIMAL_VALUE, DisplayType } from "../Types/DataValues";
 import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
+import { ColorPicker, ColorPickerOptions } from "simple-color-picker";
+const ColorPickerJS = require("simple-color-picker");
 
 const LAYOUT_HEADER_HEIGHT: number = 30;
 const LAYOUT_LEGENT_HEIGHT: number = 0;
@@ -410,7 +412,22 @@ export class LayoutInfoEditor {
             divHeaderColor.onclick = (event => {
                 let dataFacies: DataFacies = event.target["dataFacies"];
                 let colorIndex: number = event.target["colorIndex"];
-                console.log(dataFacies, colorIndex)
+                // input color
+                let inputColor = document.createElement("input");
+                inputColor.type = "color";
+                inputColor.value = dataFacies.colorTable[colorIndex];
+                inputColor["dataFacies"] = dataFacies;
+                inputColor["colorIndex"] = colorIndex;
+                inputColor.oninput = ((event) => {
+                    let dataFacies: DataFacies = event.target["dataFacies"];
+                    let colorIndex: number = event.target["colorIndex"];
+                    dataFacies.colorTable[colorIndex] = event.target["value"];
+                    this.drawLayoutInfo();
+                }).bind(this);
+                inputColor.style.display = "none";
+                document.body.appendChild(inputColor);
+                inputColor.click();
+
                 this.drawLayoutInfo();
             }).bind(this);
             divHeaderColorTable.appendChild(divHeaderColor);
@@ -584,10 +601,10 @@ export class LayoutInfoEditor {
             let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
             for (let i = 0; i < numSections; i++) {
                 for (let j = 1; j < 10; j++) {
-                    let value0 = Math.pow(10, i)*j;
+                    let value0 = Math.pow(10, i) * j;
                     let xPoint0 = Math.log10(value0) / numSections;
-                    this.layoutCanvasCtx.moveTo(xPoint0*LAYOUT_COLUMN_WIDTH, 0);
-                    this.layoutCanvasCtx.lineTo(xPoint0*LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
+                    this.layoutCanvasCtx.moveTo(xPoint0 * LAYOUT_COLUMN_WIDTH, 0);
+                    this.layoutCanvasCtx.lineTo(xPoint0 * LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
                     this.layoutCanvasCtx.stroke();
                 }
             }
