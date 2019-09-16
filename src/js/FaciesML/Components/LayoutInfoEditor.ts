@@ -7,7 +7,7 @@ import { ColorPicker, ColorPickerOptions } from "simple-color-picker";
 const ColorPickerJS = require("simple-color-picker");
 
 const LAYOUT_HEADER_HEIGHT: number = 30;
-const LAYOUT_LEGENT_HEIGHT: number = 0;
+const LAYOUT_LEGENT_HEIGHT: number = 100;
 const LAYOUT_COLUMN_WIDTH: number = 150;
 const LAYOUT_AXES_HINT_STEP: number = 100;
 const LAYOUT_AXES_HINT_LENGTH: number = 30;
@@ -382,6 +382,24 @@ export class LayoutInfoEditor {
         divHeader.style.flexDirection = "column";
         this.parentHeadrs.appendChild(divHeader);
 
+        // create div controls
+        let divControls = document.createElement("div");
+        divControls.style.display = "flex";
+        divControls.style.flexDirection = "row-reverse";
+        divHeader.appendChild(divControls);
+
+        // button display type
+        let buttonSaveImage = document.createElement("button");
+        buttonSaveImage.innerText = "S";
+        buttonSaveImage["dataFacies"] = dataFacies;
+        buttonSaveImage.onclick = (event => {
+            let dataFacies: DataFacies = event.target["dataFacies"] as DataFacies;
+            console.log(this);
+            this.saveFaciesToImage(dataFacies);
+            this.drawLayoutInfo();
+        }).bind(this);
+        divControls.appendChild(buttonSaveImage);
+
         // create header name
         let divHeaderName = document.createElement("div");
         divHeaderName.style.width = legendWidth.toString() + "px";
@@ -637,6 +655,57 @@ export class LayoutInfoEditor {
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
+
+    // saveFaciesToImage
+    private saveFaciesToImage(dataFacies: DataFacies): void {
+        if (!dataFacies) return;
+        let legendHeight = LAYOUT_LEGENT_HEIGHT;
+        let legendWidth = LAYOUT_COLUMN_WIDTH;
+
+        // create canvas
+        let canvasFacies: HTMLCanvasElement = document.createElement("canvas");
+        canvasFacies.width = LAYOUT_COLUMN_WIDTH;
+        canvasFacies.height = LAYOUT_LEGENT_HEIGHT + dataFacies.values.length * this.scale;
+        // get context
+        let canvasFaciesCtx = canvasFacies.getContext("2d");
+        // draw header background
+        canvasFaciesCtx.beginPath();
+        canvasFaciesCtx.fillStyle = "white";
+        canvasFaciesCtx.fillRect(0, 0, legendWidth, legendHeight);
+        canvasFaciesCtx.stroke();
+        // draw title
+        canvasFaciesCtx.textBaseline = "middle";
+        canvasFaciesCtx.textAlign = "center";
+        canvasFaciesCtx.font = "20px Arial";
+        canvasFaciesCtx.strokeStyle = "black";
+        canvasFaciesCtx.fillStyle = "black";
+        canvasFaciesCtx.fillText(dataFacies.name, legendWidth * 0.5, legendHeight * 0.25);
+        // draw color map
+        let faciesCount = Math.max(...dataFacies.values) + 1;
+        for (let i = 0; i < faciesCount; i++) {
+            // draw header background
+            canvasFaciesCtx.beginPath();
+            canvasFaciesCtx.fillStyle = dataFacies.colorTable[i];
+            canvasFaciesCtx.fillRect(i*legendWidth/faciesCount, legendHeight/2, legendWidth/faciesCount, legendHeight/2);
+            canvasFaciesCtx.stroke();
+        }
+        // draw facies
+        for (let i = 0; i < dataFacies.values.length; i++) {
+            this.layoutCanvasCtx.strokeStyle = "white";
+            if (dataFacies.values[i] >= 0)
+                canvasFaciesCtx.strokeStyle = dataFacies.colorTable[dataFacies.values[i]];
+            let yBeg = i * this.scale + LAYOUT_LEGENT_HEIGHT;
+            let yEnd = Math.max(yBeg, (i + 1) * this.scale + LAYOUT_LEGENT_HEIGHT);
+            for (let y = yBeg; y <= yEnd; y++) {
+                canvasFaciesCtx.beginPath();
+                canvasFaciesCtx.moveTo(0, y)
+                canvasFaciesCtx.lineTo(LAYOUT_COLUMN_WIDTH, y)
+                canvasFaciesCtx.stroke();
+            }
+        }
+        // download image
+        downloadImage(dataFacies.name, canvasFacies);
+    }
 }
 
 let gColorTable: string[] = [
@@ -654,4 +723,12 @@ function getMousePosByElement(node: HTMLElement, event: MouseEvent) {
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
     }
+}
+
+// downloadImage
+function downloadImage(name: string, canvas: HTMLCanvasElement) {
+    var link = document.createElement('a');
+    link.download = name + ".png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
 }
