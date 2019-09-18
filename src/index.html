@@ -42,13 +42,35 @@
             <!-- Drawing -->
             <div class="menu-item-title">Drawing</div>
             <div class="bordered-panel">
-                <button class="left-panel-button" id="buttonDrawPlots">Draw plots</button>
-                <hr>
+
                 <a>Selection mode:</a>
                 <input type="radio" id="radioSelectionModeAdd" name="SetectionMode" checked>
                 <label>Add</label>
                 <input type="radio" id="radioSelectionModeRemove" name="SetectionMode">
                 <label>Remove</label>
+                <hr>
+                <div>
+                    <input id="checkboxPlotsVisible" type="checkbox" checked />
+                    <label for="checkboxPlotsVisible">Show plots</label>
+                </div>
+                <hr>
+                <div class="row-panel">
+                    <label for="selectScatterXAxis" class="select-label">Scatter X-Axis</label>
+                    <select id="selectScatterXAxis" class="select-axis"></select>
+
+                </div>
+                <div class="row-panel">
+                    <label for="selectScatterYAxis" class="select-label">Scatter Y-Axis</label>
+                    <select id="selectScatterYAxis" class="select-axis"></select>
+                </div>
+                <div class="row-panel">
+                    <label for="selectScatterColor" class="select-label">Scatter Facies</label>
+                    <select id="selectScatterColor" class="select-axis"></select>
+                </div>
+                <div>
+                    <input id="checkboxScatterVisible" type="checkbox" />
+                    <label for="checkboxScatterVisible">Show scatter</label>
+                </div>
             </div>
             <!-- Submit -->
             <div class="menu-item-title">Submit</div>
@@ -78,6 +100,12 @@
                         <div id=divPlotHeaders class="plots-headers">
                         </div>
                         <div id="divPlotsPanel" class="plots-panel">
+                        </div>
+                    </div>
+                    <div id="divPlotsScatterPanelCol" class="plots-main-col">
+                        <div id=divScatterHeaders class="plots-headers">
+                        </div>
+                        <div id="divScatterPanel" class="plots-panel">
                         </div>
                     </div>
                 </div>

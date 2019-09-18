@@ -14,7 +14,11 @@ let inputLoadData: HTMLInputElement = null;
 let divDataValues: HTMLDivElement = null;
 let radioSelectionModeAdd: HTMLInputElement = null;
 let radioSelectionModeRemove: HTMLInputElement = null;
-let buttonDrawPlots: HTMLButtonElement = null;
+let checkboxPlotsVisible: HTMLInputElement = null;
+let checkboxScatterVisible: HTMLInputElement = null;
+let selectScatterXAxis: HTMLSelectElement = null;
+let selectScatterYAxis: HTMLSelectElement = null;
+let selectScatterColor: HTMLSelectElement = null;
 let buttonSubmit: HTMLButtonElement = null;
 let aStatus: HTMLElement = null;
 let buttonSave: HTMLButtonElement = null;
@@ -23,6 +27,8 @@ let divTabPanelLayots: HTMLDivElement = null;
 let divPlotTitle: HTMLDivElement = null;
 let divPlotHeaders: HTMLDivElement = null;
 let divPlotsPanel: HTMLDivElement = null;
+let divScatterHeaders: HTMLDivElement = null;
+let divScatterPanel: HTMLDivElement = null;
 let labelScaleFactor: HTMLLabelElement = null;
 let buttonScaleDown: HTMLButtonElement = null;
 let buttonScaleUp: HTMLButtonElement = null;
@@ -30,6 +36,7 @@ let buttonScaleUp: HTMLButtonElement = null;
 // globals
 let gSessionInfo: SessionInfo = null;
 let gDataTableList: Array<DataTable> = null;
+let gLayoutInfoList: Array<LayoutInfo> = null;
 let gLayoutInfoEditor: LayoutInfoEditor = null;
 let gDataTableSelector: DataTableSelector = null;
 
@@ -43,6 +50,7 @@ function buttonLoadDataOnClick(event: MouseEvent) {
             dataTable.onloadFileData = dataTable => {
                 // create layout info
                 let layoutInfo = new LayoutInfo(dataTable);
+                gLayoutInfoList.push(layoutInfo);
                 // create tab buttor
                 let buttonTab = document.createElement("button");
                 buttonTab.className = "tab-button";
@@ -58,19 +66,73 @@ function buttonLoadDataOnClick(event: MouseEvent) {
                 if (gLayoutInfoEditor.layoutInfo === null) {
                     gLayoutInfoEditor.setLayoutInfo(layoutInfo);
                     gLayoutInfoEditor.drawLayoutInfo();
+                    selectScatterUpdate();
                 }
             }
             dataTable.loadFromFileLAS(file);
         }
         buttonSave.disabled = false;
-        buttonDrawPlots.disabled = false;
     }
     inputLoadData.click();
+}
+
+// selectScatterUpdate()
+function selectScatterUpdate() {
+    // X-Axis
+    while (selectScatterXAxis.firstChild) selectScatterXAxis.removeChild(selectScatterXAxis.firstChild);
+    for(let dataValue of gLayoutInfoEditor.layoutInfo.dataTable.dataValues) {
+        let option = document.createElement('option') as HTMLOptionElement;
+        option.textContent = dataValue.name;
+        option["dataValue"] = dataValue;
+        option.selected = dataValue === gLayoutInfoEditor.layoutInfo.scatterXAxis;
+        selectScatterXAxis.appendChild(option);
+        
+    }
+    // Y-Axis
+    while (selectScatterYAxis.firstChild) selectScatterYAxis.removeChild(selectScatterYAxis.firstChild);
+    for(let dataValue of gLayoutInfoEditor.layoutInfo.dataTable.dataValues) {
+        let option = document.createElement('option') as HTMLOptionElement;
+        option.textContent = dataValue.name;
+        option["dataValue"] = dataValue;
+        option.selected = dataValue === gLayoutInfoEditor.layoutInfo.scatterYAxis;
+        selectScatterYAxis.appendChild(option);
+    }
+    // Color
+    while (selectScatterColor.firstChild) selectScatterColor.removeChild(selectScatterColor.firstChild);
+    for(let dataFacies of gLayoutInfoEditor.layoutInfo.dataTable.dataFacies) {
+        let option = document.createElement('option') as HTMLOptionElement;
+        option.textContent = dataFacies.name;
+        option["dataFacies"] = dataFacies;
+        option.selected = dataFacies === gLayoutInfoEditor.layoutInfo.scatterColor;
+        selectScatterColor.appendChild(option);
+    }
+}
+
+// selectScatterXAxisChange
+function selectScatterXAxisChange() {
+    let dataValue = selectScatterXAxis.children[selectScatterXAxis.selectedIndex]["dataValue"];
+    gLayoutInfoEditor.layoutInfo.scatterXAxis = dataValue;
+    gLayoutInfoEditor.drawLayoutInfo();
+}
+
+// selectScatterYAxisChange
+function selectScatterYAxisChange() {
+    let dataValue = selectScatterYAxis.children[selectScatterYAxis.selectedIndex]["dataValue"];
+    gLayoutInfoEditor.layoutInfo.scatterYAxis = dataValue;
+    gLayoutInfoEditor.drawLayoutInfo();
+}
+
+// selectScatterColorChange
+function selectScatterColorChange() {
+    let dataFacies = selectScatterColor.children[selectScatterColor.selectedIndex]["dataFacies"];
+    gLayoutInfoEditor.layoutInfo.scatterColor = dataFacies;
+    gLayoutInfoEditor.drawLayoutInfo();
 }
 
 // buttonTabOnClick
 function buttonTabOnClick(event: MouseEvent) {
     gLayoutInfoEditor.setLayoutInfo(event.target["layoutInfo"]);
+    selectScatterUpdate();
 }
 
 // buttonDrawPlotsOnClick
@@ -107,10 +169,13 @@ function buttonSubmitOnClick(event: MouseEvent) {
             clearTimeout(timeoutServerWait);
             let json = JSON.parse(value);
             updateTablesFromJson(json);
+            for (let layoutInfo of gLayoutInfoList)
+                layoutInfo.resetScatter();
             for (let dataTable of gDataTableList)
                 dataTable.setOptimizedСlusterNum(json["optimized_cluster_num"]);
             gDataTableSelector.update();
             gLayoutInfoEditor.drawLayoutInfo();
+            selectScatterUpdate();
         }, reason => {
             aStatus.style.color = "red";
             aStatus.innerText = "Server error... (" + reason + ")";
@@ -155,8 +220,11 @@ window.onload = event => {
     divDataValues = document.getElementById("divDataValues") as HTMLDivElement;
     radioSelectionModeAdd = document.getElementById("radioSelectionModeAdd") as HTMLInputElement;
     radioSelectionModeRemove = document.getElementById("radioSelectionModeRemove") as HTMLInputElement;
-    buttonDrawPlots = document.getElementById("buttonDrawPlots") as HTMLButtonElement;
-    buttonDrawPlots.disabled = true;
+    checkboxScatterVisible = document.getElementById("checkboxScatterVisible") as HTMLInputElement;
+    checkboxPlotsVisible = document.getElementById("checkboxPlotsVisible") as HTMLInputElement;
+    selectScatterXAxis = document.getElementById("selectScatterXAxis") as HTMLSelectElement;
+    selectScatterYAxis = document.getElementById("selectScatterYAxis") as HTMLSelectElement;
+    selectScatterColor = document.getElementById("selectScatterColor") as HTMLSelectElement;
     buttonSubmit = document.getElementById("buttonSubmit") as HTMLButtonElement;
     aStatus = document.getElementById("aStatus") as HTMLElement;
     buttonSave = document.getElementById("buttonSave") as HTMLButtonElement;
@@ -168,20 +236,28 @@ window.onload = event => {
     divPlotTitle = document.getElementById("divPlotTitle") as HTMLDivElement;
     divPlotHeaders = document.getElementById("divPlotHeaders") as HTMLDivElement;
     divPlotsPanel = document.getElementById("divPlotsPanel") as HTMLDivElement;
+    divScatterHeaders = document.getElementById("divScatterHeaders") as HTMLDivElement;
+    divScatterPanel = document.getElementById("divScatterPanel") as HTMLDivElement;
     // create global objects
     gSessionInfo = new SessionInfo();
     gSessionInfo.sessionID = Math.random().toString(36).slice(2);
     gDataTableList = new Array<DataTable>();
+    gLayoutInfoList = new Array<LayoutInfo>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
-    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
+    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel, divScatterHeaders, divScatterPanel);
+    gLayoutInfoEditor.setScatterVisible(checkboxScatterVisible.checked);
     // init session
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events
     buttonLoadData.onclick = event => buttonLoadDataOnClick(event);
     radioSelectionModeAdd.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.ADD);
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
-    buttonDrawPlots.onclick = event => buttonDrawPlotsOnClick(event);
+    checkboxPlotsVisible.onchange = event => gLayoutInfoEditor.setPlotsVisible((event.currentTarget as any).checked);
+    checkboxScatterVisible.onchange = event => gLayoutInfoEditor.setScatterVisible((event.currentTarget as any).checked);
+    selectScatterXAxis.onchange = selectScatterXAxisChange;
+    selectScatterYAxis.onchange = selectScatterYAxisChange;
+    selectScatterColor.onchange = selectScatterColorChange;
     buttonSubmit.onclick = event => buttonSubmitOnClick(event);
     buttonSubmit.disabled = true;
     buttonSave.onclick = event => buttonSaveOnClick(event);

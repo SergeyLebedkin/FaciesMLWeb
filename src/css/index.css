@@ -189,8 +189,18 @@ html, body {
     display: flex;
     flex-direction: column;
     overflow: auto;
-    min-height: 300px;
-    max-height: 300px;
+    min-height: 200px;
+    max-height: 200px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
+}
+
+/* controls */
+
+.select-label {
+    width: 100%;
+}
+
+.select-axis {
+    width: 100%;
 }
