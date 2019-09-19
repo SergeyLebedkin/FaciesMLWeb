@@ -414,6 +414,7 @@ export class LayoutInfoEditor {
         // create header color table
         let divHeaderColorTable = document.createElement("div");
         divHeaderColorTable.style.width = legendWidth.toString() + "px";
+        divHeaderColorTable.style.height = 200 + "px";
         divHeaderColorTable.style.display = "flex";
         divHeaderColorTable.style.flexDirection = "row";
         divHeaderColorTable.style.width = "100%";
@@ -547,10 +548,10 @@ export class LayoutInfoEditor {
     private drawFacies(dataFacies: DataFacies, x: number, y: number): void {
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.lineWidth = 2;
-        for (let i = 0; i < dataFacies.values.length; i++) {
+        for (let i = 0; i < dataFacies.valuesDisplay.length; i++) {
             this.layoutCanvasCtx.strokeStyle = "white";
-            if (dataFacies.values[i] >= 0)
-                this.layoutCanvasCtx.strokeStyle = dataFacies.colorTable[dataFacies.values[i]];
+            if (dataFacies.valuesDisplay[i] >= 0)
+                this.layoutCanvasCtx.strokeStyle = dataFacies.colorTable[dataFacies.valuesDisplay[i]];
             let yBeg = i * this.scale;
             let yEnd = Math.max(yBeg, (i + 1) * this.scale);
             for (let y = yBeg; y <= yEnd; y++) {
@@ -670,7 +671,7 @@ export class LayoutInfoEditor {
         // create canvas
         let canvasFacies: HTMLCanvasElement = document.createElement("canvas");
         canvasFacies.width = LAYOUT_COLUMN_WIDTH;
-        canvasFacies.height = LAYOUT_LEGENT_HEIGHT + dataFacies.values.length * this.scale;
+        canvasFacies.height = LAYOUT_LEGENT_HEIGHT + dataFacies.valuesDisplay.length * this.scale;
         // get context
         let canvasFaciesCtx = canvasFacies.getContext("2d");
         // draw header background
@@ -695,10 +696,10 @@ export class LayoutInfoEditor {
             canvasFaciesCtx.stroke();
         }
         // draw facies
-        for (let i = 0; i < dataFacies.values.length; i++) {
+        for (let i = 0; i < dataFacies.valuesDisplay.length; i++) {
             this.layoutCanvasCtx.strokeStyle = "white";
-            if (dataFacies.values[i] >= 0)
-                canvasFaciesCtx.strokeStyle = dataFacies.colorTable[dataFacies.values[i]];
+            if (dataFacies.valuesDisplay[i] >= 0)
+                canvasFaciesCtx.strokeStyle = dataFacies.colorTable[dataFacies.valuesDisplay[i]];
             let yBeg = i * this.scale + LAYOUT_LEGENT_HEIGHT;
             let yEnd = Math.max(yBeg, (i + 1) * this.scale + LAYOUT_LEGENT_HEIGHT);
             for (let y = yBeg; y <= yEnd; y++) {

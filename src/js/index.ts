@@ -202,6 +202,7 @@ window.onload = event => {
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
     gLayoutInfoEditor.onColorChanged = dataFacies => gScatterViewer.drawLayoutInfo();
     gScatterViewer = new ScatterViewer(divScatterHeaders, divScatterPanel);
+    gScatterViewer.onFaciesMerged = dataFacies => gLayoutInfoEditor.drawLayoutInfo();
     // set visibility
     setLayoutInfoEditorVisible(false);
     setScatterViewerVisible(checkboxScatterVisible.checked);

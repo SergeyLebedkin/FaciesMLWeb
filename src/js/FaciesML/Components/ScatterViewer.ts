@@ -10,15 +10,22 @@ export class ScatterViewer {
     // parents
     private parentHeadrs: HTMLDivElement;
     private parentScatter: HTMLDivElement;
-    // selects
+    // axis selects
     private selectXAxis: HTMLSelectElement = null;
     private selectYAxis: HTMLSelectElement = null;
     private selectFacies: HTMLSelectElement = null;
+    // merge controls
+    private selectFrom: HTMLSelectElement = null;
+    private selectTo: HTMLSelectElement = null;
+    private buttonUndo: HTMLButtonElement = null;
+    private buttonApply: HTMLButtonElement = null;
     // layoutInfo parameters
     public layoutInfo: LayoutInfo = null;
     // main canvas
     private layoutCanvas: HTMLCanvasElement = null;
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
+    // events
+    public onFaciesMerged: (this: ScatterViewer, dataFacies: DataFacies) => any = null;
     // constructor
     constructor(parentHeadrs: HTMLDivElement, parentScatter: HTMLDivElement) {
         // setup parent
@@ -40,13 +47,11 @@ export class ScatterViewer {
         divHeader.style.display = "flex";
         divHeader.style.flexDirection = "column";
         this.parentHeadrs.appendChild(divHeader);
-
-        // create axis header
+        // create axis div
         let divAxis = document.createElement("div");
         divAxis.style.display = "flex";
         divAxis.style.flexDirection = "row";
         divHeader.appendChild(divAxis);
-
         // create x-axis select
         let labelXAxis = document.createElement("div");
         labelXAxis.textContent = "X-Axis:";
@@ -65,13 +70,36 @@ export class ScatterViewer {
         this.selectFacies = document.createElement("select");
         this.selectFacies.className = "select-axis";
         this.selectFacies.onchange = this.onSelectFaciesChange.bind(this);
-
         divAxis.appendChild(labelXAxis);
         divAxis.appendChild(this.selectXAxis);
         divAxis.appendChild(labelYAxis);
         divAxis.appendChild(this.selectYAxis);
         divAxis.appendChild(labelFacies);
         divAxis.appendChild(this.selectFacies);
+
+        // create merge div
+        let divMerge = document.createElement("div");
+        divMerge.style.display = "flex";
+        divMerge.style.flexDirection = "row";
+        divHeader.appendChild(divMerge);
+        // create undo button
+        this.buttonUndo = document.createElement("button");
+        this.buttonUndo.innerText = "Undo";
+        this.buttonUndo.onclick = this.onButtonMergeUndoClick.bind(this);
+        // create select from
+        this.selectFrom = document.createElement("select");
+        this.selectFrom.className = "select-axis";
+        // create select to
+        this.selectTo = document.createElement("select");
+        this.selectTo.className = "select-axis";
+        // create undo button
+        this.buttonApply = document.createElement("button");
+        this.buttonApply.innerText = "Apply";
+        this.buttonApply.onclick = this.onButtonMergeApplyClick.bind(this);
+        divMerge.appendChild(this.buttonUndo);
+        divMerge.appendChild(this.selectFrom);
+        divMerge.appendChild(this.selectTo);
+        divMerge.appendChild(this.buttonApply);
     }
 
     // onSelectXAxisChange
@@ -95,6 +123,22 @@ export class ScatterViewer {
         this.drawLayoutInfo();
     }
 
+    // onButtonMergeUndoClick
+    private onButtonMergeUndoClick() {
+        this.layoutInfo.scatterColor.removeLastMergePair();
+        this.drawLayoutInfo();
+        this.onFaciesMerged && this.onFaciesMerged(this.layoutInfo.scatterColor);
+    }
+
+    // onButtonMergeApply
+    private onButtonMergeApplyClick() {
+        if ((this.selectFrom.selectedIndex < 0) || (this.selectTo.selectedIndex < 0)) return;
+        if (this.selectFrom.value === this.selectTo.value) return;
+        this.layoutInfo.scatterColor.addMergePair(parseInt(this.selectFrom.value), parseInt(this.selectTo.value));
+        this.drawLayoutInfo();
+        this.onFaciesMerged && this.onFaciesMerged(this.layoutInfo.scatterColor);
+    }
+
     // setLayoutInfo
     public setLayoutInfo(layoutInfo: LayoutInfo): void {
         // setup new image info
@@ -110,6 +154,8 @@ export class ScatterViewer {
         while (this.selectXAxis.firstChild) this.selectXAxis.removeChild(this.selectXAxis.firstChild);
         while (this.selectYAxis.firstChild) this.selectYAxis.removeChild(this.selectYAxis.firstChild);
         while (this.selectFacies.firstChild) this.selectFacies.removeChild(this.selectFacies.firstChild);
+        while (this.selectFrom.firstChild) this.selectFrom.removeChild(this.selectFrom.firstChild);
+        while (this.selectTo.firstChild) this.selectTo.removeChild(this.selectTo.firstChild);
     }
 
     // drawLayoutInfo
@@ -146,6 +192,23 @@ export class ScatterViewer {
             option.selected = dataFacies === this.layoutInfo.scatterColor;
             this.selectFacies.appendChild(option);
         }
+        // update from select
+        if (!this.layoutInfo.scatterColor) return;
+        this.layoutInfo.scatterColor.valuesAvailable.forEach(value => {
+            let option = document.createElement('option') as HTMLOptionElement;
+            option.textContent = value.toString();
+            option.value = value.toString();
+            option.style.background = this.layoutInfo.scatterColor.colorTable[value];
+            this.selectFrom.appendChild(option);
+        });
+        // update to select
+        this.layoutInfo.scatterColor.valuesAvailable.forEach(value => {
+            let option = document.createElement('option') as HTMLOptionElement;
+            option.textContent = value.toString();
+            option.value = value.toString();
+            option.style.background = this.layoutInfo.scatterColor.colorTable[value];
+            this.selectTo.appendChild(option);
+        });
     }
 
     // drawScatter
@@ -201,10 +264,10 @@ export class ScatterViewer {
             y = scatterHeight - y;
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.arc(x, y, 3, 0, 2 * Math.PI, false);
-            this.layoutCanvasCtx.fillStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.values[i]];
+            this.layoutCanvasCtx.fillStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.valuesDisplay[i]];
             this.layoutCanvasCtx.fill();
             this.layoutCanvasCtx.lineWidth = 1;
-            this.layoutCanvasCtx.strokeStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.values[i]];
+            this.layoutCanvasCtx.strokeStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.valuesDisplay[i]];
             this.layoutCanvasCtx.stroke();
         }
     }
