@@ -11,7 +11,6 @@ const LAYOUT_LEGENT_HEIGHT: number = 100;
 const LAYOUT_COLUMN_WIDTH: number = 150;
 const LAYOUT_AXES_HINT_STEP: number = 100;
 const LAYOUT_AXES_HINT_LENGTH: number = 30;
-const LAYOUT_SCATTRER_SIZE: number = 600;
 
 // LayoutInfoEditor
 export class LayoutInfoEditor {
@@ -19,8 +18,6 @@ export class LayoutInfoEditor {
     private parentTitle: HTMLDivElement;
     private parentHeadrs: HTMLDivElement;
     private parentPlots: HTMLDivElement;
-    private parentScatterHeadrs: HTMLDivElement;
-    private parentScatter: HTMLDivElement;
     private enabled: boolean = true;
     // layoutInfo parameters
     public layoutInfo: LayoutInfo = null;
@@ -33,21 +30,15 @@ export class LayoutInfoEditor {
     // main canvas
     private layoutCanvas: HTMLCanvasElement = null;
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
-    private layoutScatterCanvas: HTMLCanvasElement = null;
-    private layoutScatterCanvasCtx: CanvasRenderingContext2D = null;
     // constructor
     constructor(
         parentTitle: HTMLDivElement,
         parentHeadrs: HTMLDivElement,
-        parentPlots: HTMLDivElement,
-        parentScatterHeadrs: HTMLDivElement,
-        parentScatter: HTMLDivElement) {
+        parentPlots: HTMLDivElement) {
         // setup parent
         this.parentTitle = parentTitle;
         this.parentHeadrs = parentHeadrs;
         this.parentPlots = parentPlots;
-        this.parentScatterHeadrs = parentScatterHeadrs;
-        this.parentScatter = parentScatter;
         this.enabled = true;
         // image parameters
         this.layoutInfo = null;
@@ -65,15 +56,6 @@ export class LayoutInfoEditor {
         this.layoutCanvas.style.cursor = "row-resize";
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parentPlots.appendChild(this.layoutCanvas);
-        // create scatter canvas
-        this.layoutScatterCanvas = document.createElement("canvas");
-        //this.layoutScatterCanvas.onmouseup = this.onMouseUp.bind(this);
-        //this.layoutScatterCanvas.onmousemove = this.onMouseMove.bind(this);
-        //this.layoutScatterCanvas.onmousedown = this.onMouseDown.bind(this);
-        this.layoutScatterCanvas.width = LAYOUT_SCATTRER_SIZE;
-        this.layoutScatterCanvas.height = LAYOUT_SCATTRER_SIZE;
-        this.layoutScatterCanvasCtx = this.layoutScatterCanvas.getContext('2d');
-        this.parentScatter.appendChild(this.layoutScatterCanvas);
     }
 
     // onMouseUp
@@ -139,28 +121,6 @@ export class LayoutInfoEditor {
             this.layoutCanvas.style.cursor = "auto";
     }
 
-    // setPlotsVisible
-    public setPlotsVisible(visible: boolean) {
-        if (visible) {
-            this.parentHeadrs.style.display = "flex";
-            this.parentPlots.style.display = "block";
-        } else {
-            this.parentHeadrs.style.display = "none";
-            this.parentPlots.style.display = "none";
-        }
-    }
-
-    // setScatterVisible
-    public setScatterVisible(visible: boolean) {
-        if (visible) {
-            this.parentScatterHeadrs.style.display = "flex";
-            this.parentScatter.style.display = "block";
-        } else {
-            this.parentScatterHeadrs.style.display = "none";
-            this.parentScatter.style.display = "none";
-        }
-    }
-
     // setLayoutInfo
     public setLayoutInfo(layoutInfo: LayoutInfo): void {
         // setup new image info
@@ -189,13 +149,11 @@ export class LayoutInfoEditor {
         if (!this.parentHeadrs) return;
         while (this.parentHeadrs.firstChild)
             this.parentHeadrs.removeChild(this.parentHeadrs.firstChild);
-        if (!this.parentScatterHeadrs) return;
-        while (this.parentScatterHeadrs.firstChild)
-            this.parentScatterHeadrs.removeChild(this.parentScatterHeadrs.firstChild);
     }
 
     // drawLayoutInfo
     public drawLayoutInfo(): void {
+        if (!this.layoutInfo) return;
         this.parentTitle.innerText = this.layoutInfo.dataTable.name;
         let columsCount = this.layoutInfo.dataTable.getSelectedCount();
         this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
@@ -235,9 +193,6 @@ export class LayoutInfoEditor {
                 }
             }
         }
-        // draw scatter
-        this.addScatterHeader();
-        this.drawScatter();
     }
 
     // drawSelectionRange
@@ -703,86 +658,6 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
-    }
-
-    // addScatterHeader
-    private addScatterHeader(): void {
-        // legend sizes
-        let legendHeight = LAYOUT_HEADER_HEIGHT;
-        let legendWidth = LAYOUT_SCATTRER_SIZE - 2;
-        // create header
-        let divHeader = document.createElement("div");
-        divHeader.style.width = legendWidth.toString() + "px";
-        divHeader.style.display = "flex";
-        divHeader.style.flexDirection = "column";
-        this.parentScatterHeadrs.appendChild(divHeader);
-        // create header name
-        let divHeaderName = document.createElement("div");
-        divHeaderName.style.width = legendWidth.toString() + "px";
-        divHeaderName.style.textAlign = "center";
-        divHeaderName.innerText = this.layoutInfo.scatterColor ? this.layoutInfo.scatterColor.name : "";
-        divHeader.appendChild(divHeaderName);
-    }
-
-    // drawScatter
-    private drawScatter(): void {
-        let scatterHeight = LAYOUT_SCATTRER_SIZE;
-        let scatterWidth = LAYOUT_SCATTRER_SIZE;
-        let scatterPadding = 40;
-        this.layoutScatterCanvas.height = scatterHeight;
-        this.layoutScatterCanvas.width = scatterWidth;
-        // draw some data
-        this.layoutScatterCanvasCtx.beginPath();
-        this.layoutScatterCanvasCtx.fillStyle = "white";
-        this.layoutScatterCanvasCtx.fillRect(0, 0, scatterWidth, scatterHeight);
-        this.layoutScatterCanvasCtx.stroke();
-        // draw scatter grid
-        this.layoutScatterCanvasCtx.beginPath();
-        this.layoutScatterCanvasCtx.strokeStyle = "black";
-        this.layoutScatterCanvasCtx.rect(scatterPadding, scatterPadding, scatterWidth - scatterPadding * 2, scatterHeight - scatterPadding * 2);
-        this.layoutScatterCanvasCtx.stroke();
-        // draw X-axis
-        this.layoutScatterCanvasCtx.textBaseline = "middle";
-        this.layoutScatterCanvasCtx.textAlign = "center";
-        this.layoutScatterCanvasCtx.font = "14px Arial";
-        this.layoutScatterCanvasCtx.strokeStyle = "black";
-        this.layoutScatterCanvasCtx.fillStyle = "black";
-        this.layoutScatterCanvasCtx.fillText(this.layoutInfo.scatterXAxis.name, scatterWidth / 2, scatterHeight - scatterPadding / 2);
-        // draw Y-axis name
-        this.layoutScatterCanvasCtx.textBaseline = "middle";
-        this.layoutScatterCanvasCtx.textAlign = "center";
-        this.layoutScatterCanvasCtx.font = "14px Arial";
-        this.layoutScatterCanvasCtx.strokeStyle = "black";
-        this.layoutScatterCanvasCtx.fillStyle = "black";
-        this.layoutScatterCanvasCtx.translate(scatterPadding / 2, scatterHeight / 2);
-        this.layoutScatterCanvasCtx.rotate(-Math.PI / 2);
-        this.layoutScatterCanvasCtx.fillText(this.layoutInfo.scatterYAxis.name, 0, 0);
-        this.layoutScatterCanvasCtx.resetTransform();
-        if (!this.layoutInfo.scatterColor) {
-            // draw X-axis
-            this.layoutScatterCanvasCtx.textBaseline = "middle";
-            this.layoutScatterCanvasCtx.textAlign = "center";
-            this.layoutScatterCanvasCtx.font = "14px Arial";
-            this.layoutScatterCanvasCtx.strokeStyle = "black";
-            this.layoutScatterCanvasCtx.fillStyle = "black";
-            this.layoutScatterCanvasCtx.fillText("Select Facies", scatterWidth / 2, scatterHeight / 2);
-            return;
-        }
-        // draw values
-        for (let i = 0; i < this.layoutInfo.scatterXAxis.values.length; i++) {
-            let x = (this.layoutInfo.scatterXAxis.values[i] - this.layoutInfo.scatterXAxis.min) / (this.layoutInfo.scatterXAxis.max - this.layoutInfo.scatterXAxis.min);
-            let y = (this.layoutInfo.scatterYAxis.values[i] - this.layoutInfo.scatterYAxis.min) / (this.layoutInfo.scatterYAxis.max - this.layoutInfo.scatterYAxis.min);
-            x = x * (scatterWidth - scatterPadding * 2) + scatterPadding;
-            y = y * (scatterHeight - scatterPadding * 2) + scatterPadding;
-            y = scatterHeight - y;
-            this.layoutScatterCanvasCtx.beginPath();
-            this.layoutScatterCanvasCtx.arc(x, y, 3, 0, 2 * Math.PI, false);
-            this.layoutScatterCanvasCtx.fillStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.values[i]];
-            this.layoutScatterCanvasCtx.fill();
-            this.layoutScatterCanvasCtx.lineWidth = 1;
-            this.layoutScatterCanvasCtx.strokeStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.values[i]];
-            this.layoutScatterCanvasCtx.stroke();
-        }
     }
 
     // saveFaciesToImage

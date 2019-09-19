@@ -9,7 +9,7 @@ export class LayoutInfo {
     public scatterXAxis: DataValues = null;
     public scatterYAxis: DataValues = null;
     public scatterColor: DataFacies = null;
-    
+
     // constructor
     constructor(dataTable: DataTable) {
         this.dataTable = dataTable;
@@ -21,8 +21,8 @@ export class LayoutInfo {
 
     // resetScatter
     resetScatter() {
-        this.scatterXAxis = this.scatterXAxis ? this.scatterXAxis : this.dataTable.dataValues[0];
-        this.scatterYAxis = this.scatterYAxis ? this.scatterYAxis : this.dataTable.dataValues[0];
+        this.scatterXAxis = this.scatterXAxis ? this.scatterXAxis : this.dataTable.dataValues[Math.max(0, 1)];
+        this.scatterYAxis = this.scatterYAxis ? this.scatterYAxis : this.dataTable.dataValues[Math.max(0, 2)];
         this.scatterColor = this.scatterColor ? this.scatterColor : this.dataTable.dataFacies[0];
     }
 }

@@ -1,9 +1,10 @@
 import { SessionInfo } from "./FaciesML/Types/SessionInfo"
 import { DataTable } from "./FaciesML/Types/DataTable"
-import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
-import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { LayoutInfo } from "./FaciesML/Types/LayoutInfo";
 import { SelectionMode } from "./FaciesML/Types/SelectionMode";
+import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
+import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
+import { ScatterViewer } from "./FaciesML/Components/ScatterViewer";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -39,6 +40,7 @@ let gDataTableList: Array<DataTable> = null;
 let gLayoutInfoList: Array<LayoutInfo> = null;
 let gLayoutInfoEditor: LayoutInfoEditor = null;
 let gDataTableSelector: DataTableSelector = null;
+let gScatterViewer: ScatterViewer = null;
 
 // buttonLoadDataOnClick
 function buttonLoadDataOnClick(event: MouseEvent) {
@@ -65,7 +67,9 @@ function buttonLoadDataOnClick(event: MouseEvent) {
                 // update editor
                 if (gLayoutInfoEditor.layoutInfo === null) {
                     gLayoutInfoEditor.setLayoutInfo(layoutInfo);
-                    gLayoutInfoEditor.drawLayoutInfo();
+                    gScatterViewer.setLayoutInfo(layoutInfo);
+                    setLayoutInfoEditorVisible(checkboxPlotsVisible.checked);
+                    setScatterViewerVisible(checkboxScatterVisible.checked);
                     selectScatterUpdate();
                 }
             }
@@ -111,33 +115,29 @@ function selectScatterUpdate() {
 // selectScatterXAxisChange
 function selectScatterXAxisChange() {
     let dataValue = selectScatterXAxis.children[selectScatterXAxis.selectedIndex]["dataValue"];
-    gLayoutInfoEditor.layoutInfo.scatterXAxis = dataValue;
-    gLayoutInfoEditor.drawLayoutInfo();
+    gScatterViewer.layoutInfo.scatterXAxis = dataValue;
+    gScatterViewer.drawLayoutInfo();
 }
 
 // selectScatterYAxisChange
 function selectScatterYAxisChange() {
     let dataValue = selectScatterYAxis.children[selectScatterYAxis.selectedIndex]["dataValue"];
-    gLayoutInfoEditor.layoutInfo.scatterYAxis = dataValue;
-    gLayoutInfoEditor.drawLayoutInfo();
+    gScatterViewer.layoutInfo.scatterYAxis = dataValue;
+    gScatterViewer.drawLayoutInfo();
 }
 
 // selectScatterColorChange
 function selectScatterColorChange() {
     let dataFacies = selectScatterColor.children[selectScatterColor.selectedIndex]["dataFacies"];
-    gLayoutInfoEditor.layoutInfo.scatterColor = dataFacies;
-    gLayoutInfoEditor.drawLayoutInfo();
+    gScatterViewer.layoutInfo.scatterColor = dataFacies;
+    gScatterViewer.drawLayoutInfo();
 }
 
 // buttonTabOnClick
 function buttonTabOnClick(event: MouseEvent) {
     gLayoutInfoEditor.setLayoutInfo(event.target["layoutInfo"]);
+    gScatterViewer.setLayoutInfo(event.target["layoutInfo"]);
     selectScatterUpdate();
-}
-
-// buttonDrawPlotsOnClick
-function buttonDrawPlotsOnClick(event: MouseEvent) {
-    gLayoutInfoEditor.drawLayoutInfo();
 }
 
 // buttonSubmitOnClick
@@ -175,6 +175,7 @@ function buttonSubmitOnClick(event: MouseEvent) {
                 dataTable.setOptimizedСlusterNum(json["optimized_cluster_num"]);
             gDataTableSelector.update();
             gLayoutInfoEditor.drawLayoutInfo();
+            gScatterViewer.drawLayoutInfo();
             selectScatterUpdate();
         }, reason => {
             aStatus.style.color = "red";
@@ -208,6 +209,20 @@ function buttonScaleUpOnClick(event: MouseEvent) {
 }
 
 // utils
+
+// setLayoutInfoEditorVisible
+function setLayoutInfoEditorVisible(visible: boolean) {
+    divPlotHeaders.style.display = visible ? "flex" : "none";
+    divPlotsPanel.style.display = visible ? "block" : "none";
+    if (visible) gLayoutInfoEditor.drawLayoutInfo();
+}
+
+// setScatterViewerVisible
+function setScatterViewerVisible(visible: boolean) {
+    divScatterHeaders.style.display = visible ? "block" : "none";
+    divScatterPanel.style.display = visible ? "block" : "none";
+    if (visible) gScatterViewer.drawLayoutInfo();
+}
 
 // window.onload
 window.onload = event => {
@@ -245,16 +260,19 @@ window.onload = event => {
     gLayoutInfoList = new Array<LayoutInfo>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
-    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel, divScatterHeaders, divScatterPanel);
-    gLayoutInfoEditor.setScatterVisible(checkboxScatterVisible.checked);
+    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
+    gScatterViewer = new ScatterViewer(divScatterHeaders, divScatterPanel);
+    // set visibility
+    setLayoutInfoEditorVisible(false);
+    setScatterViewerVisible(checkboxScatterVisible.checked);
     // init session
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events
     buttonLoadData.onclick = event => buttonLoadDataOnClick(event);
     radioSelectionModeAdd.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.ADD);
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
-    checkboxPlotsVisible.onchange = event => gLayoutInfoEditor.setPlotsVisible((event.currentTarget as any).checked);
-    checkboxScatterVisible.onchange = event => gLayoutInfoEditor.setScatterVisible((event.currentTarget as any).checked);
+    checkboxPlotsVisible.onchange = event => setLayoutInfoEditorVisible((event.currentTarget as HTMLInputElement).checked);
+    checkboxScatterVisible.onchange = event => setScatterViewerVisible((event.currentTarget as HTMLInputElement).checked);
     selectScatterXAxis.onchange = selectScatterXAxisChange;
     selectScatterYAxis.onchange = selectScatterYAxisChange;
     selectScatterColor.onchange = selectScatterColorChange;
