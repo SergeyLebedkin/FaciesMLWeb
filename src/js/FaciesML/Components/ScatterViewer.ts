@@ -192,23 +192,27 @@ export class ScatterViewer {
             option.selected = dataFacies === this.layoutInfo.scatterColor;
             this.selectFacies.appendChild(option);
         }
-        // update from select
+        
         if (!this.layoutInfo.scatterColor) return;
-        this.layoutInfo.scatterColor.valuesAvailable.forEach(value => {
+        let indexArray = [];
+        this.layoutInfo.scatterColor.valuesAvailable.forEach(value => indexArray.push(value));
+        indexArray.sort();
+        // update from select
+        for (let value of indexArray) {
             let option = document.createElement('option') as HTMLOptionElement;
             option.textContent = value.toString();
             option.value = value.toString();
             option.style.background = this.layoutInfo.scatterColor.colorTable[value];
             this.selectFrom.appendChild(option);
-        });
+        };
         // update to select
-        this.layoutInfo.scatterColor.valuesAvailable.forEach(value => {
+        for (let value of indexArray) {
             let option = document.createElement('option') as HTMLOptionElement;
             option.textContent = value.toString();
             option.value = value.toString();
             option.style.background = this.layoutInfo.scatterColor.colorTable[value];
             this.selectTo.appendChild(option);
-        });
+        };
     }
 
     // drawScatter
