@@ -398,7 +398,6 @@ export class LayoutInfoEditor {
         buttonSaveImage["dataFacies"] = dataFacies;
         buttonSaveImage.onclick = (event => {
             let dataFacies: DataFacies = event.target["dataFacies"] as DataFacies;
-            console.log(this);
             this.saveFaciesToImage(dataFacies);
             this.drawLayoutInfo();
         }).bind(this);
@@ -414,7 +413,7 @@ export class LayoutInfoEditor {
         // create header color table
         let divHeaderColorTable = document.createElement("div");
         divHeaderColorTable.style.width = legendWidth.toString() + "px";
-        divHeaderColorTable.style.height = 200 + "px";
+        divHeaderColorTable.style.height = "auto";
         divHeaderColorTable.style.display = "flex";
         divHeaderColorTable.style.flexDirection = "row";
         divHeaderColorTable.style.width = "100%";
@@ -427,7 +426,7 @@ export class LayoutInfoEditor {
             // create header color table
             let divHeaderColor = document.createElement("div");
             divHeaderColor.style.flexGrow = "1";
-            divHeaderColor.style.height = "100%";
+            divHeaderColor.style.height = "22px";
             divHeaderColor.style.width = "auto";
             divHeaderColor.style.background = dataFacies.colorTable[i];
             divHeaderColor["dataFacies"] = dataFacies;

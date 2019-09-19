@@ -87,9 +87,13 @@ export class ScatterViewer {
         this.buttonUndo.innerText = "Undo";
         this.buttonUndo.onclick = this.onButtonMergeUndoClick.bind(this);
         // create select from
+        let labelFrom = document.createElement("div");
+        labelFrom.textContent = "From:";
         this.selectFrom = document.createElement("select");
         this.selectFrom.className = "select-axis";
         // create select to
+        let labelTo = document.createElement("div");
+        labelTo.textContent = "To:";
         this.selectTo = document.createElement("select");
         this.selectTo.className = "select-axis";
         // create undo button
@@ -97,7 +101,9 @@ export class ScatterViewer {
         this.buttonApply.innerText = "Apply";
         this.buttonApply.onclick = this.onButtonMergeApplyClick.bind(this);
         divMerge.appendChild(this.buttonUndo);
+        divMerge.appendChild(labelFrom);
         divMerge.appendChild(this.selectFrom);
+        divMerge.appendChild(labelTo);
         divMerge.appendChild(this.selectTo);
         divMerge.appendChild(this.buttonApply);
     }
