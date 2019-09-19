@@ -10,6 +10,10 @@ export class ScatterViewer {
     // parents
     private parentHeadrs: HTMLDivElement;
     private parentScatter: HTMLDivElement;
+    // selects
+    private selectXAxis: HTMLSelectElement = null;
+    private selectYAxis: HTMLSelectElement = null;
+    private selectFacies: HTMLSelectElement = null;
     // layoutInfo parameters
     public layoutInfo: LayoutInfo = null;
     // main canvas
@@ -24,11 +28,71 @@ export class ScatterViewer {
         this.layoutInfo = null;
         // create image canvas
         this.layoutCanvas = document.createElement("canvas");
-        //this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
-        //this.layoutCanvas.onmousemove = this.onMouseMove.bind(this);
-        //this.layoutCanvas.onmousedown = this.onMouseDown.bind(this);
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parentScatter.appendChild(this.layoutCanvas);
+        
+        // create header elements
+        // legend sizes
+        let legendWidth = LAYOUT_SCATTRER_SIZE - 2;
+        // create header
+        let divHeader = document.createElement("div");
+        divHeader.style.width = legendWidth.toString() + "px";
+        divHeader.style.display = "flex";
+        divHeader.style.flexDirection = "column";
+        this.parentHeadrs.appendChild(divHeader);
+
+        // create axis header
+        let divAxis = document.createElement("div");
+        divAxis.style.display = "flex";
+        divAxis.style.flexDirection = "row";
+        divHeader.appendChild(divAxis);
+
+        // create x-axis select
+        let labelXAxis = document.createElement("div");
+        labelXAxis.textContent = "X-Axis:";
+        this.selectXAxis = document.createElement("select");
+        this.selectXAxis.className = "select-axis";
+        this.selectXAxis.onchange = this.onSelectXAxisChange.bind(this);
+        // create y-axis select
+        let labelYAxis = document.createElement("div");
+        labelYAxis.textContent = "Y-Axis:";
+        this.selectYAxis = document.createElement("select");
+        this.selectYAxis.className = "select-axis";
+        this.selectYAxis.onchange = this.onSelectYAxisChange.bind(this);
+        // create color select
+        let labelFacies = document.createElement("div");
+        labelFacies.textContent = "Facies:";
+        this.selectFacies = document.createElement("select");
+        this.selectFacies.className = "select-axis";
+        this.selectFacies.onchange = this.onSelectFaciesChange.bind(this);
+
+        divAxis.appendChild(labelXAxis);
+        divAxis.appendChild(this.selectXAxis);
+        divAxis.appendChild(labelYAxis);
+        divAxis.appendChild(this.selectYAxis);
+        divAxis.appendChild(labelFacies);
+        divAxis.appendChild(this.selectFacies);
+    }
+
+    // onSelectXAxisChange
+    private onSelectXAxisChange() {
+        let dataValues: DataValues = this.selectXAxis.children[this.selectXAxis.selectedIndex]["dataValue"];
+        this.layoutInfo.scatterXAxis = dataValues;
+        this.drawLayoutInfo();
+    }
+
+    // onSelectYAxisChange
+    private onSelectYAxisChange() {
+        let dataValues: DataValues = this.selectXAxis.children[this.selectYAxis.selectedIndex]["dataValue"];
+        this.layoutInfo.scatterYAxis = dataValues;
+        this.drawLayoutInfo();
+    }
+
+    // onSelectFaciesChange
+    private onSelectFaciesChange() {
+        let dataFacies = this.selectFacies.children[this.selectFacies.selectedIndex]["dataFacies"];
+        this.layoutInfo.scatterColor = dataFacies;
+        this.drawLayoutInfo();
     }
 
     // setLayoutInfo
@@ -42,35 +106,46 @@ export class ScatterViewer {
 
     // clearHeaders
     private clearHeaders() {
-        if (!this.parentHeadrs) return;
-        while (this.parentHeadrs.firstChild)
-            this.parentHeadrs.removeChild(this.parentHeadrs.firstChild);
+        // clear childs
+        while (this.selectXAxis.firstChild) this.selectXAxis.removeChild(this.selectXAxis.firstChild);
+        while (this.selectYAxis.firstChild) this.selectYAxis.removeChild(this.selectYAxis.firstChild);
+        while (this.selectFacies.firstChild) this.selectFacies.removeChild(this.selectFacies.firstChild);
     }
 
     // drawLayoutInfo
     public drawLayoutInfo(): void {
         if (!this.layoutInfo) return;
-        this.clearHeaders();
-        this.addHeader();
+        this.updateHeader();
         this.drawScatter();
     }
 
-    // addScatterHeader
-    private addHeader(): void {
-        // legend sizes
-        let legendWidth = LAYOUT_SCATTRER_SIZE - 2;
-        // create header
-        let divHeader = document.createElement("div");
-        divHeader.style.width = legendWidth.toString() + "px";
-        divHeader.style.display = "flex";
-        divHeader.style.flexDirection = "column";
-        this.parentHeadrs.appendChild(divHeader);
-        // create header name
-        let divHeaderName = document.createElement("div");
-        divHeaderName.style.width = legendWidth.toString() + "px";
-        divHeaderName.style.textAlign = "center";
-        divHeaderName.innerText = this.layoutInfo.scatterColor ? this.layoutInfo.scatterColor.name : "";
-        divHeader.appendChild(divHeaderName);
+    // updateHeader
+    private updateHeader(): void {
+        this.clearHeaders();
+        // update x-axis select
+        for(let dataValue of this.layoutInfo.dataTable.dataValues) {
+            let option = document.createElement('option') as HTMLOptionElement;
+            option.textContent = dataValue.name;
+            option["dataValue"] = dataValue;
+            option.selected = dataValue === this.layoutInfo.scatterXAxis;
+            this.selectXAxis.appendChild(option);
+        }
+        // update y-axis select
+        for(let dataValue of this.layoutInfo.dataTable.dataValues) {
+            let option = document.createElement('option') as HTMLOptionElement;
+            option.textContent = dataValue.name;
+            option["dataValue"] = dataValue;
+            option.selected = dataValue === this.layoutInfo.scatterYAxis;
+            this.selectYAxis.appendChild(option);
+        }
+        // update facies select
+        for(let dataFacies of this.layoutInfo.dataTable.dataFacies) {
+            let option = document.createElement('option') as HTMLOptionElement;
+            option.textContent = dataFacies.name;
+            option["dataFacies"] = dataFacies;
+            option.selected = dataFacies === this.layoutInfo.scatterColor;
+            this.selectFacies.appendChild(option);
+        }
     }
 
     // drawScatter

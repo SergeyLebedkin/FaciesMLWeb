@@ -198,9 +198,9 @@ html, body {
 /* controls */
 
 .select-label {
-    width: 100%;
+    width: 60px;
 }
 
 .select-axis {
-    width: 100%;
+    width: 200px;
 }

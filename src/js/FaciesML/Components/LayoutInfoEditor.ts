@@ -3,8 +3,6 @@ import { SelectionMode } from "../Types/SelectionMode";
 import { DataValues, DATA_MINIMAL_VALUE, DisplayType } from "../Types/DataValues";
 import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
-import { ColorPicker, ColorPickerOptions } from "simple-color-picker";
-const ColorPickerJS = require("simple-color-picker");
 
 const LAYOUT_HEADER_HEIGHT: number = 50;
 const LAYOUT_LEGENT_HEIGHT: number = 100;
@@ -30,6 +28,8 @@ export class LayoutInfoEditor {
     // main canvas
     private layoutCanvas: HTMLCanvasElement = null;
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
+    // events
+    public onColorChanged: (this: LayoutInfoEditor, dataFacies: DataFacies) => any = null;
     // constructor
     constructor(
         parentTitle: HTMLDivElement,
@@ -444,6 +444,7 @@ export class LayoutInfoEditor {
                     let dataFacies: DataFacies = event.target["dataFacies"];
                     let colorIndex: number = event.target["colorIndex"];
                     dataFacies.colorTable[colorIndex] = event.target["value"];
+                    this.onColorChanged && this.onColorChanged(dataFacies);
                     this.drawLayoutInfo();
                 }).bind(this);
                 inputColor.style.display = "none";

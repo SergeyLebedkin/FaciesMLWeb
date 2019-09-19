@@ -5,6 +5,7 @@ import { SelectionMode } from "./FaciesML/Types/SelectionMode";
 import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { ScatterViewer } from "./FaciesML/Components/ScatterViewer";
+import { DataFacies } from "./FaciesML/Types/DataFacies";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -17,9 +18,6 @@ let radioSelectionModeAdd: HTMLInputElement = null;
 let radioSelectionModeRemove: HTMLInputElement = null;
 let checkboxPlotsVisible: HTMLInputElement = null;
 let checkboxScatterVisible: HTMLInputElement = null;
-let selectScatterXAxis: HTMLSelectElement = null;
-let selectScatterYAxis: HTMLSelectElement = null;
-let selectScatterColor: HTMLSelectElement = null;
 let buttonSubmit: HTMLButtonElement = null;
 let aStatus: HTMLElement = null;
 let buttonSave: HTMLButtonElement = null;
@@ -70,7 +68,6 @@ function buttonLoadDataOnClick(event: MouseEvent) {
                     gScatterViewer.setLayoutInfo(layoutInfo);
                     setLayoutInfoEditorVisible(checkboxPlotsVisible.checked);
                     setScatterViewerVisible(checkboxScatterVisible.checked);
-                    selectScatterUpdate();
                 }
             }
             dataTable.loadFromFileLAS(file);
@@ -80,64 +77,10 @@ function buttonLoadDataOnClick(event: MouseEvent) {
     inputLoadData.click();
 }
 
-// selectScatterUpdate()
-function selectScatterUpdate() {
-    // X-Axis
-    while (selectScatterXAxis.firstChild) selectScatterXAxis.removeChild(selectScatterXAxis.firstChild);
-    for(let dataValue of gLayoutInfoEditor.layoutInfo.dataTable.dataValues) {
-        let option = document.createElement('option') as HTMLOptionElement;
-        option.textContent = dataValue.name;
-        option["dataValue"] = dataValue;
-        option.selected = dataValue === gLayoutInfoEditor.layoutInfo.scatterXAxis;
-        selectScatterXAxis.appendChild(option);
-        
-    }
-    // Y-Axis
-    while (selectScatterYAxis.firstChild) selectScatterYAxis.removeChild(selectScatterYAxis.firstChild);
-    for(let dataValue of gLayoutInfoEditor.layoutInfo.dataTable.dataValues) {
-        let option = document.createElement('option') as HTMLOptionElement;
-        option.textContent = dataValue.name;
-        option["dataValue"] = dataValue;
-        option.selected = dataValue === gLayoutInfoEditor.layoutInfo.scatterYAxis;
-        selectScatterYAxis.appendChild(option);
-    }
-    // Color
-    while (selectScatterColor.firstChild) selectScatterColor.removeChild(selectScatterColor.firstChild);
-    for(let dataFacies of gLayoutInfoEditor.layoutInfo.dataTable.dataFacies) {
-        let option = document.createElement('option') as HTMLOptionElement;
-        option.textContent = dataFacies.name;
-        option["dataFacies"] = dataFacies;
-        option.selected = dataFacies === gLayoutInfoEditor.layoutInfo.scatterColor;
-        selectScatterColor.appendChild(option);
-    }
-}
-
-// selectScatterXAxisChange
-function selectScatterXAxisChange() {
-    let dataValue = selectScatterXAxis.children[selectScatterXAxis.selectedIndex]["dataValue"];
-    gScatterViewer.layoutInfo.scatterXAxis = dataValue;
-    gScatterViewer.drawLayoutInfo();
-}
-
-// selectScatterYAxisChange
-function selectScatterYAxisChange() {
-    let dataValue = selectScatterYAxis.children[selectScatterYAxis.selectedIndex]["dataValue"];
-    gScatterViewer.layoutInfo.scatterYAxis = dataValue;
-    gScatterViewer.drawLayoutInfo();
-}
-
-// selectScatterColorChange
-function selectScatterColorChange() {
-    let dataFacies = selectScatterColor.children[selectScatterColor.selectedIndex]["dataFacies"];
-    gScatterViewer.layoutInfo.scatterColor = dataFacies;
-    gScatterViewer.drawLayoutInfo();
-}
-
 // buttonTabOnClick
 function buttonTabOnClick(event: MouseEvent) {
     gLayoutInfoEditor.setLayoutInfo(event.target["layoutInfo"]);
     gScatterViewer.setLayoutInfo(event.target["layoutInfo"]);
-    selectScatterUpdate();
 }
 
 // buttonSubmitOnClick
@@ -176,7 +119,6 @@ function buttonSubmitOnClick(event: MouseEvent) {
             gDataTableSelector.update();
             gLayoutInfoEditor.drawLayoutInfo();
             gScatterViewer.drawLayoutInfo();
-            selectScatterUpdate();
         }, reason => {
             aStatus.style.color = "red";
             aStatus.innerText = "Server error... (" + reason + ")";
@@ -237,9 +179,6 @@ window.onload = event => {
     radioSelectionModeRemove = document.getElementById("radioSelectionModeRemove") as HTMLInputElement;
     checkboxScatterVisible = document.getElementById("checkboxScatterVisible") as HTMLInputElement;
     checkboxPlotsVisible = document.getElementById("checkboxPlotsVisible") as HTMLInputElement;
-    selectScatterXAxis = document.getElementById("selectScatterXAxis") as HTMLSelectElement;
-    selectScatterYAxis = document.getElementById("selectScatterYAxis") as HTMLSelectElement;
-    selectScatterColor = document.getElementById("selectScatterColor") as HTMLSelectElement;
     buttonSubmit = document.getElementById("buttonSubmit") as HTMLButtonElement;
     aStatus = document.getElementById("aStatus") as HTMLElement;
     buttonSave = document.getElementById("buttonSave") as HTMLButtonElement;
@@ -261,6 +200,7 @@ window.onload = event => {
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
+    gLayoutInfoEditor.onColorChanged = dataFacies => gScatterViewer.drawLayoutInfo();
     gScatterViewer = new ScatterViewer(divScatterHeaders, divScatterPanel);
     // set visibility
     setLayoutInfoEditorVisible(false);
@@ -273,9 +213,6 @@ window.onload = event => {
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
     checkboxPlotsVisible.onchange = event => setLayoutInfoEditorVisible((event.currentTarget as HTMLInputElement).checked);
     checkboxScatterVisible.onchange = event => setScatterViewerVisible((event.currentTarget as HTMLInputElement).checked);
-    selectScatterXAxis.onchange = selectScatterXAxisChange;
-    selectScatterYAxis.onchange = selectScatterYAxisChange;
-    selectScatterColor.onchange = selectScatterColorChange;
     buttonSubmit.onclick = event => buttonSubmitOnClick(event);
     buttonSubmit.disabled = true;
     buttonSave.onclick = event => buttonSaveOnClick(event);
