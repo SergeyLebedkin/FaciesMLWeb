@@ -5,6 +5,7 @@ import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
 
 const LAYOUT_SCATTRER_SIZE: number = 600;
+const LAYOUT_SCATTRER_PENDING: number = 40;
 
 // ScatterViewer
 export class ScatterViewer {
@@ -254,7 +255,7 @@ export class ScatterViewer {
     private drawScatter(): void {
         let scatterHeight = LAYOUT_SCATTRER_SIZE;
         let scatterWidth = LAYOUT_SCATTRER_SIZE;
-        let scatterPadding = 40;
+        let scatterPadding = LAYOUT_SCATTRER_PENDING;
         this.layoutCanvas.height = scatterHeight;
         this.layoutCanvas.width = scatterWidth;
         // draw some data
@@ -297,64 +298,135 @@ export class ScatterViewer {
             return;
         }
         // draw grid
-        let numSectionsX = Math.floor(Math.log10(this.layoutInfo.scatterXAxis.max)) + 1;
-        let numSectionsY = Math.floor(Math.log10(this.layoutInfo.scatterYAxis.max)) + 1;
+        let numSectionsX = 2;
+        let numSectionsY = 2;
         if (this.displayType === DisplayType.LINEAR) {
-            // empty
+            numSectionsX = 5;
+            numSectionsY = 5;
+            // x-axis
+            this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
+            for (let i = 0; i <= numSectionsX; i++) {
+                // get coords
+                let xPoint = i / numSectionsX;
+                // draw line
+                let x = this.transfomX(xPoint);
+                let y0 = this.transfomY(0.0);
+                let y1 = this.transfomY(1.0);
+                this.layoutCanvasCtx.moveTo(x, y0);
+                this.layoutCanvasCtx.lineTo(x, y1);
+                this.layoutCanvasCtx.stroke();
+
+            }
+            // y-axis
+            this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
+            for (let i = 0; i <= numSectionsY; i++) {
+                // get coord
+                let yPoint = i / numSectionsY;
+                // draw line
+                let x0 = this.transfomX(0.0);
+                let x1 = this.transfomX(1.0);
+                let y = this.transfomY(yPoint);
+                this.layoutCanvasCtx.moveTo(x0, y);
+                this.layoutCanvasCtx.lineTo(x1, y);
+                this.layoutCanvasCtx.stroke();
+            }
+            // x-axis legend
+            this.layoutCanvasCtx.textBaseline = "top";
+            this.layoutCanvasCtx.textAlign = "center";
+            this.layoutCanvasCtx.font = "10px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
+            for (let i = 0; i <= numSectionsX; i++) {
+                // get coords
+                let xPoint = i / numSectionsX;
+                let yPoint = 0;
+                // draw text
+                let x = this.transfomX(xPoint);
+                let y = this.transfomY(yPoint);
+                // get text
+                let value = lerp(this.layoutInfo.scatterXAxis.min, this.layoutInfo.scatterXAxis.max, i / numSectionsX);
+                this.layoutCanvasCtx.fillText(value.toFixed(2).toString(), x, y);
+            }
+            // y-axis legend
+            this.layoutCanvasCtx.textBaseline = "middle";
+            this.layoutCanvasCtx.textAlign = "right";
+            this.layoutCanvasCtx.font = "10px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
+            for (let i = 0; i <= numSectionsY; i++) {
+                // get coords
+                let xPoint = 0;
+                let yPoint = i / numSectionsY;
+                // draw text
+                let x = this.transfomX(xPoint);
+                let y = this.transfomY(yPoint);
+                let value = lerp(this.layoutInfo.scatterYAxis.min, this.layoutInfo.scatterYAxis.max, i / numSectionsY);
+                this.layoutCanvasCtx.fillText(value.toFixed(2).toString(), x, y);
+            }
         }
         else if (this.displayType === DisplayType.LOG) {
+            numSectionsX = 2;Math.floor(Math.log10(this.layoutInfo.scatterXAxis.max)) + 1;
+            numSectionsY = 2;Math.floor(Math.log10(this.layoutInfo.scatterYAxis.max)) + 1;
             // x-axis
+            this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
             for (let i = 0; i < numSectionsX; i++) {
                 for (let j = 0; j < 10; j++) {
+                    // get coords
                     let xPoint = Math.pow(10, i) * j;
                     xPoint = Math.log10(xPoint) / numSectionsX;
-                    let x = xPoint * (scatterWidth - scatterPadding * 2) + scatterPadding;
-                    let y0 = Math.floor(0 * (scatterHeight - scatterPadding * 2) + scatterPadding);
-                    let y1 = Math.floor(1 * (scatterHeight - scatterPadding * 2) + scatterPadding);
-                    this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
+                    // draw line
+                    let x = this.transfomX(xPoint);
+                    let y0 = this.transfomY(0.0);
+                    let y1 = this.transfomY(1.0);
                     this.layoutCanvasCtx.moveTo(x, y0);
                     this.layoutCanvasCtx.lineTo(x, y1);
                     this.layoutCanvasCtx.stroke();
                 }
             }
-            // x-axis legend
-            for (let i = 0; i <= numSectionsX; i++) {
-                let xPoint = i/numSectionsX;
-                let yPoint = 0;
-                let x = xPoint * (scatterWidth - scatterPadding * 2) + scatterPadding
-                let y = scatterHeight - yPoint * (scatterHeight - scatterPadding * 2) - scatterPadding;
-                this.layoutCanvasCtx.textBaseline = "top";
-                this.layoutCanvasCtx.textAlign = "center";
-                this.layoutCanvasCtx.font = "10px Arial";
-                this.layoutCanvasCtx.strokeStyle = "black";
-                this.layoutCanvasCtx.fillStyle = "black";
-                this.layoutCanvasCtx.fillText(Math.pow(10, i).toString(), x, y);
-            }
             // y-axis
+            this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
             for (let i = 0; i < numSectionsY; i++) {
                 for (let j = 1; j <= 10; j++) {
+                    // get coord
                     let yPoint = Math.pow(10, i) * j;
                     yPoint = Math.log10(yPoint) / numSectionsY;
-                    let x0 = Math.floor(0 * (scatterHeight - scatterPadding * 2) + scatterPadding);
-                    let x1 = Math.floor(1 * (scatterHeight - scatterPadding * 2) + scatterPadding);
-                    let y = scatterHeight - yPoint * (scatterWidth - scatterPadding * 2) - scatterPadding;
-                    this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
+                    // draw line
+                    let x0 = this.transfomX(0.0);
+                    let x1 = this.transfomX(1.0);
+                    let y = this.transfomY(yPoint);
                     this.layoutCanvasCtx.moveTo(x0, y);
                     this.layoutCanvasCtx.lineTo(x1, y);
                     this.layoutCanvasCtx.stroke();
                 }
             }
+            // x-axis legend
+            this.layoutCanvasCtx.textBaseline = "top";
+            this.layoutCanvasCtx.textAlign = "center";
+            this.layoutCanvasCtx.font = "10px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
+            for (let i = 0; i <= numSectionsX; i++) {
+                // get coords
+                let xPoint = i / numSectionsX;
+                let yPoint = 0;
+                // draw text
+                let x = this.transfomX(xPoint);
+                let y = this.transfomY(yPoint);
+                this.layoutCanvasCtx.fillText(Math.pow(10, i).toString(), x, y);
+            }
             // y-axis legend
+            this.layoutCanvasCtx.textBaseline = "middle";
+            this.layoutCanvasCtx.textAlign = "right";
+            this.layoutCanvasCtx.font = "10px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
             for (let i = 0; i <= numSectionsY; i++) {
+                // get coords
                 let xPoint = 0;
-                let yPoint = i/numSectionsY;
-                let x = xPoint * (scatterWidth - scatterPadding * 2) + scatterPadding
-                let y = scatterHeight - yPoint * (scatterHeight - scatterPadding * 2) - scatterPadding;
-                this.layoutCanvasCtx.textBaseline = "middle";
-                this.layoutCanvasCtx.textAlign = "right";
-                this.layoutCanvasCtx.font = "10px Arial";
-                this.layoutCanvasCtx.strokeStyle = "black";
-                this.layoutCanvasCtx.fillStyle = "black";
+                let yPoint = i / numSectionsY;
+                // draw text
+                let x = this.transfomX(xPoint);
+                let y = this.transfomY(yPoint);
                 this.layoutCanvasCtx.fillText(Math.pow(10, i).toString(), x, y);
             }
         }
@@ -365,6 +437,7 @@ export class ScatterViewer {
         this.layoutCanvasCtx.stroke();
         // draw values
         for (let i = 0; i < this.layoutInfo.scatterXAxis.values.length; i++) {
+            // get coords
             let xPoint = this.layoutInfo.scatterXAxis.values[i];
             let yPoint = this.layoutInfo.scatterYAxis.values[i];
             if (this.displayType === DisplayType.LINEAR) {
@@ -377,9 +450,9 @@ export class ScatterViewer {
                 xPoint = Math.min(1.0, Math.max(0.0, xPoint));
                 yPoint = Math.min(1.0, Math.max(0.0, yPoint));
             }
-            let x = xPoint * (scatterWidth - scatterPadding * 2) + scatterPadding;
-            let y = yPoint * (scatterHeight - scatterPadding * 2) + scatterPadding;
-            y = scatterHeight - y;
+            // draw circle
+            let x = this.transfomX(xPoint);
+            let y = this.transfomY(yPoint);
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.arc(x, y, 3, 0, 2 * Math.PI, false);
             this.layoutCanvasCtx.fillStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.valuesDisplay[i]];
@@ -390,11 +463,26 @@ export class ScatterViewer {
         }
     }
 
+    // transfomX
+    private transfomX(x: number): number {
+        return Math.floor(x * (LAYOUT_SCATTRER_SIZE - LAYOUT_SCATTRER_PENDING * 2) + LAYOUT_SCATTRER_PENDING);
+    }
+
+    // transfomY
+    private transfomY(y: number): number {
+        return Math.floor((1.0 - y) * (LAYOUT_SCATTRER_SIZE - LAYOUT_SCATTRER_PENDING * 2) + LAYOUT_SCATTRER_PENDING);
+    }
+
     // saveToImage
     saveToImage(): void {
         if (!this.layoutInfo) return;
         downloadImage(this.layoutInfo.scatterColor.name, this.layoutCanvas);
     }
+}
+
+// lerp
+function lerp(a: number, b: number, t: number) {
+    return a * (t - 1) + b * t;
 }
 
 // downloadImage
