@@ -59,6 +59,16 @@ export class DataFacies {
         this.updateMergeData();
     }
 
+    // createRandomData
+    public createRandomData(name: string, len: number) {
+        this.values = [];
+        this.name = name;
+        this.values.length = len;
+        for (let i = 0; i < len; i++)
+            this.values[i] = Math.floor(Math.random()*2.999);
+        this.updateMergeData();
+    }
+
     // updateMergeData
     public updateMergeData(): void {
         this.valuesDisplay = Array.from(this.values);

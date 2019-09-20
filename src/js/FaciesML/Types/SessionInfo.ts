@@ -61,7 +61,6 @@ export class SessionInfo {
             for (let dataTable of dataTables)
                 if (dataTable.getSelectedCount() > 0)
                     data.logs[dataTable.name] = dataTable.saveSelectedToJson();
-            console.log(data)
             try {
                 xhr.send(JSON.stringify(data));
             } catch (error) {
