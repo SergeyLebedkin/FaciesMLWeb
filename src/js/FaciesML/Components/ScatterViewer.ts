@@ -263,6 +263,18 @@ export class ScatterViewer {
         this.layoutCanvasCtx.fillStyle = "white";
         this.layoutCanvasCtx.fillRect(0, 0, scatterWidth, scatterHeight);
         this.layoutCanvasCtx.stroke();
+        if (!this.layoutInfo.scatterColor) {
+            // draw X-axis
+            this.layoutCanvasCtx.textBaseline = "middle";
+            this.layoutCanvasCtx.textAlign = "center";
+            this.layoutCanvasCtx.font = "14px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
+            this.layoutCanvasCtx.fillText("Select Facies", scatterWidth / 2, scatterHeight / 2);
+            return;
+        }
+        if (!this.layoutInfo.scatterXAxis) return;
+        if (!this.layoutInfo.scatterYAxis) return;
         // draw facies
         this.layoutCanvasCtx.textBaseline = "middle";
         this.layoutCanvasCtx.textAlign = "center";
@@ -287,16 +299,6 @@ export class ScatterViewer {
         this.layoutCanvasCtx.rotate(-Math.PI / 2);
         this.layoutCanvasCtx.fillText(this.layoutInfo.scatterYAxis.name, 0, 0);
         this.layoutCanvasCtx.resetTransform();
-        if (!this.layoutInfo.scatterColor) {
-            // draw X-axis
-            this.layoutCanvasCtx.textBaseline = "middle";
-            this.layoutCanvasCtx.textAlign = "center";
-            this.layoutCanvasCtx.font = "14px Arial";
-            this.layoutCanvasCtx.strokeStyle = "black";
-            this.layoutCanvasCtx.fillStyle = "black";
-            this.layoutCanvasCtx.fillText("Select Facies", scatterWidth / 2, scatterHeight / 2);
-            return;
-        }
         // draw grid
         let numSectionsX = 2;
         let numSectionsY = 2;
@@ -315,7 +317,6 @@ export class ScatterViewer {
                 this.layoutCanvasCtx.moveTo(x, y0);
                 this.layoutCanvasCtx.lineTo(x, y1);
                 this.layoutCanvasCtx.stroke();
-
             }
             // y-axis
             this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
@@ -365,8 +366,8 @@ export class ScatterViewer {
             }
         }
         else if (this.displayType === DisplayType.LOG) {
-            numSectionsX = 2;Math.floor(Math.log10(this.layoutInfo.scatterXAxis.max)) + 1;
-            numSectionsY = 2;Math.floor(Math.log10(this.layoutInfo.scatterYAxis.max)) + 1;
+            numSectionsX = Math.floor(Math.log10(this.layoutInfo.scatterXAxis.max)) + 1;
+            numSectionsY = Math.floor(Math.log10(this.layoutInfo.scatterYAxis.max)) + 1;
             // x-axis
             this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
             for (let i = 0; i < numSectionsX; i++) {

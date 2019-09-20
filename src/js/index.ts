@@ -49,11 +49,13 @@ function buttonLoadDataOnClick(event: MouseEvent) {
             let dataTable = new DataTable();
             dataTable.onloadFileData = dataTable => {
                 // create random facies data
+                /*
                 dataTable.dataValues[1].selected = true;
                 let dataFacies = new DataFacies();
                 dataFacies.createRandomData("3", dataTable.dataValues[0].values.length);
                 dataFacies.selected = true;
                 dataTable.dataFacies.push(dataFacies);
+                */
                 // create layout info
                 let layoutInfo = new LayoutInfo(dataTable);
                 gLayoutInfoList.push(layoutInfo);
