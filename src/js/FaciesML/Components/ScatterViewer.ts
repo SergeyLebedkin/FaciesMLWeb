@@ -16,6 +16,7 @@ export class ScatterViewer {
     private selectXAxis: HTMLSelectElement = null;
     private selectYAxis: HTMLSelectElement = null;
     private selectFacies: HTMLSelectElement = null;
+    private selectSamples: HTMLSelectElement = null;
     // merge controls
     private selectFrom: HTMLSelectElement = null;
     private selectTo: HTMLSelectElement = null;
@@ -90,6 +91,7 @@ export class ScatterViewer {
             this.drawLayoutInfo();
         }).bind(this);
         divControls.appendChild(buttonDisplayTypeY);
+
         // create axis div
         let divAxis = document.createElement("div");
         divAxis.style.display = "flex";
@@ -119,6 +121,20 @@ export class ScatterViewer {
         divAxis.appendChild(this.selectYAxis);
         divAxis.appendChild(labelFacies);
         divAxis.appendChild(this.selectFacies);
+
+        // create axis div
+        let divSamples = document.createElement("div");
+        divSamples.style.display = "flex";
+        divSamples.style.flexDirection = "row";
+        divHeader.appendChild(divSamples);
+        // create x-axis select
+        let labelSamples = document.createElement("div");
+        labelSamples.textContent = "Samples:";
+        this.selectSamples = document.createElement("select");
+        this.selectSamples.className = "select-axis";
+        this.selectSamples.onchange = this.onSelectSamplesChange.bind(this);
+        divSamples.appendChild(labelSamples);
+        divSamples.appendChild(this.selectSamples);
 
         // create merge div
         let divMerge = document.createElement("div");
@@ -169,6 +185,14 @@ export class ScatterViewer {
     private onSelectFaciesChange() {
         let dataFacies = this.selectFacies.children[this.selectFacies.selectedIndex]["dataFacies"];
         this.layoutInfo.scatterColor = dataFacies;
+        this.layoutInfo.scatterSamples = dataFacies.dataSamples[0];
+        this.drawLayoutInfo();
+    }
+
+    // onSelectSamplesChange
+    private onSelectSamplesChange() {
+        let dataSamples = this.selectSamples.children[this.selectSamples.selectedIndex]["dataSamples"];
+        this.layoutInfo.scatterSamples = dataSamples;
         this.drawLayoutInfo();
     }
 
@@ -203,6 +227,7 @@ export class ScatterViewer {
         while (this.selectXAxis.firstChild) this.selectXAxis.removeChild(this.selectXAxis.firstChild);
         while (this.selectYAxis.firstChild) this.selectYAxis.removeChild(this.selectYAxis.firstChild);
         while (this.selectFacies.firstChild) this.selectFacies.removeChild(this.selectFacies.firstChild);
+        while (this.selectSamples.firstChild) this.selectSamples.removeChild(this.selectSamples.firstChild);
         while (this.selectFrom.firstChild) this.selectFrom.removeChild(this.selectFrom.firstChild);
         while (this.selectTo.firstChild) this.selectTo.removeChild(this.selectTo.firstChild);
     }
@@ -241,6 +266,16 @@ export class ScatterViewer {
             option.selected = dataFacies === this.layoutInfo.scatterColor;
             this.selectFacies.appendChild(option);
         }
+        // update samples select
+        if (this.layoutInfo.scatterColor) {
+            for (let dataSamples of this.layoutInfo.scatterColor.dataSamples) {
+                let option = document.createElement('option') as HTMLOptionElement;
+                option.textContent = dataSamples.name;
+                option["dataSamples"] = dataSamples;
+                option.selected = dataSamples === this.layoutInfo.scatterSamples;
+                this.selectSamples.appendChild(option);
+            }
+        }
 
         if (!this.layoutInfo.scatterColor) return;
         let indexArray = [];
@@ -271,7 +306,7 @@ export class ScatterViewer {
         let scatterPadding = LAYOUT_SCATTRER_PENDING;
         this.layoutCanvas.height = scatterHeight;
         this.layoutCanvas.width = scatterWidth;
-        // draw some data
+        // clear scatter
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.fillStyle = "white";
         this.layoutCanvasCtx.fillRect(0, 0, scatterWidth, scatterHeight);
@@ -288,14 +323,14 @@ export class ScatterViewer {
         }
         if (!this.layoutInfo.scatterXAxis) return;
         if (!this.layoutInfo.scatterYAxis) return;
-        // draw facies
+        // draw facies name
         this.layoutCanvasCtx.textBaseline = "middle";
         this.layoutCanvasCtx.textAlign = "center";
         this.layoutCanvasCtx.font = "14px Arial";
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.fillStyle = "black";
         this.layoutCanvasCtx.fillText(this.layoutInfo.scatterColor.name, scatterWidth / 2, scatterPadding / 2);
-        // draw X-axis
+        // draw X-axis name
         this.layoutCanvasCtx.textBaseline = "middle";
         this.layoutCanvasCtx.textAlign = "center";
         this.layoutCanvasCtx.font = "14px Arial";
@@ -482,6 +517,38 @@ export class ScatterViewer {
             this.layoutCanvasCtx.lineWidth = 1;
             this.layoutCanvasCtx.strokeStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.valuesDisplay[i]];
             this.layoutCanvasCtx.stroke();
+        }
+        // draw samples
+        if (!this.layoutInfo.scatterSamples) return;
+        for (let i = 0; i < this.layoutInfo.scatterSamples.values.length; i++) {
+            if (this.layoutInfo.scatterSamples.values[i] > 0) {
+                // get coords
+                let xPoint = this.layoutInfo.scatterXAxis.values[i];
+                let yPoint = this.layoutInfo.scatterYAxis.values[i];
+                // get x point
+                if (this.displayTypeX === DisplayType.LINEAR) {
+                    xPoint = (xPoint - this.layoutInfo.scatterXAxis.min) / (this.layoutInfo.scatterXAxis.max - this.layoutInfo.scatterXAxis.min);
+                } else if (this.displayTypeX === DisplayType.LOG) {
+                    xPoint = Math.log10(xPoint) / numSectionsX;
+                    xPoint = Math.min(1.0, Math.max(0.0, xPoint));
+                }
+                // get y point
+                if (this.displayTypeY === DisplayType.LINEAR) {
+                    yPoint = (yPoint - this.layoutInfo.scatterYAxis.min) / (this.layoutInfo.scatterYAxis.max - this.layoutInfo.scatterYAxis.min);
+                } else if (this.displayTypeY === DisplayType.LOG) {
+                    yPoint = Math.log10(yPoint) / numSectionsY;
+                    yPoint = Math.min(1.0, Math.max(0.0, yPoint));
+                }
+                // draw circle
+                let x = this.transfomX(xPoint);
+                let y = this.transfomY(yPoint);
+                this.layoutCanvasCtx.beginPath();
+                this.layoutCanvasCtx.fillStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.valuesDisplay[i]];
+                this.layoutCanvasCtx.fillRect(x, y, 4, 4);
+                this.layoutCanvasCtx.strokeStyle = "black";
+                this.layoutCanvasCtx.rect(x, y, 4, 4);
+                this.layoutCanvasCtx.stroke();
+            }
         }
     }
 
