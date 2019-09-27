@@ -24,8 +24,8 @@ export class LayoutInfo {
 
     // reset scatter
     resetScatter() {
-        this.scatterXAxis = this.scatterXAxis ? this.scatterXAxis : this.dataTable.dataValues[Math.max(0, 1)];
-        this.scatterYAxis = this.scatterYAxis ? this.scatterYAxis : this.dataTable.dataValues[Math.max(0, 2)];
+        this.scatterXAxis = this.scatterXAxis ? this.scatterXAxis : this.dataTable.dataValues[1];
+        this.scatterYAxis = this.scatterYAxis ? this.scatterYAxis : this.dataTable.dataValues[2];
         this.scatterColor = this.scatterColor ? this.scatterColor : this.dataTable.dataFacies[0];
         if (this.scatterColor)
             this.scatterSamples = this.scatterSamples ? this.scatterSamples : this.scatterColor.dataSamples[0];

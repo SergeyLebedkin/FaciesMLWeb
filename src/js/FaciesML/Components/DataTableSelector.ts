@@ -129,7 +129,7 @@ export class DataTableSelector {
         // create check box
         let checkBoxValue = document.createElement("input");
         checkBoxValue.type = "checkbox";
-        checkBoxValue.name = "checkbox_" + dataTable.fileRef.name;
+        checkBoxValue.name = "checkbox_" + dataTable.name;
         checkBoxValue.style.marginLeft = offset.toFixed(0) + "px";
         checkBoxValue.checked = checked;
         checkBoxValue["dataTable"] = dataTable;

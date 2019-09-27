@@ -7,8 +7,8 @@ import { DataSamples } from "../Types/DataSamples";
 const LAYOUT_SCATTRER_SIZE: number = 600;
 const LAYOUT_SCATTRER_PENDING: number = 40;
 
-// ScatterViewer
-export class ScatterViewer {
+// ScatterEditor
+export class ScatterEditor {
     // parents
     private parentHeadrs: HTMLDivElement;
     private parentScatter: HTMLDivElement;
@@ -31,7 +31,7 @@ export class ScatterViewer {
     private layoutCanvas: HTMLCanvasElement = null;
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
     // events
-    public onFaciesMerged: (this: ScatterViewer, dataFacies: DataFacies) => any = null;
+    public onFaciesMerged: (this: ScatterEditor, dataFacies: DataFacies) => any = null;
     // constructor
     constructor(parentHeadrs: HTMLDivElement, parentScatter: HTMLDivElement) {
         // setup parent

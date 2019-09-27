@@ -4,8 +4,10 @@ import { LayoutInfo } from "./FaciesML/Types/LayoutInfo";
 import { SelectionMode } from "./FaciesML/Types/SelectionMode";
 import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
-import { ScatterViewer } from "./FaciesML/Components/ScatterViewer";
+import { ScatterEditor } from "./FaciesML/Components/ScatterEditor";
 import { DataFacies } from "./FaciesML/Types/DataFacies";
+import { DataValues } from "./FaciesML/Types/DataValues";
+import * as defaultData from "./FaciesML/Types/DefaultData";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -38,7 +40,7 @@ let gDataTableList: Array<DataTable> = null;
 let gLayoutInfoList: Array<LayoutInfo> = null;
 let gLayoutInfoEditor: LayoutInfoEditor = null;
 let gDataTableSelector: DataTableSelector = null;
-let gScatterViewer: ScatterViewer = null;
+let gScatterEditor: ScatterEditor = null;
 
 // buttonLoadDataOnClick
 function buttonLoadDataOnClick(event: MouseEvent) {
@@ -48,35 +50,8 @@ function buttonLoadDataOnClick(event: MouseEvent) {
         for (let file of files) {
             let dataTable = new DataTable();
             dataTable.onloadFileData = dataTable => {
-                // create random facies data
-                /*
-                dataTable.dataValues[1].selected = true;
-                let dataFacies = new DataFacies();
-                dataFacies.createRandomData("3", dataTable.dataValues[0].values.length);
-                dataFacies.selected = true;
-                dataTable.dataFacies.push(dataFacies);
-                */
-                // create layout info
-                let layoutInfo = new LayoutInfo(dataTable);
-                gLayoutInfoList.push(layoutInfo);
-                // create tab buttor
-                let buttonTab = document.createElement("button");
-                buttonTab.className = "tab-button";
-                buttonTab.innerText = layoutInfo.dataTable.name;
-                buttonTab["layoutInfo"] = layoutInfo;
-                buttonTab.onclick = buttonTabOnClick;
-                divTabPanelLayots.appendChild(buttonTab);
-                // update selector
                 gDataTableList.push(dataTable);
-                gDataTableSelector.update();
-                buttonSubmit.disabled = false;
-                // update editor
-                if (gLayoutInfoEditor.layoutInfo === null) {
-                    gLayoutInfoEditor.setLayoutInfo(layoutInfo);
-                    gScatterViewer.setLayoutInfo(layoutInfo);
-                    setLayoutInfoEditorVisible(checkboxPlotsVisible.checked);
-                    setScatterViewerVisible(checkboxScatterVisible.checked);
-                }
+                addLayoutInfo(new LayoutInfo(dataTable));
             }
             dataTable.loadFromFileLAS(file);
         }
@@ -85,10 +60,32 @@ function buttonLoadDataOnClick(event: MouseEvent) {
     inputLoadData.click();
 }
 
+// addLayoutInfo
+function addLayoutInfo(layoutInfo: LayoutInfo) {
+    gLayoutInfoList.push(layoutInfo);
+    // create tab buttor
+    let buttonTab = document.createElement("button");
+    buttonTab.className = "tab-button";
+    buttonTab.innerText = layoutInfo.dataTable.name;
+    buttonTab["layoutInfo"] = layoutInfo;
+    buttonTab.onclick = buttonTabOnClick;
+    divTabPanelLayots.appendChild(buttonTab);
+    // update selector
+    gDataTableSelector.update();
+    buttonSubmit.disabled = false;
+    // update editor
+    if (gLayoutInfoEditor.layoutInfo === null) {
+        gLayoutInfoEditor.setLayoutInfo(layoutInfo);
+        gScatterEditor.setLayoutInfo(layoutInfo);
+        setLayoutInfoEditorVisible(checkboxPlotsVisible.checked);
+        setScatterViewerVisible(checkboxScatterVisible.checked);
+    }
+}
+
 // buttonTabOnClick
 function buttonTabOnClick(event: MouseEvent) {
     gLayoutInfoEditor.setLayoutInfo(event.target["layoutInfo"]);
-    gScatterViewer.setLayoutInfo(event.target["layoutInfo"]);
+    gScatterEditor.setLayoutInfo(event.target["layoutInfo"]);
 }
 
 // buttonSubmitOnClick
@@ -126,7 +123,7 @@ function buttonSubmitOnClick(event: MouseEvent) {
                 dataTable.setOptimizedСlusterNum(json["optimized_cluster_num"]);
             gDataTableSelector.update();
             gLayoutInfoEditor.drawLayoutInfo();
-            gScatterViewer.drawLayoutInfo();
+            gScatterEditor.drawLayoutInfo();
         }, reason => {
             aStatus.style.color = "red";
             aStatus.innerText = "Server error... (" + reason + ")";
@@ -171,7 +168,7 @@ function setLayoutInfoEditorVisible(visible: boolean) {
 function setScatterViewerVisible(visible: boolean) {
     divScatterHeaders.style.display = visible ? "block" : "none";
     divScatterPanel.style.display = visible ? "block" : "none";
-    if (visible) gScatterViewer.drawLayoutInfo();
+    if (visible) gScatterEditor.drawLayoutInfo();
 }
 
 // window.onload
@@ -208,9 +205,9 @@ window.onload = event => {
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
-    gLayoutInfoEditor.onColorChanged = dataFacies => gScatterViewer.drawLayoutInfo();
-    gScatterViewer = new ScatterViewer(divScatterHeaders, divScatterPanel);
-    gScatterViewer.onFaciesMerged = dataFacies => gLayoutInfoEditor.drawLayoutInfo();
+    gLayoutInfoEditor.onColorChanged = dataFacies => gScatterEditor.drawLayoutInfo();
+    gScatterEditor = new ScatterEditor(divScatterHeaders, divScatterPanel);
+    gScatterEditor.onFaciesMerged = dataFacies => gLayoutInfoEditor.drawLayoutInfo();
     // set visibility
     setLayoutInfoEditorVisible(false);
     setScatterViewerVisible(checkboxScatterVisible.checked);
@@ -229,6 +226,12 @@ window.onload = event => {
     // center panel events
     buttonScaleDown.onclick = event => buttonScaleDownOnClick(event);
     buttonScaleUp.onclick = event => buttonScaleUpOnClick(event);
+    // create random data
+    let dataTable: DataTable = defaultData.createRandomDataTable();
+    gDataTableList.push(dataTable);
+    let layoutInfo: LayoutInfo = new LayoutInfo(dataTable);
+    layoutInfo.resetScatter();
+    addLayoutInfo(new LayoutInfo(dataTable));
 }
 
 // updateTablesFromJson

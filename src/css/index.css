@@ -189,8 +189,8 @@ html, body {
     display: flex;
     flex-direction: column;
     overflow: auto;
-    min-height: 200px;
-    max-height: 200px;
+    min-height: 250px;
+    max-height: 250px;
     font-family: 'Courier New', Courier, monospace;
     font-size: 12px;
 }

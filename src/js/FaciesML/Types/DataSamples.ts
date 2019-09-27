@@ -17,5 +17,6 @@ export class DataSamples {
     public loadFromCommaString(str: string): void {
         this.values = [];
         str.split(",").forEach(value => this.values.push(parseInt(value)));
+        this.values.pop();
     };
 }

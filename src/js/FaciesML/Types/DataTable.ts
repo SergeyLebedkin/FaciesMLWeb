@@ -22,6 +22,14 @@ export class DataTable {
         this.optimizedСlusterNum = 0.0;
     }
 
+    // resetSelections
+    public resetSelections(): void {
+        this.selections = []
+        if (this.dataValues.length > 0)
+            this.selections.length = this.dataValues[0].values.length;
+        this.selections.fill(0);
+    }
+
     // setOptimizedСlusterNum
     public setOptimizedСlusterNum(optimizedСlusterNum: number) {
         if (this.optimizedСlusterNum !== optimizedСlusterNum) {
@@ -154,6 +162,7 @@ export class DataTable {
                 let dataSamples = dataFacies.getOrCreateDataSamples(json["num_samples"][value]);
                 dataSamples.recommended = (json["optimized_samples"][value] == 1);
                 dataSamples.loadFromCommaString(json["samples_mask"][value]);
+                console.log(dataFacies.name, "dataSamples", dataSamples.name, ...dataSamples.values);
             }
         });
     }
@@ -212,8 +221,7 @@ export class DataTable {
 
         // update min and max ranges
         this.dataValues.forEach(dataArray => dataArray.updateMinMax());
-        this.selections.length = this.dataValues[0].values.length;
-        this.selections.fill(0);
+        this.resetSelections();
     }
 
     // saveToCSV
