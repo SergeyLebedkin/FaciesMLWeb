@@ -5,9 +5,6 @@ import { SelectionMode } from "./FaciesML/Types/SelectionMode";
 import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { ScatterEditor } from "./FaciesML/Components/ScatterEditor";
-import { DataFacies } from "./FaciesML/Types/DataFacies";
-import { DataValues } from "./FaciesML/Types/DataValues";
-import * as defaultData from "./FaciesML/Types/DefaultData";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -226,7 +223,12 @@ window.onload = event => {
     // center panel events
     buttonScaleDown.onclick = event => buttonScaleDownOnClick(event);
     buttonScaleUp.onclick = event => buttonScaleUpOnClick(event);
-    // create random data
+    addDefaultLayout();
+}
+
+import * as defaultData from "./FaciesML/Types/DefaultData";
+// addDefaultLayout
+function addDefaultLayout() {
     let dataTable: DataTable = defaultData.createRandomDataTable();
     gDataTableList.push(dataTable);
     let layoutInfo: LayoutInfo = new LayoutInfo(dataTable);
