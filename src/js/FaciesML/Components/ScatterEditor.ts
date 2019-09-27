@@ -20,8 +20,6 @@ export class ScatterEditor {
     // merge controls
     private selectFrom: HTMLSelectElement = null;
     private selectTo: HTMLSelectElement = null;
-    private buttonUndo: HTMLButtonElement = null;
-    private buttonApply: HTMLButtonElement = null;
     // display type
     private displayTypeX: DisplayType = DisplayType.LINEAR;
     private displayTypeY: DisplayType = DisplayType.LINEAR;
@@ -46,125 +44,78 @@ export class ScatterEditor {
         this.layoutCanvas = document.createElement("canvas");
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parentScatter.appendChild(this.layoutCanvas);
+        // create header markup
+        this.parentHeadrs.innerHTML = `
+        <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; flex-direction: row;">
+                <button id="buttonSaveImage">S</button>
+                <button id="buttonDisplayTypeX">LX</button>
+                <button id="buttonDisplayTypeY">LY</button>
+            </div>
+            <div><hr></div>
+            <div style="display: flex; flex-direction: row;">
+                <label class="select-label">X-Axis:</label>
+                <select class="select-axis" id="selectXAxis"></select>
+                <label class="select-label">Y-Axis:</label>
+                <select class="select-axis" id="selectYAxis"></select>
+                <label class="select-label">Facies:</label>
+                <select class="select-axis" id="selectFacies"></select>
+                <label class="select-label">Samples:</label>
+                <select id="selectSamples"></select>
+            </div>
+            <div><hr></div>
+            <div style="display: flex; flex-direction: row;">
+                <button id="buttonUndo">Undo</button>
+                <label>From:</label>
+                <select id="selectFrom"></select>
+                <label>To:</label>
+                <select id="selectTo"></select>
+                <button id="buttonApply">Apply</button>
+            </div>
+            <div><hr></div>
+        </div>`;
 
-        // create header elements
-        // legend sizes
-        let legendWidth = LAYOUT_SCATTRER_SIZE - 2;
-        // create header
-        let divHeader = document.createElement("div");
-        divHeader.style.width = legendWidth.toString() + "px";
-        divHeader.style.display = "flex";
-        divHeader.style.flexDirection = "column";
-        this.parentHeadrs.appendChild(divHeader);
-        // create axis div
-        let divControls = document.createElement("div");
-        divControls.style.display = "flex";
-        divControls.style.flexDirection = "row-reverse";
-        divHeader.appendChild(divControls);
-        // button save type
-        let buttonSaveImage = document.createElement("button");
-        buttonSaveImage.innerText = "S";
-        buttonSaveImage.onclick = (() => {
-            this.saveToImage();
-            this.drawLayoutInfo();
-        }).bind(this);
-        divControls.appendChild(buttonSaveImage);
-        // button display type
-        let buttonDisplayTypeX = document.createElement("button");
-        buttonDisplayTypeX.innerText = "LX";
-        buttonDisplayTypeX.onclick = (() => {
-            if (this.displayTypeX === DisplayType.LINEAR)
-                this.displayTypeX = DisplayType.LOG;
-            else if (this.displayTypeX === DisplayType.LOG)
-                this.displayTypeX = DisplayType.LINEAR;
-            this.drawLayoutInfo();
-        }).bind(this);
-        divControls.appendChild(buttonDisplayTypeX);
-        // button display type
-        let buttonDisplayTypeY = document.createElement("button");
-        buttonDisplayTypeY.innerText = "LY";
-        buttonDisplayTypeY.onclick = (() => {
-            if (this.displayTypeY === DisplayType.LINEAR)
-                this.displayTypeY = DisplayType.LOG;
-            else if (this.displayTypeY === DisplayType.LOG)
-                this.displayTypeY = DisplayType.LINEAR;
-            this.drawLayoutInfo();
-        }).bind(this);
-        divControls.appendChild(buttonDisplayTypeY);
+        // get elements IDs
+        let buttonSaveImage: HTMLButtonElement = document.getElementById("buttonSaveImage") as HTMLButtonElement;
+        let buttonDisplayTypeX: HTMLButtonElement = document.getElementById("buttonDisplayTypeX") as HTMLButtonElement;
+        let buttonDisplayTypeY: HTMLButtonElement = document.getElementById("buttonDisplayTypeY") as HTMLButtonElement;
+        this.selectXAxis = document.getElementById("selectXAxis") as HTMLSelectElement;
+        this.selectYAxis = document.getElementById("selectYAxis") as HTMLSelectElement;
+        this.selectFacies = document.getElementById("selectFacies") as HTMLSelectElement;
+        this.selectSamples = document.getElementById("selectSamples") as HTMLSelectElement;
+        this.selectFrom = document.getElementById("selectFrom") as HTMLSelectElement;
+        this.selectTo = document.getElementById("selectTo") as HTMLSelectElement;
+        let buttonUndo: HTMLButtonElement = document.getElementById("buttonUndo") as HTMLButtonElement;
+        let buttonApply: HTMLButtonElement = document.getElementById("buttonApply") as HTMLButtonElement;
 
-        // create axis div
-        let divAxis = document.createElement("div");
-        divAxis.style.display = "flex";
-        divAxis.style.flexDirection = "row";
-        divHeader.appendChild(divAxis);
-        // create x-axis select
-        let labelXAxis = document.createElement("div");
-        labelXAxis.textContent = "X-Axis:";
-        this.selectXAxis = document.createElement("select");
-        this.selectXAxis.className = "select-axis";
+        // get elements events
+        buttonSaveImage.onclick = (() => { this.saveToImage(); this.drawLayoutInfo(); }).bind(this);
+        buttonDisplayTypeX.onclick = this.onButtonDisplayTypeXClick.bind(this);
+        buttonDisplayTypeY.onclick = this.onButtonDisplayTypeYClick.bind(this);
         this.selectXAxis.onchange = this.onSelectXAxisChange.bind(this);
-        // create y-axis select
-        let labelYAxis = document.createElement("div");
-        labelYAxis.textContent = "Y-Axis:";
-        this.selectYAxis = document.createElement("select");
-        this.selectYAxis.className = "select-axis";
         this.selectYAxis.onchange = this.onSelectYAxisChange.bind(this);
-        // create color select
-        let labelFacies = document.createElement("div");
-        labelFacies.textContent = "Facies:";
-        this.selectFacies = document.createElement("select");
-        this.selectFacies.className = "select-axis";
         this.selectFacies.onchange = this.onSelectFaciesChange.bind(this);
-        divAxis.appendChild(labelXAxis);
-        divAxis.appendChild(this.selectXAxis);
-        divAxis.appendChild(labelYAxis);
-        divAxis.appendChild(this.selectYAxis);
-        divAxis.appendChild(labelFacies);
-        divAxis.appendChild(this.selectFacies);
-
-        // create axis div
-        let divSamples = document.createElement("div");
-        divSamples.style.display = "flex";
-        divSamples.style.flexDirection = "row";
-        divHeader.appendChild(divSamples);
-        // create x-axis select
-        let labelSamples = document.createElement("div");
-        labelSamples.textContent = "Samples:";
-        this.selectSamples = document.createElement("select");
-        this.selectSamples.className = "select-axis";
         this.selectSamples.onchange = this.onSelectSamplesChange.bind(this);
-        divSamples.appendChild(labelSamples);
-        divSamples.appendChild(this.selectSamples);
+        buttonUndo.onclick = this.onButtonMergeUndoClick.bind(this);
+        buttonApply.onclick = this.onButtonMergeApplyClick.bind(this);
+    }
 
-        // create merge div
-        let divMerge = document.createElement("div");
-        divMerge.style.display = "flex";
-        divMerge.style.flexDirection = "row";
-        divHeader.appendChild(divMerge);
-        // create undo button
-        this.buttonUndo = document.createElement("button");
-        this.buttonUndo.innerText = "Undo";
-        this.buttonUndo.onclick = this.onButtonMergeUndoClick.bind(this);
-        // create select from
-        let labelFrom = document.createElement("div");
-        labelFrom.textContent = "From:";
-        this.selectFrom = document.createElement("select");
-        this.selectFrom.className = "select-axis";
-        // create select to
-        let labelTo = document.createElement("div");
-        labelTo.textContent = "To:";
-        this.selectTo = document.createElement("select");
-        this.selectTo.className = "select-axis";
-        // create undo button
-        this.buttonApply = document.createElement("button");
-        this.buttonApply.innerText = "Apply";
-        this.buttonApply.onclick = this.onButtonMergeApplyClick.bind(this);
-        divMerge.appendChild(this.buttonUndo);
-        divMerge.appendChild(labelFrom);
-        divMerge.appendChild(this.selectFrom);
-        divMerge.appendChild(labelTo);
-        divMerge.appendChild(this.selectTo);
-        divMerge.appendChild(this.buttonApply);
+    // onButtonDisplayTypeXClick
+    private onButtonDisplayTypeXClick() {
+        if (this.displayTypeX === DisplayType.LINEAR)
+            this.displayTypeX = DisplayType.LOG;
+        else if (this.displayTypeX === DisplayType.LOG)
+            this.displayTypeX = DisplayType.LINEAR;
+        this.drawLayoutInfo();
+    }
+
+    // onButtonDisplayTypeYClick
+    private onButtonDisplayTypeYClick() {
+        if (this.displayTypeY === DisplayType.LINEAR)
+            this.displayTypeY = DisplayType.LOG;
+        else if (this.displayTypeY === DisplayType.LOG)
+            this.displayTypeY = DisplayType.LINEAR;
+        this.drawLayoutInfo();
     }
 
     // onSelectXAxisChange
@@ -224,12 +175,12 @@ export class ScatterEditor {
     // clearHeaders
     private clearHeaders() {
         // clear childs
-        while (this.selectXAxis.firstChild) this.selectXAxis.removeChild(this.selectXAxis.firstChild);
-        while (this.selectYAxis.firstChild) this.selectYAxis.removeChild(this.selectYAxis.firstChild);
-        while (this.selectFacies.firstChild) this.selectFacies.removeChild(this.selectFacies.firstChild);
-        while (this.selectSamples.firstChild) this.selectSamples.removeChild(this.selectSamples.firstChild);
-        while (this.selectFrom.firstChild) this.selectFrom.removeChild(this.selectFrom.firstChild);
-        while (this.selectTo.firstChild) this.selectTo.removeChild(this.selectTo.firstChild);
+        clearChilds(this.selectXAxis);
+        clearChilds(this.selectYAxis);
+        clearChilds(this.selectFacies);
+        clearChilds(this.selectSamples);
+        clearChilds(this.selectFrom);
+        clearChilds(this.selectTo);
     }
 
     // drawLayoutInfo
@@ -276,27 +227,28 @@ export class ScatterEditor {
                 this.selectSamples.appendChild(option);
             }
         }
-
-        if (!this.layoutInfo.scatterColor) return;
-        let indexArray = [];
-        this.layoutInfo.scatterColor.valuesAvailable.forEach(value => indexArray.push(value));
-        indexArray.sort();
-        // update from select
-        for (let value of indexArray) {
-            let option = document.createElement('option') as HTMLOptionElement;
-            option.textContent = value.toString();
-            option.value = value.toString();
-            option.style.background = this.layoutInfo.scatterColor.colorTable[value];
-            this.selectFrom.appendChild(option);
-        };
-        // update to select
-        for (let value of indexArray) {
-            let option = document.createElement('option') as HTMLOptionElement;
-            option.textContent = value.toString();
-            option.value = value.toString();
-            option.style.background = this.layoutInfo.scatterColor.colorTable[value];
-            this.selectTo.appendChild(option);
-        };
+        // update merge selects
+        if (this.layoutInfo.scatterColor) {
+            let indexArray = [];
+            this.layoutInfo.scatterColor.valuesAvailable.forEach(value => indexArray.push(value));
+            indexArray.sort();
+            // update from select
+            for (let value of indexArray) {
+                let option = document.createElement('option') as HTMLOptionElement;
+                option.textContent = value.toString();
+                option.value = value.toString();
+                option.style.background = this.layoutInfo.scatterColor.colorTable[value];
+                this.selectFrom.appendChild(option);
+            };
+            // update to select
+            for (let value of indexArray) {
+                let option = document.createElement('option') as HTMLOptionElement;
+                option.textContent = value.toString();
+                option.value = value.toString();
+                option.style.background = this.layoutInfo.scatterColor.colorTable[value];
+                this.selectTo.appendChild(option);
+            };
+        }
     }
 
     // drawScatter
@@ -365,7 +317,7 @@ export class ScatterEditor {
             this.drawLogAxisY(Math.floor(Math.log10(this.layoutInfo.scatterYAxis.max)) + 1);
             this.drawLogLegendY(Math.floor(Math.log10(this.layoutInfo.scatterYAxis.max)) + 1);
         }
-        
+
         // draw scatter grid
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.strokeStyle = "black";
@@ -635,4 +587,10 @@ function downloadImage(name: string, canvas: HTMLCanvasElement) {
     link.download = name + ".png";
     link.href = canvas.toDataURL("image/png");
     link.click();
+}
+
+// clearChilds
+function clearChilds(element: HTMLElement) {
+    while (element.firstChild)
+        element.removeChild(element.firstChild);
 }
