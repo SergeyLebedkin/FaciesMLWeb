@@ -66,10 +66,10 @@ export class ScatterEditor {
             <div><hr></div>
             <div style="display: flex; flex-direction: row;">
                 <button id="buttonUndo">Undo</button>
-                <label>From:</label>
-                <select id="selectFrom"></select>
-                <label>To:</label>
-                <select id="selectTo"></select>
+                <label class="select-label">From:</label>
+                <select class="select-axis" id="selectFrom"></select>
+                <label class="select-label">To:</label>
+                <select class="select-axis" id="selectTo"></select>
                 <button id="buttonApply">Apply</button>
             </div>
             <div><hr></div>
@@ -89,7 +89,7 @@ export class ScatterEditor {
         let buttonApply: HTMLButtonElement = document.getElementById("buttonApply") as HTMLButtonElement;
 
         // get elements events
-        buttonSaveImage.onclick = (() => { this.saveToImage(); this.drawLayoutInfo(); }).bind(this);
+        buttonSaveImage.onclick = this.onButtonSaveImageClick.bind(this);
         buttonDisplayTypeX.onclick = this.onButtonDisplayTypeXClick.bind(this);
         buttonDisplayTypeY.onclick = this.onButtonDisplayTypeYClick.bind(this);
         this.selectXAxis.onchange = this.onSelectXAxisChange.bind(this);
@@ -98,6 +98,11 @@ export class ScatterEditor {
         this.selectSamples.onchange = this.onSelectSamplesChange.bind(this);
         buttonUndo.onclick = this.onButtonMergeUndoClick.bind(this);
         buttonApply.onclick = this.onButtonMergeApplyClick.bind(this);
+    }
+
+    // onButtonSaveImageClick
+    private onButtonSaveImageClick() {
+        this.saveToImage();
     }
 
     // onButtonDisplayTypeXClick
