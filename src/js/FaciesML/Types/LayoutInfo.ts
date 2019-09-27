@@ -9,7 +9,7 @@ export class LayoutInfo {
     public dataTable: DataTable = null;
     public scatterXAxis: DataValues = null;
     public scatterYAxis: DataValues = null;
-    public scatterColor: DataFacies = null;
+    public scatterFacies: DataFacies = null;
     public scatterSamples: DataSamples = null;
 
     // constructor
@@ -17,7 +17,7 @@ export class LayoutInfo {
         this.dataTable = dataTable;
         this.scatterXAxis = null;
         this.scatterYAxis = null;
-        this.scatterColor = null;
+        this.scatterFacies = null;
         this.scatterSamples = null;
         this.resetScatter();
     }
@@ -26,8 +26,8 @@ export class LayoutInfo {
     resetScatter() {
         this.scatterXAxis = this.scatterXAxis ? this.scatterXAxis : this.dataTable.dataValues[1];
         this.scatterYAxis = this.scatterYAxis ? this.scatterYAxis : this.dataTable.dataValues[2];
-        this.scatterColor = this.scatterColor ? this.scatterColor : this.dataTable.dataFacies[0];
-        if (this.scatterColor)
-            this.scatterSamples = this.scatterSamples ? this.scatterSamples : this.scatterColor.dataSamples[0];
+        this.scatterFacies = this.scatterFacies ? this.scatterFacies : this.dataTable.dataFacies[0];
+        if (this.scatterFacies)
+            this.scatterSamples = this.scatterSamples ? this.scatterSamples : this.scatterFacies.dataSamples[0];
     }
 }

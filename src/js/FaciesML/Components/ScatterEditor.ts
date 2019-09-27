@@ -135,7 +135,7 @@ export class ScatterEditor {
     // onSelectFaciesChange
     private onSelectFaciesChange() {
         let dataFacies = this.selectFacies.children[this.selectFacies.selectedIndex]["dataFacies"];
-        this.layoutInfo.scatterColor = dataFacies;
+        this.layoutInfo.scatterFacies = dataFacies;
         this.layoutInfo.scatterSamples = dataFacies.dataSamples[0];
         this.drawLayoutInfo();
     }
@@ -149,18 +149,18 @@ export class ScatterEditor {
 
     // onButtonMergeUndoClick
     private onButtonMergeUndoClick() {
-        this.layoutInfo.scatterColor.removeLastMergePair();
+        this.layoutInfo.scatterFacies.removeLastMergePair();
         this.drawLayoutInfo();
-        this.onFaciesMerged && this.onFaciesMerged(this.layoutInfo.scatterColor);
+        this.onFaciesMerged && this.onFaciesMerged(this.layoutInfo.scatterFacies);
     }
 
     // onButtonMergeApply
     private onButtonMergeApplyClick() {
         if ((this.selectFrom.selectedIndex < 0) || (this.selectTo.selectedIndex < 0)) return;
         if (this.selectFrom.value === this.selectTo.value) return;
-        this.layoutInfo.scatterColor.addMergePair(parseInt(this.selectFrom.value), parseInt(this.selectTo.value));
+        this.layoutInfo.scatterFacies.addMergePair(parseInt(this.selectFrom.value), parseInt(this.selectTo.value));
         this.drawLayoutInfo();
-        this.onFaciesMerged && this.onFaciesMerged(this.layoutInfo.scatterColor);
+        this.onFaciesMerged && this.onFaciesMerged(this.layoutInfo.scatterFacies);
     }
 
     // setLayoutInfo
@@ -214,12 +214,12 @@ export class ScatterEditor {
             let option = document.createElement('option') as HTMLOptionElement;
             option.textContent = dataFacies.name;
             option["dataFacies"] = dataFacies;
-            option.selected = dataFacies === this.layoutInfo.scatterColor;
+            option.selected = dataFacies === this.layoutInfo.scatterFacies;
             this.selectFacies.appendChild(option);
         }
         // update samples select
-        if (this.layoutInfo.scatterColor) {
-            for (let dataSamples of this.layoutInfo.scatterColor.dataSamples) {
+        if (this.layoutInfo.scatterFacies) {
+            for (let dataSamples of this.layoutInfo.scatterFacies.dataSamples) {
                 let option = document.createElement('option') as HTMLOptionElement;
                 option.textContent = dataSamples.name;
                 option["dataSamples"] = dataSamples;
@@ -228,16 +228,16 @@ export class ScatterEditor {
             }
         }
         // update merge selects
-        if (this.layoutInfo.scatterColor) {
+        if (this.layoutInfo.scatterFacies) {
             let indexArray = [];
-            this.layoutInfo.scatterColor.valuesAvailable.forEach(value => indexArray.push(value));
+            this.layoutInfo.scatterFacies.valuesAvailable.forEach(value => indexArray.push(value));
             indexArray.sort();
             // update from select
             for (let value of indexArray) {
                 let option = document.createElement('option') as HTMLOptionElement;
                 option.textContent = value.toString();
                 option.value = value.toString();
-                option.style.background = this.layoutInfo.scatterColor.colorTable[value];
+                option.style.background = this.layoutInfo.scatterFacies.colorTable[value];
                 this.selectFrom.appendChild(option);
             };
             // update to select
@@ -245,7 +245,7 @@ export class ScatterEditor {
                 let option = document.createElement('option') as HTMLOptionElement;
                 option.textContent = value.toString();
                 option.value = value.toString();
-                option.style.background = this.layoutInfo.scatterColor.colorTable[value];
+                option.style.background = this.layoutInfo.scatterFacies.colorTable[value];
                 this.selectTo.appendChild(option);
             };
         }
@@ -263,7 +263,7 @@ export class ScatterEditor {
         this.layoutCanvasCtx.fillStyle = "white";
         this.layoutCanvasCtx.fillRect(0, 0, scatterWidth, scatterHeight);
         this.layoutCanvasCtx.stroke();
-        if (!this.layoutInfo.scatterColor) {
+        if (!this.layoutInfo.scatterFacies) {
             // draw X-axis
             this.layoutCanvasCtx.textBaseline = "middle";
             this.layoutCanvasCtx.textAlign = "center";
@@ -281,7 +281,7 @@ export class ScatterEditor {
         this.layoutCanvasCtx.font = "14px Arial";
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.fillStyle = "black";
-        this.layoutCanvasCtx.fillText(this.layoutInfo.scatterColor.name, scatterWidth / 2, scatterPadding / 2);
+        this.layoutCanvasCtx.fillText(this.layoutInfo.scatterFacies.name, scatterWidth / 2, scatterPadding / 2);
         // draw X-axis name
         this.layoutCanvasCtx.textBaseline = "middle";
         this.layoutCanvasCtx.textAlign = "center";
@@ -483,7 +483,7 @@ export class ScatterEditor {
     private drawValues(): void {
         if (!this.layoutInfo.scatterXAxis) return;
         if (!this.layoutInfo.scatterYAxis) return;
-        if (!this.layoutInfo.scatterColor) return;
+        if (!this.layoutInfo.scatterFacies) return;
         // draw values
         for (let i = 0; i < this.layoutInfo.scatterXAxis.values.length; i++) {
             // get coords
@@ -510,10 +510,10 @@ export class ScatterEditor {
             let y = this.transfomY(yPoint);
             this.layoutCanvasCtx.beginPath();
             this.layoutCanvasCtx.arc(x, y, 3, 0, 2 * Math.PI, false);
-            this.layoutCanvasCtx.fillStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.valuesDisplay[i]];
+            this.layoutCanvasCtx.fillStyle = this.layoutInfo.scatterFacies.colorTable[this.layoutInfo.scatterFacies.valuesDisplay[i]];
             this.layoutCanvasCtx.fill();
             this.layoutCanvasCtx.lineWidth = 1;
-            this.layoutCanvasCtx.strokeStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.valuesDisplay[i]];
+            this.layoutCanvasCtx.strokeStyle = this.layoutInfo.scatterFacies.colorTable[this.layoutInfo.scatterFacies.valuesDisplay[i]];
             this.layoutCanvasCtx.stroke();
         }
     }
@@ -522,7 +522,7 @@ export class ScatterEditor {
     private drawSamples(): void {
         if (!this.layoutInfo.scatterXAxis) return;
         if (!this.layoutInfo.scatterYAxis) return;
-        if (!this.layoutInfo.scatterColor) return;
+        if (!this.layoutInfo.scatterFacies) return;
         if (!this.layoutInfo.scatterSamples) return;
         // draw samples
         for (let i = 0; i < this.layoutInfo.scatterSamples.values.length; i++) {
@@ -550,7 +550,7 @@ export class ScatterEditor {
                 let x = this.transfomX(xPoint);
                 let y = this.transfomY(yPoint);
                 this.layoutCanvasCtx.beginPath();
-                this.layoutCanvasCtx.fillStyle = this.layoutInfo.scatterColor.colorTable[this.layoutInfo.scatterColor.valuesDisplay[i]];
+                this.layoutCanvasCtx.fillStyle = this.layoutInfo.scatterFacies.colorTable[this.layoutInfo.scatterFacies.valuesDisplay[i]];
                 this.layoutCanvasCtx.fillRect(x, y, 4, 4);
                 this.layoutCanvasCtx.strokeStyle = "black";
                 this.layoutCanvasCtx.rect(x, y, 4, 4);
@@ -571,8 +571,8 @@ export class ScatterEditor {
 
     // saveToImage
     saveToImage(): void {
-        if (!this.layoutInfo) return;
-        downloadImage(this.layoutInfo.scatterColor.name, this.layoutCanvas);
+        if (this.layoutInfo)
+            downloadImage(this.layoutInfo.scatterFacies.name, this.layoutCanvas);
     }
 }
 
