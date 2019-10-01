@@ -30,8 +30,11 @@ export class ScatterRenderer {
     private renderWindow: RenderWindow = null;
     // draggind
     private draggingStarted: boolean = false;
-    private mousePrevDragX = 0.0;
-    private mousePrevDragY = 0.0;
+    private mousePrevDragX: number = 0.0;
+    private mousePrevDragY: number = 0.0;
+    // visibility
+    private dataValuesVisible: boolean = false;
+    private dataSamplesVisible: boolean = false;
     // main canvas
     private layoutCanvas: HTMLCanvasElement = null;
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
@@ -52,6 +55,9 @@ export class ScatterRenderer {
         this.draggingStarted = false;
         this.mousePrevDragX = 0.0;
         this.mousePrevDragY = 0.0;
+        // visibility
+        this.dataValuesVisible = true;
+        this.dataSamplesVisible = true;
         // create image canvas
         this.layoutCanvas = document.createElement("canvas");
         this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
@@ -151,6 +157,16 @@ export class ScatterRenderer {
         }
     }
 
+    // setDataValuesVisible
+    public setDataValuesVisible(visible: boolean) {
+        this.dataValuesVisible = visible;
+    }
+
+    // setDataSamplesVisible
+    public setDataSamplesVisible(visible: boolean) {
+        this.dataSamplesVisible = visible;
+    }
+
     // drawScatter
     public drawScatter(): void {
         // set canvas size
@@ -159,8 +175,13 @@ export class ScatterRenderer {
         // clear scatter
         this.clearScatter();
         this.drawScatterBorders();
-        this.drawValues();
-        this.drawSamples();
+        this.drawAxisNameX();
+        this.drawAxisNameY();
+        this.drawFaciesName();
+        if (this.dataValuesVisible)
+            this.drawValues();
+        if (this.dataSamplesVisible)
+            this.drawSamples();
     }
 
     // drawScatterBorder
@@ -185,6 +206,60 @@ export class ScatterRenderer {
         this.layoutCanvasCtx.strokeStyle = "black";
         this.layoutCanvasCtx.strokeRect(scatterX, scatterY, scatterWidth, scatterHeight);
     }
+
+    // drawAxisNameX
+    private drawAxisNameX(): void {
+        // get scatter metrics
+        let scatterX = LAYOUT_SCATTRER_X;
+        let scatterY = LAYOUT_SCATTRER_Y;
+        let scatterWidth = LAYOUT_SCATTRER_WIDTH;
+        let scatterHeight = LAYOUT_SCATTRER_HEIGHT;
+        // draw X-axis name
+        if (this.dataValuesAxisX) {
+            this.layoutCanvasCtx.textBaseline = "middle";
+            this.layoutCanvasCtx.textAlign = "center";
+            this.layoutCanvasCtx.font = "14px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
+            this.layoutCanvasCtx.fillText(this.dataValuesAxisX.name, scatterX + scatterWidth / 2, scatterY + scatterHeight + 10);
+        }
+    }
+
+    // drawAxisNameX
+    private drawAxisNameY(): void {
+        // get scatter metrics
+        let scatterY = LAYOUT_SCATTRER_Y;
+        let scatterHeight = LAYOUT_SCATTRER_HEIGHT;
+        // draw X-axis name
+        if (this.dataValuesAxisY) {
+            this.layoutCanvasCtx.textBaseline = "middle";
+            this.layoutCanvasCtx.textAlign = "center";
+            this.layoutCanvasCtx.font = "14px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
+            this.layoutCanvasCtx.translate(10, scatterY + scatterHeight / 2);
+            this.layoutCanvasCtx.rotate(-Math.PI / 2);
+            this.layoutCanvasCtx.fillText(this.dataValuesAxisY.name, 0, 0);
+            this.layoutCanvasCtx.resetTransform();
+        }
+    }
+
+    // drawFaciesName
+    private drawFaciesName(): void {
+        // get scatter metrics
+        let scatterX = LAYOUT_SCATTRER_X;
+        let scatterWidth = LAYOUT_SCATTRER_WIDTH;
+        // draw X-axis name
+        if (this.dataFacies) {
+            this.layoutCanvasCtx.textBaseline = "middle";
+            this.layoutCanvasCtx.textAlign = "center";
+            this.layoutCanvasCtx.font = "14px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
+            this.layoutCanvasCtx.fillText(this.dataFacies.name, scatterX + scatterWidth / 2, 10);
+        }
+    }
+
 
     // drawValues
     private drawValues(): void {

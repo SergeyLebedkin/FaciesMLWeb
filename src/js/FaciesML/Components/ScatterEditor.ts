@@ -8,12 +8,14 @@ import { ScatterRenderer } from "./ScatterRenderer";
 export class ScatterEditor {
     // parents
     private parentHeadrs: HTMLDivElement;
-    private parentScatter: HTMLDivElement;
     // axis selects
     private selectXAxis: HTMLSelectElement = null;
     private selectYAxis: HTMLSelectElement = null;
     private selectFacies: HTMLSelectElement = null;
     private selectSamples: HTMLSelectElement = null;
+    // draw checkboxes
+    private checkboxDrawValues: HTMLInputElement = null;
+    private checkboxDrawSamples: HTMLInputElement = null;
     // merge controls
     private selectFrom: HTMLSelectElement = null;
     private selectTo: HTMLSelectElement = null;
@@ -27,7 +29,6 @@ export class ScatterEditor {
     constructor(parentHeadrs: HTMLDivElement, parentScatter: HTMLDivElement) {
         // setup parent
         this.parentHeadrs = parentHeadrs;
-        this.parentScatter = parentScatter;
         // image parameters
         this.layoutInfo = null;
         // scatter renderer
@@ -52,6 +53,14 @@ export class ScatterEditor {
                 <label class="select-label">Samples:</label>
                 <select id="selectSamples"></select>
             </div>
+            <div style="display: flex; flex-direction: row;">
+                <input type="checkbox" id="checkboxDrawValues" checked></select>
+                <label for="checkboxDrawValues">Draw values</label>
+            </div>
+            <div style="display: flex; flex-direction: row;">
+                <input type="checkbox" id="checkboxDrawSamples" checked></select>
+                <label for="checkboxDrawSamples">Draw Samples</label>
+            </div>
             <div><hr></div>
             <div style="display: flex; flex-direction: row;">
                 <button id="buttonUndo">Undo</button>
@@ -72,6 +81,8 @@ export class ScatterEditor {
         this.selectYAxis = document.getElementById("selectYAxis") as HTMLSelectElement;
         this.selectFacies = document.getElementById("selectFacies") as HTMLSelectElement;
         this.selectSamples = document.getElementById("selectSamples") as HTMLSelectElement;
+        this.checkboxDrawValues = document.getElementById("checkboxDrawValues") as HTMLInputElement;
+        this.checkboxDrawSamples = document.getElementById("checkboxDrawSamples") as HTMLInputElement;
         this.selectFrom = document.getElementById("selectFrom") as HTMLSelectElement;
         this.selectTo = document.getElementById("selectTo") as HTMLSelectElement;
         let buttonUndo: HTMLButtonElement = document.getElementById("buttonUndo") as HTMLButtonElement;
@@ -85,8 +96,14 @@ export class ScatterEditor {
         this.selectYAxis.onchange = this.onSelectYAxisChange.bind(this);
         this.selectFacies.onchange = this.onSelectFaciesChange.bind(this);
         this.selectSamples.onchange = this.onSelectSamplesChange.bind(this);
+        this.checkboxDrawValues.onchange = this.onCheckboxDrawValuesChange.bind(this);
+        this.checkboxDrawSamples.onchange = this.onCheckboxDrawSamplesChange.bind(this);
         buttonUndo.onclick = this.onButtonMergeUndoClick.bind(this);
         buttonApply.onclick = this.onButtonMergeApplyClick.bind(this);
+
+        // setup renderer
+        this.scatterRenderer.setDataValuesVisible(this.checkboxDrawValues.checked);
+        this.scatterRenderer.setDataSamplesVisible(this.checkboxDrawSamples.checked);
     }
 
     // onButtonSaveImageClick
@@ -138,6 +155,18 @@ export class ScatterEditor {
         this.scatterRenderer.drawScatter();
     }
 
+    // onCheckboxDrawValuesChange
+    private onCheckboxDrawValuesChange() {
+        this.scatterRenderer.setDataValuesVisible(this.checkboxDrawValues.checked)
+        this.scatterRenderer.drawScatter();
+    }
+
+    // onCheckboxDrawSamplesChange
+    private onCheckboxDrawSamplesChange() {
+        this.scatterRenderer.setDataSamplesVisible(this.checkboxDrawSamples.checked)
+        this.scatterRenderer.drawScatter();
+    }
+
     // onSelectSamplesChange
     private onSelectSamplesChange() {
         let dataSamples = this.selectSamples.children[this.selectSamples.selectedIndex]["dataSamples"];
@@ -145,6 +174,7 @@ export class ScatterEditor {
         this.scatterRenderer.setDataSamples(dataSamples);
         this.scatterRenderer.drawScatter();
     }
+
 
     // onButtonMergeUndoClick
     private onButtonMergeUndoClick() {
