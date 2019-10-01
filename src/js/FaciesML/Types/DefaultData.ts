@@ -44,25 +44,25 @@ export function createRandomDataTable(): DataTable {
     dataValuesAE90.values = Array.from(defaultAE90);
     dataValuesAE90.name = "AE90";
     dataValuesAE90.unit = "OHMM";
-    dataValuesAE90.selected = true;
+    dataValuesAE90.selected = false;
     dataValuesAE90.updateMinMax();
     // create data facies
     let dataFacies3 = new DataFacies();
     dataFacies3.values = Array.from(defaultFacies3);
     dataFacies3.name = "3";
-    dataFacies3.selected = true;
+    dataFacies3.selected = false;
     dataFacies3.updateMergeData();
     // create data samples 3 - 135
     let dataSamples3_135 = new DataSamples();
     dataSamples3_135.name = "135";
-    dataSamples3_135.selected = true;
+    dataSamples3_135.selected = false;
     dataSamples3_135.recommended = true;
     dataSamples3_135.values = Array.from(defaultSamples9_150);
     dataFacies3.dataSamples.push(dataSamples3_135);
     // create data samples 3 - 144
     let dataSamples3_144 = new DataSamples();
     dataSamples3_144.name = "144";
-    dataSamples3_144.selected = true;
+    dataSamples3_144.selected = false;
     dataSamples3_144.recommended = false;
     dataSamples3_144.values = Array.from(defaultSamples9_170);
     dataFacies3.dataSamples.push(dataSamples3_144);
@@ -70,19 +70,19 @@ export function createRandomDataTable(): DataTable {
     let dataFacies9 = new DataFacies();
     dataFacies9.values = Array.from(defaultFacies9);
     dataFacies9.name = "9";
-    dataFacies9.selected = true;
+    dataFacies9.selected = false;
     dataFacies9.updateMergeData();
     // create data samples 9 - 150
     let dataSamples9_150 = new DataSamples();
     dataSamples9_150.name = "150";
-    dataSamples9_150.selected = true;
+    dataSamples9_150.selected = false;
     dataSamples9_150.recommended = false;
     dataSamples9_150.values = Array.from(defaultSamples9_150);
     dataFacies9.dataSamples.push(dataSamples9_150);
     // create data samples 9 - 170
     let dataSamples9_170 = new DataSamples();
     dataSamples9_170.name = "170";
-    dataSamples9_170.selected = true;
+    dataSamples9_170.selected = false;
     dataSamples9_170.recommended = true;
     dataSamples9_170.values = Array.from(defaultSamples9_170);
     dataFacies9.dataSamples.push(dataSamples9_170);

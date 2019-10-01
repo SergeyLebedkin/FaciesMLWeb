@@ -15,6 +15,8 @@ export class DataValues {
     public max: number = 0;
     public displayMin: number = 0;
     public displayMax: number = 0;
+    public selectRangeMin: number = 0;
+    public selectRangeMax: number = 0;
     public displayType: DisplayType = DisplayType.LINEAR;
     public values: Array<number> = [];
     public predicts: Array<number> = [];
@@ -23,10 +25,12 @@ export class DataValues {
     constructor() {
         this.name = "";
         this.unit = "";
-        this.min = 0;
-        this.max = 0;
-        this.displayMin = 0;
-        this.displayMax = 0;
+        this.min = 0.0;
+        this.max = 0.0;
+        this.displayMin = 0.0;
+        this.displayMax = 0.0;
+        this.selectRangeMin = 0.0;
+        this.selectRangeMax = 0.0;
         this.displayType = DisplayType.LINEAR;
         this.values = [];
         this.predicts = [];
@@ -59,6 +63,8 @@ export class DataValues {
         // update display properties
         this.displayMin = this.min;
         this.displayMax = this.max;
+        this.selectRangeMin = this.min;
+        this.selectRangeMax = this.max;
     }
 
     // loadPredictFromJson

@@ -111,6 +111,61 @@ export class LayoutInfoEditor {
         };
     }
 
+    // onButtonDataValuesLogClick
+    private onButtonDataValuesLogClick(event: Event) {
+        let dataValues: DataValues = event.target["dataValues"] as DataValues;
+        if (dataValues.displayType === DisplayType.LINEAR)
+            dataValues.displayType = DisplayType.LOG;
+        else if (dataValues.displayType === DisplayType.LOG)
+            dataValues.displayType = DisplayType.LINEAR;
+        this.drawLayoutInfo();
+    }
+
+    // onInputDisplayValueMinChange
+    private onInputDisplayValueMinChange(event: Event) {
+        let dataValues: DataValues = event.target["dataValues"] as DataValues;
+        let newValue: number = parseFloat((event.target as HTMLInputElement).value);
+        dataValues.displayMin = Math.min(Math.max(newValue, dataValues.min), dataValues.displayMax);
+        this.drawLayoutInfo();
+    }
+
+    // onInputDisplayValueMaxChange
+    private onInputDisplayValueMaxChange(event: Event) {
+        let dataValues: DataValues = event.target["dataValues"] as DataValues;
+        let newValue: number = parseFloat((event.target as HTMLInputElement).value);
+        dataValues.displayMax = Math.min(Math.max(newValue, dataValues.displayMin), dataValues.max);
+        this.drawLayoutInfo();
+    }
+
+    // onInputSelectRangeMinChange
+    private onInputSelectRangeMinChange(event: Event) {
+        let dataValues: DataValues = event.target["dataValues"] as DataValues;
+        let newValue: number = parseFloat((event.target as HTMLInputElement).value);
+        dataValues.selectRangeMin = Math.min(Math.max(newValue, dataValues.min), dataValues.selectRangeMax);
+        this.drawLayoutInfo();
+    }
+
+    // onInputSelectRangeMaxChange
+    private onInputSelectRangeMaxChange(event: Event) {
+        let dataValues: DataValues = event.target["dataValues"] as DataValues;
+        let newValue: number = parseFloat((event.target as HTMLInputElement).value);
+        dataValues.selectRangeMax = Math.min(Math.max(newValue, dataValues.selectRangeMin), dataValues.max);
+        this.drawLayoutInfo();
+    }
+
+    // onButtonRangeSelectClick
+    private onButtonRangeSelectClick(event: Event) {
+        let dataValues: DataValues = event.target["dataValues"] as DataValues;
+        this.layoutInfo.dataTable.selections.fill(0);
+        for (let i = 0; i < dataValues.values.length; i++) {
+            if ((dataValues.values[i] <= dataValues.selectRangeMax) &&
+                (dataValues.values[i] >= dataValues.selectRangeMin)) {
+                this.layoutInfo.dataTable.selections[i] = 1.0;
+            }
+        }
+        this.drawLayoutInfo();
+    }
+
     // setEnabled
     public setEnabled(enable: boolean) {
         if (this.enabled !== enable)
@@ -240,136 +295,73 @@ export class LayoutInfoEditor {
     // addHeader
     private addHeader(dataValues: DataValues): void {
         // legend sizes
-        let legendHeight = LAYOUT_LEGENT_HEIGHT;
         let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
         // create header
         let divHeader = document.createElement("div");
-        //divHeader.style.height = legendHeight.toString() + "px";
-        divHeader.style.width = legendWidth.toString() + "px";
-        divHeader.style.border = "1px solid black";
-        divHeader.style.display = "flex";
-        divHeader.style.flexDirection = "column";
+        divHeader.style.cssText = `display: flex; flex-direction: column; width:${legendWidth}px; border: 1px solid black`;
         this.parentHeadrs.appendChild(divHeader);
 
-        // create div controls
-        let divControls = document.createElement("div");
-        divControls.style.display = "flex";
-        divControls.style.flexDirection = "row-reverse";
-        divHeader.appendChild(divControls);
+        // create headre elements
+        divHeader.innerHTML = `
+        <div style="display: flex; flex-direction: row-reverse">
+            <button id="buttonDataValuesLog${dataValues.name}">L</button>
+        </div>
+        <div style="text-align: center; border-bottom: 1px solid black">${dataValues.name}</div>
+        <div style="display: flex; flex-direction: row">
+            <input id="inputDisplayValueMin${dataValues.name}" type="text" style="border: none; width: 100%; text-align: center;" value="${dataValues.displayMin.toFixed(2)}"></input>
+            <div style="text-align: center; border-right: 1px solid black; border-left: 1px solid black;">${dataValues.unit}</div>
+            <input id="inputDisplayValueMax${dataValues.name}" type="text" style="border: none; width: 100%; text-align: center;" value="${dataValues.displayMax.toFixed(2)}"></input>
+        </div>
+        <div style="display: flex; flex-direction: row; border-top: 1px solid black">
+            <input id="inputRangeValueMin${dataValues.name}" type="text" style="border: none; width: 100%; text-align: center;" value="${dataValues.selectRangeMin.toFixed(2)}"></input>
+            <button id="buttonRangeSelect${dataValues.name}">Select</button>
+            <input id="inputRangeValueMax${dataValues.name}" type="text" style="border: none; width: 100%; text-align: center;" value="${dataValues.selectRangeMax.toFixed(2)}"></input>
+        </div>`;
 
-        // button display type
-        let buttonDisplayType = document.createElement("button");
-        buttonDisplayType.innerText = "L";
-        buttonDisplayType.disabled = dataValues.min <= 0;
-        buttonDisplayType["dataValues"] = dataValues;
-        buttonDisplayType.onclick = (event => {
-            let dataValues: DataValues = event.target["dataValues"] as DataValues;
-            if (dataValues.displayType === DisplayType.LINEAR)
-                dataValues.displayType = DisplayType.LOG;
-            else if (dataValues.displayType === DisplayType.LOG)
-                dataValues.displayType = DisplayType.LINEAR;
-            this.drawLayoutInfo();
-        }).bind(this);
-        divControls.appendChild(buttonDisplayType);
-
-        // create div header name
-        let divHeaderName = document.createElement("div");
-        divHeaderName.innerText = dataValues.name;
-        divHeaderName.style.textAlign = "center";
-        divHeaderName.style.borderBottom = "1px solid black";
-        divHeader.appendChild(divHeaderName);
-
-        // create div header minmax
-        let divHeaderDisplayMinMax = document.createElement("div");
-        divHeaderDisplayMinMax.style.display = "flex";
-        divHeaderDisplayMinMax.style.flexDirection = "row";
-        divHeader.appendChild(divHeaderDisplayMinMax);
-
-        // create input header min
-        let inputHeaderDisplayMin = document.createElement("input");
-        inputHeaderDisplayMin.type = "text";
-        inputHeaderDisplayMin.style.display = "block";
-        inputHeaderDisplayMin.style.width = "100%";
-        inputHeaderDisplayMin.style.textAlign = "center";
-        inputHeaderDisplayMin.value = dataValues.displayMin.toFixed(2);
-        inputHeaderDisplayMin["dataValues"] = dataValues;
-        inputHeaderDisplayMin.onchange = ((event) => {
-            let dataValues: DataValues = event.target["dataValues"] as DataValues;
-            let newValue: number = event.target.value;
-            dataValues.displayMin = Math.min(Math.max(newValue, dataValues.min), dataValues.displayMax);
-            this.drawLayoutInfo();
-        }).bind(this);
-        divHeaderDisplayMinMax.appendChild(inputHeaderDisplayMin);
-
-        // create value label
-        // create div header name
-        let divUnitName = document.createElement("div");
-        divUnitName.innerText = dataValues.unit;
-        divUnitName.style.textAlign = "center";
-        divHeaderDisplayMinMax.appendChild(divUnitName);
-
-        // create input header max
-        let inputHeaderDisplayMax = document.createElement("input");
-        inputHeaderDisplayMax.type = "text";
-        inputHeaderDisplayMax.style.display = "block";
-        inputHeaderDisplayMax.style.width = "100%";
-        inputHeaderDisplayMax.style.textAlign = "center";
-        inputHeaderDisplayMax.value = dataValues.displayMax.toFixed(2);
-        inputHeaderDisplayMax["dataValues"] = dataValues;
-        inputHeaderDisplayMax.onchange = ((event) => {
-            let dataValues: DataValues = event.target["dataValues"] as DataValues;
-            let newValue: number = event.target.value;
-            //dataValues.displayMax = Math.min(dataValues.max, Math.max(dataValues.min, newValue));
-            dataValues.displayMax = Math.min(Math.max(newValue, dataValues.displayMin), dataValues.max);
-            this.drawLayoutInfo();
-        }).bind(this);
-        divHeaderDisplayMinMax.appendChild(inputHeaderDisplayMax);
+        // get created elements
+        let buttonDataValuesLog = document.getElementById(`buttonDataValuesLog${dataValues.name}`) as HTMLButtonElement;
+        let inputDisplayValueMin = document.getElementById(`inputDisplayValueMin${dataValues.name}`) as HTMLInputElement;
+        let inputDisplayValueMax = document.getElementById(`inputDisplayValueMax${dataValues.name}`) as HTMLInputElement;
+        let inputRangeValueMin = document.getElementById(`inputRangeValueMin${dataValues.name}`) as HTMLInputElement;
+        let buttonRangeSelect = document.getElementById(`buttonRangeSelect${dataValues.name}`) as HTMLButtonElement;
+        let inputRangeValueMax = document.getElementById(`inputRangeValueMax${dataValues.name}`) as HTMLInputElement;
+        // setup created elements
+        buttonDataValuesLog["dataValues"] = dataValues;
+        inputDisplayValueMin["dataValues"] = dataValues;
+        inputDisplayValueMax["dataValues"] = dataValues;
+        inputRangeValueMin["dataValues"] = dataValues;
+        buttonRangeSelect["dataValues"] = dataValues;
+        inputRangeValueMax["dataValues"] = dataValues;
+        // setup events
+        buttonDataValuesLog.onclick = this.onButtonDataValuesLogClick.bind(this);
+        inputDisplayValueMin.onchange = this.onInputDisplayValueMinChange.bind(this);
+        inputDisplayValueMax.onchange = this.onInputDisplayValueMaxChange.bind(this);
+        inputRangeValueMin.onchange = this.onInputSelectRangeMinChange.bind(this);
+        buttonRangeSelect.onclick = this.onButtonRangeSelectClick.bind(this);
+        inputRangeValueMax.onchange = this.onInputSelectRangeMaxChange.bind(this);
     }
 
     // addHeaderBase
     private addHeaderBase(dataValues: DataValues): void {
         // legend sizes
-        let legendHeight = LAYOUT_LEGENT_HEIGHT;
         let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
         // create header
         let divHeader = document.createElement("div");
-        //divHeader.style.height = legendHeight.toString() + "px";
         divHeader.style.width = legendWidth.toString() + "px";
-        divHeader.style.border = "1px solid black";
         divHeader.style.display = "flex";
         divHeader.style.flexDirection = "column";
+        divHeader.style.border = "1px solid black";
+        divHeader.style.textAlign = "center";
         this.parentHeadrs.appendChild(divHeader);
 
-        // create div header name
-        let divHeaderName = document.createElement("div");
-        divHeaderName.innerText = dataValues.name + " (" + dataValues.unit + ")";
-        divHeaderName.style.textAlign = "center";
-        divHeaderName.style.borderBottom = "1px solid black";
-        divHeader.appendChild(divHeaderName);
-
-        // create div header minmax
-        let divHeaderMinMax = document.createElement("div");
-        divHeaderMinMax.style.display = "flex";
-        divHeaderMinMax.style.flexDirection = "row";
-        divHeader.appendChild(divHeaderMinMax);
-
-        // create div header min
-        let divHeaderMin = document.createElement("div");
-        divHeaderMin.style.display = "block";
-        divHeaderMin.style.width = "100%";
-        divHeaderMin.style.textAlign = "center";
-        divHeaderMin.style.borderRight = "1px solid black";
-        divHeaderMin.innerText = dataValues.min.toString();
-        divHeaderMinMax.appendChild(divHeaderMin);
-
-        // create div header max
-        let divHeaderMax = document.createElement("div");
-        divHeaderMax.style.display = "block";
-        divHeaderMax.style.width = "100%";
-        divHeaderMax.style.textAlign = "center";
-        divHeaderMax.style.borderLeft = "1px solid black";
-        divHeaderMax.innerText = dataValues.max.toString();
-        divHeaderMinMax.appendChild(divHeaderMax);
+        // create headre elements
+        divHeader.innerHTML = `
+        <div style="text-align: center; border-bottom: 1px solid black; heigth: 100%">${dataValues.name}</div>
+        <div style="display: flex; flex-direction: row; height: 100%;">
+            <div id="inputDisplayValueMin${dataValues.name}" style="border: none; width: 100%; text-align: center;">${dataValues.displayMin.toFixed(2)}</div>
+            <div style="text-align: center; border-right: 1px solid black; border-left: 1px solid black;">${dataValues.unit}</div>
+            <div id="inputDisplayValueMax${dataValues.name}" style="border: none; width: 100%; text-align: center;">${dataValues.displayMax.toFixed(2)}</div>
+        </div>`;
     }
 
     // addHeaderFacie
@@ -426,7 +418,6 @@ export class LayoutInfoEditor {
             // create header color table
             let divHeaderColor = document.createElement("div");
             divHeaderColor.style.flexGrow = "1";
-            divHeaderColor.style.height = "22px";
             divHeaderColor.style.width = "auto";
             divHeaderColor.style.background = dataFacies.colorTable[i];
             divHeaderColor["dataFacies"] = dataFacies;
