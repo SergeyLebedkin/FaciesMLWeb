@@ -10,8 +10,6 @@ export class RenderWindow {
     // reset
     public reset(axisX: DataValues, axisY: DataValues): void {
         if (axisX && axisY) {
-            console.log(axisX);
-            console.log(axisY);
             this.centerX = (axisX.max + axisX.min) * 0.5;
             this.centerY = (axisY.max + axisY.min) * 0.5;
             this.height = (axisY.max - axisY.min);
