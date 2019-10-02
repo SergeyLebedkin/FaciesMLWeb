@@ -352,7 +352,7 @@ export class LayoutInfoEditor {
             <input 
                 id="inputRangeValueMin${dataValues.name}" type="range"
                 style="border: none; width: 100%;
-                min="${dataValues.min}" max="${dataValues.max}"
+                min="${dataValues.min}" max="${dataValues.max}" step="${(dataValues.max - dataValues.min)/100}"
                 value="${dataValues.selectRangeMin}">
             </input>
         </div>
@@ -360,7 +360,7 @@ export class LayoutInfoEditor {
             <input 
                 id="inputRangeValueMax${dataValues.name}" type="range"
                 style="border: none; width: 100%;
-                min="${dataValues.min}" max="${dataValues.max}"
+                min="${dataValues.min}" max="${dataValues.max}" step="${(dataValues.max - dataValues.min)/100}"
                 value="${dataValues.selectRangeMax}">
             </input>
         </div>
