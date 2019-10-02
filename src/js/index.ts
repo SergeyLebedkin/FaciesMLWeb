@@ -203,6 +203,7 @@ window.onload = event => {
     gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
     gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
     gLayoutInfoEditor.onColorChanged = dataFacies => gScatterEditor.drawLayoutInfo();
+    gLayoutInfoEditor.onSelectionChanged = layoutInfo => gScatterEditor.drawLayoutInfo();
     gScatterEditor = new ScatterEditor(divScatterHeaders, divScatterPanel);
     gScatterEditor.onFaciesMerged = dataFacies => gLayoutInfoEditor.drawLayoutInfo();
     // set visibility

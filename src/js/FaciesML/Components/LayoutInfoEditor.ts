@@ -30,6 +30,7 @@ export class LayoutInfoEditor {
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
     // events
     public onColorChanged: (this: LayoutInfoEditor, dataFacies: DataFacies) => any = null;
+    public onSelectionChanged: (this: LayoutInfoEditor, layoutInfo: LayoutInfo) => any = null;
     // constructor
     constructor(
         parentTitle: HTMLDivElement,
@@ -72,12 +73,14 @@ export class LayoutInfoEditor {
             // fill selections array
             if (this.selectionMode === SelectionMode.ADD) {
                 this.layoutInfo.dataTable.selections.fill(1, this.selectionStart, this.selectionEnd);
+                this.onSelectionChanged && this.onSelectionChanged(this.layoutInfo);
             } else if (this.selectionMode === SelectionMode.REMOVE) {
                 this.layoutInfo.dataTable.selections.fill(0, this.selectionStart, this.selectionEnd);
+                this.onSelectionChanged && this.onSelectionChanged(this.layoutInfo);
             }
             this.selectionStarted = false;
             // redraw stuff
-            this.drawLayoutInfo();
+            this.drawCanvas();
         }
     }
 
@@ -90,7 +93,7 @@ export class LayoutInfoEditor {
             // update selection region width and height
             this.selectionEnd = mouseCoords.y / this.scale;
             // redraw stuff
-            this.drawLayoutInfo();
+            this.drawCanvas();
             this.drawSelectionRange();
         }
     }
@@ -118,7 +121,7 @@ export class LayoutInfoEditor {
             dataValues.displayType = DisplayType.LOG;
         else if (dataValues.displayType === DisplayType.LOG)
             dataValues.displayType = DisplayType.LINEAR;
-        this.drawLayoutInfo();
+        this.drawCanvas();
     }
 
     // onInputDisplayValueMinChange
@@ -126,7 +129,7 @@ export class LayoutInfoEditor {
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
         let newValue: number = parseFloat((event.target as HTMLInputElement).value);
         dataValues.displayMin = Math.min(Math.max(newValue, dataValues.min), dataValues.displayMax);
-        this.drawLayoutInfo();
+        this.drawCanvas();
     }
 
     // onInputDisplayValueMaxChange
@@ -134,7 +137,7 @@ export class LayoutInfoEditor {
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
         let newValue: number = parseFloat((event.target as HTMLInputElement).value);
         dataValues.displayMax = Math.min(Math.max(newValue, dataValues.displayMin), dataValues.max);
-        this.drawLayoutInfo();
+        this.drawCanvas();
     }
 
     // onInputSelectRangeMinChange
@@ -142,28 +145,31 @@ export class LayoutInfoEditor {
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
         let newValue: number = parseFloat((event.target as HTMLInputElement).value);
         dataValues.selectRangeMin = Math.min(Math.max(newValue, dataValues.min), dataValues.selectRangeMax);
-        this.drawLayoutInfo();
+        this.drawCanvas();
     }
 
     // onInputSelectRangeMaxChange
     private onInputSelectRangeMaxChange(event: Event) {
+        console.log((event.target as HTMLInputElement).value)
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
         let newValue: number = parseFloat((event.target as HTMLInputElement).value);
         dataValues.selectRangeMax = Math.min(Math.max(newValue, dataValues.selectRangeMin), dataValues.max);
-        this.drawLayoutInfo();
+        this.drawCanvas();
     }
 
     // onButtonRangeSelectClick
     private onButtonRangeSelectClick(event: Event) {
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
-        this.layoutInfo.dataTable.selections.fill(0);
+        //this.layoutInfo.dataTable.selections.fill(0);
         for (let i = 0; i < dataValues.values.length; i++) {
-            if ((dataValues.values[i] <= dataValues.selectRangeMax) &&
-                (dataValues.values[i] >= dataValues.selectRangeMin)) {
-                this.layoutInfo.dataTable.selections[i] = 1.0;
+            if (((dataValues.values[i] > dataValues.selectRangeMax) ||
+                (dataValues.values[i] < dataValues.selectRangeMin)) &&
+                (this.layoutInfo.dataTable.selections[i] > 0)) {
+                this.layoutInfo.dataTable.selections[i] = 0;
             }
         }
-        this.drawLayoutInfo();
+        this.drawCanvas();
+        this.onSelectionChanged && this.onSelectionChanged(this.layoutInfo);
     }
 
     // setEnabled
@@ -208,25 +214,57 @@ export class LayoutInfoEditor {
 
     // drawLayoutInfo
     public drawLayoutInfo(): void {
+        if (this.layoutInfo) {
+            this.updateHeaders();
+            this.drawCanvas();
+        }
+    }
+
+    // updateHeaders
+    private updateHeaders(): void {
+        if (this.layoutInfo) {
+            this.clearHeaders();
+            // draw depth
+            this.addHeaderBase(this.layoutInfo.dataTable.dataValues[0]);
+            // draw selected data values
+            for (let dataValues of this.layoutInfo.dataTable.dataValues) {
+                // add value header
+                if (dataValues.selected)
+                    this.addHeader(dataValues);
+            }
+            // draw selected datafacies
+            for (let dataFacies of this.layoutInfo.dataTable.dataFacies) {
+                // add facies header
+                if (dataFacies.selected)
+                    this.addHeaderFacie(dataFacies);
+                // add samples header
+                for (let dataSamples of dataFacies.dataSamples) {
+                    if (dataSamples.selected)
+                        this.addHeaderSamples(dataSamples);
+                }
+            }
+        }
+    }
+
+    // drawCanvas
+    private drawCanvas() {
         if (!this.layoutInfo) return;
         this.parentTitle.innerText = this.layoutInfo.dataTable.name;
         let columsCount = this.layoutInfo.dataTable.getSelectedCount();
         this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
         this.layoutCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length) * this.scale;
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
-        this.clearHeaders();
         this.clearCanvas();
         // draw data ranges
         this.drawLayoutInfoSelections(0);
         // draw depth
-        this.addHeaderBase(this.layoutInfo.dataTable.dataValues[0]);
         this.drawYAxis(this.layoutInfo.dataTable.dataValues[0], 0, 0);
         // draw selected data values
         let columnIndex = 1;
         for (let dataValues of this.layoutInfo.dataTable.dataValues) {
             if (dataValues.selected) {
-                this.addHeader(dataValues);
                 this.drawGrid(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
+                this.drawSelectionRanges(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                 this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0, gColorTable[columnIndex]);
                 columnIndex++;
             }
@@ -234,14 +272,12 @@ export class LayoutInfoEditor {
         // draw selected datafacies
         for (let dataFacies of this.layoutInfo.dataTable.dataFacies) {
             if (dataFacies.selected) {
-                this.addHeaderFacie(dataFacies);
                 this.drawFacies(dataFacies, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                 columnIndex++;
             }
             // add samples
             for (let dataSamples of dataFacies.dataSamples) {
                 if (dataSamples.selected) {
-                    this.addHeaderSamples(dataSamples);
                     this.drawGridFacies(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     this.drawSamples(dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     columnIndex++;
@@ -313,9 +349,23 @@ export class LayoutInfoEditor {
             <input id="inputDisplayValueMax${dataValues.name}" type="text" style="border: none; width: 100%; text-align: center;" value="${dataValues.displayMax.toFixed(2)}"></input>
         </div>
         <div style="display: flex; flex-direction: row; border-top: 1px solid black">
-            <input id="inputRangeValueMin${dataValues.name}" type="text" style="border: none; width: 100%; text-align: center;" value="${dataValues.selectRangeMin.toFixed(2)}"></input>
-            <button id="buttonRangeSelect${dataValues.name}">Select</button>
-            <input id="inputRangeValueMax${dataValues.name}" type="text" style="border: none; width: 100%; text-align: center;" value="${dataValues.selectRangeMax.toFixed(2)}"></input>
+            <input 
+                id="inputRangeValueMin${dataValues.name}" type="range"
+                style="border: none; width: 100%;
+                min="${dataValues.min}" max="${dataValues.max}"
+                value="${dataValues.selectRangeMin}">
+            </input>
+        </div>
+        <div style="display: flex; flex-direction: row; border-top: 1px solid black">
+            <input 
+                id="inputRangeValueMax${dataValues.name}" type="range"
+                style="border: none; width: 100%;
+                min="${dataValues.min}" max="${dataValues.max}"
+                value="${dataValues.selectRangeMax}">
+            </input>
+        </div>
+        <div style="display: flex; flex-direction: row; border-top: 1px solid black">
+            <button style="width: 100%" id="buttonRangeSelect${dataValues.name}">Apply</button>
         </div>`;
 
         // get created elements
@@ -336,9 +386,9 @@ export class LayoutInfoEditor {
         buttonDataValuesLog.onclick = this.onButtonDataValuesLogClick.bind(this);
         inputDisplayValueMin.onchange = this.onInputDisplayValueMinChange.bind(this);
         inputDisplayValueMax.onchange = this.onInputDisplayValueMaxChange.bind(this);
-        inputRangeValueMin.onchange = this.onInputSelectRangeMinChange.bind(this);
+        inputRangeValueMin.oninput = this.onInputSelectRangeMinChange.bind(this);
+        inputRangeValueMax.oninput = this.onInputSelectRangeMaxChange.bind(this);
         buttonRangeSelect.onclick = this.onButtonRangeSelectClick.bind(this);
-        inputRangeValueMax.onchange = this.onInputSelectRangeMaxChange.bind(this);
     }
 
     // addHeaderBase
@@ -459,6 +509,38 @@ export class LayoutInfoEditor {
         divHeader.style.textAlign = "center";
         divHeader.innerText = dataSamples.name;
         this.parentHeadrs.appendChild(divHeader);
+    }
+
+    // drawSelectionRanges
+    private drawSelectionRanges(dataValues: DataValues, x: number, y: number): void {
+        // start drawing
+        let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
+        this.layoutCanvasCtx.translate(x, y);
+        let valueMin = dataValues.selectRangeMin;
+        let valueMax = dataValues.selectRangeMax;
+        let xPointMin = valueMin;
+        let xPointMax = valueMax;
+        if (dataValues.displayType === DisplayType.LINEAR) {
+            xPointMin = (valueMin - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
+            xPointMax = (valueMax - dataValues.displayMin) / (dataValues.displayMax - dataValues.displayMin);
+            xPointMin = Math.min(1.0, Math.max(0.0, xPointMin)) * LAYOUT_COLUMN_WIDTH;
+            xPointMax = Math.min(1.0, Math.max(0.0, xPointMax)) * LAYOUT_COLUMN_WIDTH;
+        }
+        else if (dataValues.displayType === DisplayType.LOG) {
+            xPointMin = Math.log10(valueMin) / numSections;
+            xPointMax = Math.log10(valueMax) / numSections;
+            xPointMin = Math.min(1.0, Math.max(0.0, xPointMin)) * LAYOUT_COLUMN_WIDTH;
+            xPointMax = Math.min(1.0, Math.max(0.0, xPointMax)) * LAYOUT_COLUMN_WIDTH;
+        }
+        this.layoutCanvasCtx.beginPath();
+        this.layoutCanvasCtx.strokeStyle = "#888888";
+        this.layoutCanvasCtx.lineWidth = 2;
+        this.layoutCanvasCtx.moveTo(xPointMin, 0);
+        this.layoutCanvasCtx.lineTo(xPointMin, this.layoutCanvas.height * this.scale);
+        this.layoutCanvasCtx.moveTo(xPointMax, 0);
+        this.layoutCanvasCtx.lineTo(xPointMax, this.layoutCanvas.height * this.scale);
+        this.layoutCanvasCtx.stroke();
+        this.layoutCanvasCtx.translate(-x, -y);
     }
 
     // drawPlot
@@ -604,8 +686,8 @@ export class LayoutInfoEditor {
         // clear legend canvas
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
-        this.layoutCanvasCtx.lineWidth = 1;
-        this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
+        this.layoutCanvasCtx.lineWidth = 2;
+        this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
         this.layoutCanvasCtx.moveTo(0, 0);
         this.layoutCanvasCtx.lineTo(0, dataValues.values.length * this.scale);
         if (dataValues.displayType === DisplayType.LINEAR) {
@@ -617,6 +699,8 @@ export class LayoutInfoEditor {
                 for (let j = 1; j < 10; j++) {
                     let value0 = Math.pow(10, i) * j;
                     let xPoint0 = Math.log10(value0) / numSections;
+                    this.layoutCanvasCtx.lineWidth = 2;
+                    this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
                     this.layoutCanvasCtx.moveTo(xPoint0 * LAYOUT_COLUMN_WIDTH, 0);
                     this.layoutCanvasCtx.lineTo(xPoint0 * LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
                     this.layoutCanvasCtx.stroke();
