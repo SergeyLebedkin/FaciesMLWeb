@@ -2,7 +2,6 @@ import { DisplayType } from "../Types/DataValues";
 import { DataValues } from "../Types/DataValues";
 import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
-import { RenderWindow } from "./RenderWindow";
 
 const LAYOUT_CANVAS_HEIGHT: number = 600;
 const LAYOUT_CANVAS_WIDTH: number = 600;
@@ -27,11 +26,15 @@ export class ScatterRenderer {
     private dataFacies: DataFacies;
     private dataSamples: DataSamples;
     // render properties
-    private renderWindow: RenderWindow = null;
+    private windowScale: number = 0.0;
+    private windowWidth: number = 0.0;
+    private windowHeight: number = 0.0;
+    private windowPositionX: number = 0.0;
+    private windowPositionY: number = 0.0;
     // draggind
-    private draggingStarted: boolean = false;
     private mousePrevDragX: number = 0.0;
     private mousePrevDragY: number = 0.0;
+    private draggingStarted: boolean = false;
     // visibility
     private dataValuesVisible: boolean = false;
     private dataSamplesVisible: boolean = false;
@@ -50,7 +53,11 @@ export class ScatterRenderer {
         this.dataFacies = null;
         this.dataSamples = null;
         // render properties
-        this.renderWindow = new RenderWindow();
+        this.windowScale = 1.0;
+        this.windowWidth = 0.0;
+        this.windowHeight = 0.0;
+        this.windowPositionX = 0.0;
+        this.windowPositionY = 0.0;
         // draggind
         this.draggingStarted = false;
         this.mousePrevDragX = 0.0;
@@ -81,10 +88,10 @@ export class ScatterRenderer {
             let mouseDeltaX = this.mousePrevDragX - event.screenX;
             let mouseDeltaY = this.mousePrevDragY - event.screenY;
             // scroll parent
-            let scaleCoefX = this.renderWindow.width / this.layoutCanvas.width / this.renderWindow.scale;
-            let scaleCoefY = this.renderWindow.height / this.layoutCanvas.height / this.renderWindow.scale;
-            this.renderWindow.centerX += mouseDeltaX * scaleCoefX;
-            this.renderWindow.centerY -= mouseDeltaY * scaleCoefY;
+            let scaleCoefX = this.windowWidth / this.layoutCanvas.width / this.windowScale;
+            let scaleCoefY = this.windowHeight / this.layoutCanvas.height / this.windowScale;
+            this.windowPositionX += mouseDeltaX * scaleCoefX;
+            this.windowPositionY -= mouseDeltaY * scaleCoefY;
             // store new mouse coords
             this.mousePrevDragX = event.screenX;
             this.mousePrevDragY = event.screenY;
@@ -102,13 +109,13 @@ export class ScatterRenderer {
 
     // onMouseWheel
     public onMouseWheel(event: WheelEvent): void {
-        this.renderWindow.scale *= Math.pow(1.1, -event.deltaY / 100);
+        this.windowScale = this.windowScale * Math.pow(1.1, -event.deltaY / 100);
         this.drawScatter();
     }
 
     // onMouseDoubleClick
     public onMouseDoubleClick(event: MouseEvent): void {
-        this.renderWindow.reset(this.dataValuesAxisX, this.dataValuesAxisY);
+        this.resetWindow();
         this.drawScatter();
         event.stopPropagation();
     }
@@ -117,6 +124,7 @@ export class ScatterRenderer {
     public setDisplayTypeX(displayType: DisplayType): void {
         if (this.displayTypeX !== displayType) {
             this.displayTypeX = displayType;
+            this.resetWindow();
         }
     }
 
@@ -124,6 +132,7 @@ export class ScatterRenderer {
     public setDisplayTypeY(displayType: DisplayType): void {
         if (this.displayTypeY !== displayType) {
             this.displayTypeY = displayType;
+            this.resetWindow();
         }
     }
 
@@ -131,7 +140,7 @@ export class ScatterRenderer {
     public setDataValuesAxisX(dataValues: DataValues): void {
         if (this.dataValuesAxisX !== dataValues) {
             this.dataValuesAxisX = dataValues;
-            this.renderWindow.reset(this.dataValuesAxisX, this.dataValuesAxisY);
+            this.resetWindow();
         }
     }
 
@@ -139,7 +148,7 @@ export class ScatterRenderer {
     public setDataValuesAxisY(dataValues: DataValues): void {
         if (this.dataValuesAxisY !== dataValues) {
             this.dataValuesAxisY = dataValues;
-            this.renderWindow.reset(this.dataValuesAxisX, this.dataValuesAxisY);
+            this.resetWindow();
         }
     }
 
@@ -147,6 +156,7 @@ export class ScatterRenderer {
     public setDataFacies(dataFacies: DataFacies): void {
         if (this.dataFacies !== dataFacies) {
             this.dataFacies = dataFacies;
+            this.drawScatter();
         }
     }
 
@@ -154,17 +164,20 @@ export class ScatterRenderer {
     public setDataSamples(dataSamples: DataSamples): void {
         if (this.dataSamples !== dataSamples) {
             this.dataSamples = dataSamples;
+            this.drawScatter();
         }
     }
 
     // setDataValuesVisible
     public setDataValuesVisible(visible: boolean) {
         this.dataValuesVisible = visible;
+        this.drawScatter();
     }
 
     // setDataSamplesVisible
     public setDataSamplesVisible(visible: boolean) {
         this.dataSamplesVisible = visible;
+        this.drawScatter();
     }
 
     // drawScatter
@@ -274,8 +287,8 @@ export class ScatterRenderer {
             for (let i = 0; i < this.dataValuesAxisX.values.length; i++) {
                 let dataValueX = this.dataValuesAxisX.values[i];
                 let dataValueY = this.dataValuesAxisY.values[i];
-                let pointX = +this.renderWindow.transfromX(dataValueX);
-                let pointY = -this.renderWindow.transfromY(dataValueY);
+                let pointX = +2 * (dataValueX - this.windowPositionX) / this.windowWidth * this.windowScale;
+                let pointY = -2 * (dataValueY - this.windowPositionY) / this.windowHeight * this.windowScale;
                 if (isInRange(pointX, -1, 1) && isInRange(pointY, -1, 1)) {
                     let x = pointX * scatterWidth / 2 + scatterWidth / 2 + scatterX;
                     let y = pointY * scatterHeight / 2 + scatterHeight / 2 + scatterY;
@@ -305,8 +318,8 @@ export class ScatterRenderer {
                 if (this.dataSamples.values[i] > 0) {
                     let dataValueX = this.dataValuesAxisX.values[i];
                     let dataValueY = this.dataValuesAxisY.values[i];
-                    let pointX = +this.renderWindow.transfromX(dataValueX);
-                    let pointY = -this.renderWindow.transfromY(dataValueY);
+                    let pointX = +2 * (dataValueX - this.windowPositionX) / this.windowWidth * this.windowScale;
+                    let pointY = -2 * (dataValueY - this.windowPositionY) / this.windowHeight * this.windowScale;
                     if (isInRange(pointX, -1, 1) && isInRange(pointY, -1, 1)) {
                         let x = pointX * scatterWidth / 2 + scatterWidth / 2 + scatterX;
                         let y = pointY * scatterHeight / 2 + scatterHeight / 2 + scatterY;
@@ -320,6 +333,17 @@ export class ScatterRenderer {
                     }
                 }
             }
+        }
+    }
+
+    // resetWindow
+    private resetWindow(): void {
+        if (this.dataValuesAxisX && this.dataValuesAxisY) {
+            this.windowScale = 1.0;
+            this.windowWidth = this.dataValuesAxisX.max - this.dataValuesAxisX.min;
+            this.windowHeight = this.dataValuesAxisY.max - this.dataValuesAxisY.min;
+            this.windowPositionX = (this.dataValuesAxisX.max + this.dataValuesAxisX.min) * 0.5
+            this.windowPositionY = (this.dataValuesAxisY.max + this.dataValuesAxisY.min) * 0.5
         }
     }
 

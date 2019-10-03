@@ -67,6 +67,42 @@ export class DataValues {
         this.selectRangeMax = this.max;
     }
 
+    // getSeletedMin
+    public getSeletedMin(selectedMask: Array<number>): number {
+        // check for mask array length
+        if (selectedMask.length !== this.values.length)
+            return this.min;
+        // get first local min index
+        let minIndex = selectedMask.findIndex(value => value !== 0);
+        if (minIndex < 0)
+            return this.min;
+        // find minimal value
+        let localMin = this.values[minIndex];
+        for (let i = minIndex; i < selectedMask.length; i++) {
+            if (localMin > this.values[i])
+                localMin = this.values[i];
+        }
+        return localMin;
+    }
+
+    // getSeletedMin
+    public getSeletedMax(selectedMask: Array<number>): number {
+        // check for mask array length
+        if (selectedMask.length !== this.values.length)
+            return this.max;
+        // get first local min index
+        let maxIndex = selectedMask.findIndex(value => value !== 0);
+        if (maxIndex < 0)
+            return this.max;
+        // find maximum value
+        let localMax = this.values[maxIndex];
+        for (let i = maxIndex; i < selectedMask.length; i++) {
+            if (localMax < this.values[i])
+                localMax = this.values[i];
+        }
+        return localMax;
+    }
+
     // loadPredictFromJson
     public loadPredictFromJson(json: any): void {
         this.predicts = [];
