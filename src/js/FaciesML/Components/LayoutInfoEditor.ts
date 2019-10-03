@@ -352,7 +352,7 @@ export class LayoutInfoEditor {
             <input 
                 id="inputRangeValueMin${dataValues.name}" type="range"
                 style="border: none; width: 100%;
-                min="${dataValues.min}" max="${dataValues.max}" step="${(dataValues.max - dataValues.min)/100}"
+                min="${dataValues.min}" max="${dataValues.max}" step="${(dataValues.max - dataValues.min) / 100}"
                 value="${dataValues.selectRangeMin}">
             </input>
         </div>
@@ -360,7 +360,7 @@ export class LayoutInfoEditor {
             <input 
                 id="inputRangeValueMax${dataValues.name}" type="range"
                 style="border: none; width: 100%;
-                min="${dataValues.min}" max="${dataValues.max}" step="${(dataValues.max - dataValues.min)/100}"
+                min="${dataValues.min}" max="${dataValues.max}" step="${(dataValues.max - dataValues.min) / 100}"
                 value="${dataValues.selectRangeMax}">
             </input>
         </div>
@@ -685,33 +685,47 @@ export class LayoutInfoEditor {
     private drawGrid(dataValues: DataValues, x: number, y: number): void {
         // clear legend canvas
         this.layoutCanvasCtx.translate(x, y);
-        this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.lineWidth = 2;
         this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
-        this.layoutCanvasCtx.moveTo(0, 0);
-        this.layoutCanvasCtx.lineTo(0, dataValues.values.length * this.scale);
-        if (dataValues.displayType === DisplayType.LINEAR) {
-            // empty
-        }
-        else if (dataValues.displayType === DisplayType.LOG) {
-            let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
-            for (let i = 0; i < numSections; i++) {
-                for (let j = 1; j < 10; j++) {
-                    let value0 = Math.pow(10, i) * j;
-                    let xPoint0 = Math.log10(value0) / numSections;
-                    this.layoutCanvasCtx.lineWidth = 2;
-                    this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
-                    this.layoutCanvasCtx.moveTo(xPoint0 * LAYOUT_COLUMN_WIDTH, 0);
-                    this.layoutCanvasCtx.lineTo(xPoint0 * LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
-                    this.layoutCanvasCtx.stroke();
-                }
-            }
-        }
+        this.layoutCanvasCtx.fillStyle = "#DDDDDD";
+        this.layoutCanvasCtx.beginPath();
         for (let i = LAYOUT_AXES_HINT_STEP; i < dataValues.values.length; i += LAYOUT_AXES_HINT_STEP) {
             this.layoutCanvasCtx.moveTo(0, i * this.scale);
             this.layoutCanvasCtx.lineTo(LAYOUT_COLUMN_WIDTH, i * this.scale);
         }
         this.layoutCanvasCtx.stroke();
+        if (dataValues.displayType === DisplayType.LINEAR) {
+            // empty
+        }
+        else if (dataValues.displayType === DisplayType.LOG) {
+            let numSections = Math.floor(Math.log10(dataValues.max)) + 1;
+            this.layoutCanvasCtx.lineWidth = 2;
+            for (let i = 0; i < numSections; i++) {
+                for (let j = 1; j < 10; j++) {
+                    let value0 = Math.pow(10, i) * j;
+                    let xPoint0 = Math.log10(value0) / numSections;
+                    this.layoutCanvasCtx.strokeStyle = "#DDDDDD";
+                    this.layoutCanvasCtx.fillStyle = "#DDDDDD";
+                    this.layoutCanvasCtx.beginPath();
+                    this.layoutCanvasCtx.moveTo(xPoint0 * LAYOUT_COLUMN_WIDTH, 0);
+                    this.layoutCanvasCtx.lineTo(xPoint0 * LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
+                    this.layoutCanvasCtx.stroke();
+                }
+                for (let j = LAYOUT_AXES_HINT_STEP; j < dataValues.values.length; j += LAYOUT_AXES_HINT_STEP*2) {
+                    let value0 = Math.pow(10, i);
+                    let xPoint0 = Math.log10(value0) / numSections;
+                    this.layoutCanvasCtx.textBaseline = "bottom";
+                    this.layoutCanvasCtx.textAlign = "center";
+                    this.layoutCanvasCtx.font = "12px Arial";
+                    this.layoutCanvasCtx.strokeStyle = "black";
+                    this.layoutCanvasCtx.fillStyle = "black";
+                    this.layoutCanvasCtx.beginPath();
+                    this.layoutCanvasCtx.fillText(value0.toString(), xPoint0 * LAYOUT_COLUMN_WIDTH, j * this.scale);
+                    this.layoutCanvasCtx.stroke();
+                }
+            }
+        }
+        
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
