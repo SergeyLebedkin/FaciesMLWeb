@@ -722,6 +722,12 @@ export class LayoutInfoEditor {
                     this.layoutCanvasCtx.beginPath();
                     this.layoutCanvasCtx.fillText(value0.toString(), xPoint0 * LAYOUT_COLUMN_WIDTH, j * this.scale);
                     this.layoutCanvasCtx.stroke();
+                    this.layoutCanvasCtx.strokeStyle = "#BBBBBB";
+                    this.layoutCanvasCtx.fillStyle = "#BBBBBB";
+                    this.layoutCanvasCtx.beginPath();
+                    this.layoutCanvasCtx.moveTo(xPoint0 * LAYOUT_COLUMN_WIDTH, 0);
+                    this.layoutCanvasCtx.lineTo(xPoint0 * LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
+                    this.layoutCanvasCtx.stroke();
                 }
             }
         }
