@@ -350,6 +350,15 @@ export class ScatterRenderer {
                 }
             }
         }
+        // warning message
+        if (!this.dataFacies) {
+            this.layoutCanvasCtx.textBaseline = "middle";
+            this.layoutCanvasCtx.textAlign = "center";
+            this.layoutCanvasCtx.font = "24px Arial";
+            this.layoutCanvasCtx.strokeStyle = "black";
+            this.layoutCanvasCtx.fillStyle = "black";
+            this.layoutCanvasCtx.fillText("Please, select Facies", scatterX + scatterWidth * 0.5, scatterY + scatterHeight * 0.5);
+        }
     }
 
     // drawGrid
@@ -366,11 +375,11 @@ export class ScatterRenderer {
                 this.layoutCanvasCtx.strokeStyle = "#CCCCCC";
                 this.layoutCanvasCtx.beginPath();
                 this.layoutCanvasCtx.moveTo(scatterX + scatterWidth * i / 5, scatterY);
-                this.layoutCanvasCtx.lineTo(scatterX + scatterWidth * i / 5, scatterY + scatterWidth);
+                this.layoutCanvasCtx.lineTo(scatterX + scatterWidth * i / 5, scatterY + scatterHeight);
                 this.layoutCanvasCtx.stroke();
                 this.layoutCanvasCtx.beginPath();
-                this.layoutCanvasCtx.moveTo(scatterX, scatterY + scatterWidth * i / 5);
-                this.layoutCanvasCtx.lineTo(scatterX + scatterWidth, scatterY + scatterWidth * i / 5);
+                this.layoutCanvasCtx.moveTo(scatterX, scatterY + scatterHeight * i / 5);
+                this.layoutCanvasCtx.lineTo(scatterX + scatterWidth, scatterY + scatterHeight * i / 5);
                 this.layoutCanvasCtx.stroke();
                 // draw x axis numbers
                 let xBeg = this.windowPositionX - (this.windowWidth / this.windowScale * 0.5);
@@ -381,7 +390,7 @@ export class ScatterRenderer {
                 this.layoutCanvasCtx.font = "10px Arial";
                 this.layoutCanvasCtx.strokeStyle = "black";
                 this.layoutCanvasCtx.fillStyle = "black";
-                this.layoutCanvasCtx.fillText(xGrid.toFixed(2), scatterX + scatterWidth * i / 5, scatterY + scatterWidth + 5);
+                this.layoutCanvasCtx.fillText(xGrid.toFixed(2), scatterX + scatterWidth * i / 5, scatterY + scatterHeight + 5);
                 // draw y axis numbers
                 let yBeg = this.windowPositionY - (this.windowHeight / this.windowScale * 0.5);
                 let yEnd = this.windowPositionY + (this.windowHeight / this.windowScale * 0.5);
