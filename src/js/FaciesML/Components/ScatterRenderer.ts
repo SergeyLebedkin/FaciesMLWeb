@@ -9,9 +9,8 @@ const LAYOUT_SCATTRER_X: number = 40;
 const LAYOUT_SCATTRER_Y: number = 40;
 const LAYOUT_SCATTRER_WIDTH: number = 520;
 const LAYOUT_SCATTRER_HEIGHT: number = 520;
-
-// RenderWindow
-
+const LAYOUT_SCATTRER_NUM_GRID_SECTIONS_X: number = 5;
+const LAYOUT_SCATTRER_NUM_GRID_SECTIONS_Y: number = 7;
 
 // ScatterRenderer
 export class ScatterRenderer {
@@ -286,27 +285,18 @@ export class ScatterRenderer {
 
     // drawValues
     private drawValues(): void {
-        // get scatter metrics
-        let scatterX = LAYOUT_SCATTRER_X;
-        let scatterY = LAYOUT_SCATTRER_Y;
-        let scatterWidth = LAYOUT_SCATTRER_WIDTH;
-        let scatterHeight = LAYOUT_SCATTRER_HEIGHT;
         // draw values
         if (this.dataValuesAxisX && this.dataValuesAxisY && this.dataFacies) {
             // find if any selected
-            let anySelected: boolean = false;
-            if (this.selections)
-                anySelected = this.selections.findIndex(val => val !== 0) >= 0;
+            let anySelected: boolean = this.selections && this.selections.findIndex(val => val !== 0) >= 0;
             // draw values ony by one
             for (let i = 0; i < this.dataValuesAxisX.values.length; i++) {
                 if ((!anySelected) || (!this.selections) || (anySelected && this.selections[i] > 0)) {
-                    let dataValueX = this.dataValuesAxisX.values[i];
-                    let dataValueY = this.dataValuesAxisY.values[i];
-                    let pointX = +2 * (dataValueX - this.windowPositionX) / this.windowWidth * this.windowScale;
-                    let pointY = -2 * (dataValueY - this.windowPositionY) / this.windowHeight * this.windowScale;
+                    let pointX = this.coordToWindowX(this.dataValuesAxisX.values[i]);
+                    let pointY = this.coordToWindowY(this.dataValuesAxisY.values[i]);
                     if (isInRange(pointX, -1, 1) && isInRange(pointY, -1, 1)) {
-                        let x = pointX * scatterWidth / 2 + scatterWidth / 2 + scatterX;
-                        let y = pointY * scatterHeight / 2 + scatterHeight / 2 + scatterY;
+                        let x = this.windowToCanvasX(pointX);
+                        let y = this.windowToCanvasY(pointY);
                         this.layoutCanvasCtx.beginPath();
                         this.layoutCanvasCtx.arc(x, y, 3, 0, 2 * Math.PI, false);
                         this.layoutCanvasCtx.fillStyle = this.dataFacies.colorTable[this.dataFacies.valuesDisplay[i]];
@@ -322,23 +312,16 @@ export class ScatterRenderer {
 
     // drawSamples
     private drawSamples(): void {
-        // get scatter metrics
-        let scatterX = LAYOUT_SCATTRER_X;
-        let scatterY = LAYOUT_SCATTRER_Y;
-        let scatterWidth = LAYOUT_SCATTRER_WIDTH;
-        let scatterHeight = LAYOUT_SCATTRER_HEIGHT;
         // draw values
         if (this.dataValuesAxisX && this.dataValuesAxisY && this.dataFacies && this.dataSamples) {
             // draw values ony by one
             for (let i = 0; i < this.dataSamples.values.length; i++) {
                 if (this.dataSamples.values[i] > 0) {
-                    let dataValueX = this.dataValuesAxisX.values[i];
-                    let dataValueY = this.dataValuesAxisY.values[i];
-                    let pointX = +2 * (dataValueX - this.windowPositionX) / this.windowWidth * this.windowScale;
-                    let pointY = -2 * (dataValueY - this.windowPositionY) / this.windowHeight * this.windowScale;
+                    let pointX = this.coordToWindowX(this.dataValuesAxisX.values[i]);
+                    let pointY = this.coordToWindowY(this.dataValuesAxisY.values[i]);
                     if (isInRange(pointX, -1, 1) && isInRange(pointY, -1, 1)) {
-                        let x = pointX * scatterWidth / 2 + scatterWidth / 2 + scatterX;
-                        let y = pointY * scatterHeight / 2 + scatterHeight / 2 + scatterY;
+                        let x = this.windowToCanvasX(pointX);
+                        let y = this.windowToCanvasY(pointY);
                         this.layoutCanvasCtx.beginPath();
                         this.layoutCanvasCtx.arc(x, y, 3, 0, 2 * Math.PI, false);
                         this.layoutCanvasCtx.fillStyle = this.dataFacies.colorTable[this.dataFacies.valuesDisplay[i]];
@@ -352,55 +335,68 @@ export class ScatterRenderer {
         }
         // warning message
         if (!this.dataFacies) {
+            let x = this.windowToCanvasX(0.0);
+            let y = this.windowToCanvasX(0.0);
             this.layoutCanvasCtx.textBaseline = "middle";
             this.layoutCanvasCtx.textAlign = "center";
             this.layoutCanvasCtx.font = "24px Arial";
             this.layoutCanvasCtx.strokeStyle = "black";
             this.layoutCanvasCtx.fillStyle = "black";
-            this.layoutCanvasCtx.fillText("Please, select Facies", scatterX + scatterWidth * 0.5, scatterY + scatterHeight * 0.5);
+            this.layoutCanvasCtx.fillText("Please, select Facies", x, y);
         }
     }
 
     // drawGrid
     private drawGrid(): void {
-        // get scatter metrics
-        let scatterX = LAYOUT_SCATTRER_X;
-        let scatterY = LAYOUT_SCATTRER_Y;
-        let scatterWidth = LAYOUT_SCATTRER_WIDTH;
-        let scatterHeight = LAYOUT_SCATTRER_HEIGHT;
         // draw borders
         if (this.dataValuesAxisX && this.dataValuesAxisY) {
-            for (let i = 0; i <= 5; i++) {
-                // draw grid
+            // draw vertical lines
+            for (let i = 0; i <= LAYOUT_SCATTRER_NUM_GRID_SECTIONS_X; i++) {
+                let xVal = lerp(
+                    this.windowPositionX - (this.windowWidth / this.windowScale * 0.5),
+                    this.windowPositionX + (this.windowWidth / this.windowScale * 0.5),
+                    i / LAYOUT_SCATTRER_NUM_GRID_SECTIONS_X);
+                let x = this.windowToCanvasX(this.coordToWindowX(xVal));
+                let y1 = this.windowToCanvasY(+1);
+                let y2 = this.windowToCanvasY(-1);
+                // draw line
+                this.layoutCanvasCtx.lineWidth = 1;
                 this.layoutCanvasCtx.strokeStyle = "#CCCCCC";
                 this.layoutCanvasCtx.beginPath();
-                this.layoutCanvasCtx.moveTo(scatterX + scatterWidth * i / 5, scatterY);
-                this.layoutCanvasCtx.lineTo(scatterX + scatterWidth * i / 5, scatterY + scatterHeight);
+                this.layoutCanvasCtx.moveTo(x, y1);
+                this.layoutCanvasCtx.lineTo(x, y2);
                 this.layoutCanvasCtx.stroke();
-                this.layoutCanvasCtx.beginPath();
-                this.layoutCanvasCtx.moveTo(scatterX, scatterY + scatterHeight * i / 5);
-                this.layoutCanvasCtx.lineTo(scatterX + scatterWidth, scatterY + scatterHeight * i / 5);
-                this.layoutCanvasCtx.stroke();
-                // draw x axis numbers
-                let xBeg = this.windowPositionX - (this.windowWidth / this.windowScale * 0.5);
-                let xEnd = this.windowPositionX + (this.windowWidth / this.windowScale * 0.5);
-                let xGrid = lerp(xBeg, xEnd, i / 5);
-                this.layoutCanvasCtx.textBaseline = "middle";
+                // draw label
+                this.layoutCanvasCtx.textBaseline = "top";
                 this.layoutCanvasCtx.textAlign = "center";
                 this.layoutCanvasCtx.font = "10px Arial";
                 this.layoutCanvasCtx.strokeStyle = "black";
                 this.layoutCanvasCtx.fillStyle = "black";
-                this.layoutCanvasCtx.fillText(xGrid.toFixed(2), scatterX + scatterWidth * i / 5, scatterY + scatterHeight + 5);
-                // draw y axis numbers
-                let yBeg = this.windowPositionY - (this.windowHeight / this.windowScale * 0.5);
-                let yEnd = this.windowPositionY + (this.windowHeight / this.windowScale * 0.5);
-                let yGrid = lerp(yEnd, yBeg, i / 5);
+                this.layoutCanvasCtx.fillText(xVal.toFixed(2), x, y1);
+            }
+            // draw horizontal lines
+            for (let i = 0; i <= LAYOUT_SCATTRER_NUM_GRID_SECTIONS_Y; i++) {
+                let yVal = lerp(
+                    this.windowPositionY - (this.windowHeight / this.windowScale * 0.5),
+                    this.windowPositionY + (this.windowHeight / this.windowScale * 0.5),
+                    i / LAYOUT_SCATTRER_NUM_GRID_SECTIONS_Y);
+                let y = this.windowToCanvasY(this.coordToWindowY(yVal));
+                let x1 = this.windowToCanvasY(-1);
+                let x2 = this.windowToCanvasY(+1);
+                // draw line
+                this.layoutCanvasCtx.lineWidth = 1;
+                this.layoutCanvasCtx.strokeStyle = "#CCCCCC";
+                this.layoutCanvasCtx.beginPath();
+                this.layoutCanvasCtx.moveTo(x1, y);
+                this.layoutCanvasCtx.lineTo(x2, y);
+                this.layoutCanvasCtx.stroke();
+                // draw label
                 this.layoutCanvasCtx.textBaseline = "middle";
                 this.layoutCanvasCtx.textAlign = "right";
                 this.layoutCanvasCtx.font = "10px Arial";
                 this.layoutCanvasCtx.strokeStyle = "black";
                 this.layoutCanvasCtx.fillStyle = "black";
-                this.layoutCanvasCtx.fillText(yGrid.toFixed(2), scatterX, scatterY + scatterHeight * i / 5);
+                this.layoutCanvasCtx.fillText(yVal.toFixed(2), x1, y);
             }
         }
     }
@@ -414,6 +410,26 @@ export class ScatterRenderer {
             this.windowPositionX = (this.dataValuesAxisX.max + this.dataValuesAxisX.min) * 0.5
             this.windowPositionY = (this.dataValuesAxisY.max + this.dataValuesAxisY.min) * 0.5
         }
+    }
+
+    // coordToWindowX (x -> -1..1)
+    private coordToWindowX(x: number): number {
+        return 2 * (x - this.windowPositionX) / this.windowWidth * this.windowScale;
+    }
+
+    // windowToCanvasX (x -> -1..1)
+    private windowToCanvasX(x: number): number {
+        return (x + 1) * 0.5 * LAYOUT_SCATTRER_WIDTH + LAYOUT_SCATTRER_X;
+    }
+
+    // coordToWindowY
+    private coordToWindowY(y: number): number {
+        return 2 * (this.windowPositionY - y) / this.windowHeight * this.windowScale;
+    }
+
+    // windowToCanvasY
+    private windowToCanvasY(y: number): number {
+        return (y + 1) * 0.5 * LAYOUT_SCATTRER_HEIGHT + LAYOUT_SCATTRER_Y;
     }
 
     // saveToImageFile
