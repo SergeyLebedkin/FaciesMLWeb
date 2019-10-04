@@ -203,6 +203,7 @@ export class ScatterEditor {
             this.scatterRenderer.setDataValuesAxisY(layoutInfo.scatterYAxis);
             this.scatterRenderer.setDataFacies(layoutInfo.scatterFacies);
             this.scatterRenderer.setDataSamples(layoutInfo.scatterSamples);
+            this.scatterRenderer.setSelections(layoutInfo.dataTable.selections);
             this.updateHeader();
             this.scatterRenderer.drawScatter();
         }
