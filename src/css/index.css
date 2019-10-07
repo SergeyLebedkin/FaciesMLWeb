@@ -205,3 +205,23 @@ html, body {
 .select-axis {
     width: 100px;
 }
+
+.double-range-slider {
+    position: relative;
+    width: 100%;
+    margin: 0 auto 20px;
+    height: 35px;
+    text-align: center;
+}
+
+.double-range-slider input {
+    position: absolute;
+    left: 0;
+    top: 15px;
+    width: 100%;
+    outline: none;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    border-radius: 8px;
+}

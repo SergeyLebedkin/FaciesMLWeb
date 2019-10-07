@@ -18,7 +18,7 @@ export class ScatterRenderer {
     private parent: HTMLDivElement = null;
     // display type
     public displayTypeX: DisplayType = DisplayType.LINEAR;
-    public displayTypeY: DisplayType = DisplayType.LINEAR;
+    public displayTypeY: DisplayType = DisplayType.LOG;
     // axis data
     private dataValuesAxisX: DataValues;
     private dataValuesAxisY: DataValues;
@@ -46,7 +46,7 @@ export class ScatterRenderer {
         this.parent = parent;
         // display type
         this.displayTypeX = DisplayType.LINEAR;
-        this.displayTypeY = DisplayType.LINEAR;
+        this.displayTypeY = DisplayType.LOG;
         // axis data
         this.dataValuesAxisX = null;
         this.dataValuesAxisY = null;
@@ -381,8 +381,8 @@ export class ScatterRenderer {
                     this.windowPositionY + (this.windowHeight / this.windowScale * 0.5),
                     i / LAYOUT_SCATTRER_NUM_GRID_SECTIONS_Y);
                 let y = this.windowToCanvasY(this.coordToWindowY(yVal));
-                let x1 = this.windowToCanvasY(-1);
-                let x2 = this.windowToCanvasY(+1);
+                let x1 = this.windowToCanvasX(-1);
+                let x2 = this.windowToCanvasX(+1);
                 // draw line
                 this.layoutCanvasCtx.lineWidth = 1;
                 this.layoutCanvasCtx.strokeStyle = "#CCCCCC";
@@ -419,7 +419,10 @@ export class ScatterRenderer {
 
     // windowToCanvasX (x -> -1..1)
     private windowToCanvasX(x: number): number {
-        return (x + 1) * 0.5 * LAYOUT_SCATTRER_WIDTH + LAYOUT_SCATTRER_X;
+        if (this.displayTypeX === DisplayType.LINEAR)
+            return (x + 1) * 0.5 * LAYOUT_SCATTRER_WIDTH + LAYOUT_SCATTRER_X;
+        else if (this.displayTypeX === DisplayType.LOG)
+            return Math.log10((x + 1) * 0.5 * 999 + 1) / 3 * LAYOUT_SCATTRER_WIDTH + LAYOUT_SCATTRER_X;
     }
 
     // coordToWindowY
@@ -429,7 +432,11 @@ export class ScatterRenderer {
 
     // windowToCanvasY
     private windowToCanvasY(y: number): number {
-        return (y + 1) * 0.5 * LAYOUT_SCATTRER_HEIGHT + LAYOUT_SCATTRER_Y;
+        if (this.displayTypeY === DisplayType.LINEAR)
+            return (y + 1) * 0.5 * LAYOUT_SCATTRER_HEIGHT + LAYOUT_SCATTRER_Y;
+        else if (this.displayTypeY === DisplayType.LOG)
+            return (1-(Math.log10((-y + 1) * 0.5 * 999 + 1) / 3)) * LAYOUT_SCATTRER_HEIGHT + LAYOUT_SCATTRER_Y;
+
     }
 
     // saveToImageFile
