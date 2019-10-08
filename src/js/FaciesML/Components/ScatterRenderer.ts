@@ -41,6 +41,8 @@ export class ScatterRenderer {
     // main canvas
     private layoutCanvas: HTMLCanvasElement = null;
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
+    private layoutMaskCanvas: HTMLCanvasElement = null;
+    private layoutMaskCanvasCtx: CanvasRenderingContext2D = null;
     // constructor
     constructor(parent: HTMLDivElement) {
         this.parent = parent;
@@ -75,6 +77,10 @@ export class ScatterRenderer {
         this.layoutCanvas.ondblclick = this.onMouseDoubleClick.bind(this);
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parent.appendChild(this.layoutCanvas);
+        this.layoutMaskCanvas = document.createElement("canvas");
+        //this.layoutMaskCanvas.onmousemove = this.onMouseMove.bind(this);
+        this.layoutMaskCanvasCtx = this.layoutMaskCanvas.getContext('2d');
+        //this.parent.appendChild(this.layoutMaskCanvas);
     }
 
     // onMouseUp
@@ -98,6 +104,17 @@ export class ScatterRenderer {
             this.mousePrevDragY = event.screenY;
             this.drawScatter();
         }
+
+        // get bounding client rect
+        let rect = this.layoutCanvas.getBoundingClientRect();
+        let mousePosX = event.clientX - rect.left;
+        let mousePosY = event.clientY - rect.top;
+        // check for high resolution region
+        let index = this.getMaskValueByCoord(mousePosX, mousePosY);
+        if (index >= 0)
+            this.layoutCanvas.style.cursor = "pointer";
+        else
+            this.layoutCanvas.style.cursor = "auto";
     }
 
     // onMouseDown
@@ -194,6 +211,8 @@ export class ScatterRenderer {
         // set canvas size
         this.layoutCanvas.height = LAYOUT_CANVAS_HEIGHT;
         this.layoutCanvas.width = LAYOUT_CANVAS_WIDTH;
+        this.layoutMaskCanvas.height = LAYOUT_CANVAS_HEIGHT;
+        this.layoutMaskCanvas.width = LAYOUT_CANVAS_WIDTH;
         // clear scatter
         this.clearScatter();
         this.drawAxisNameX();
@@ -215,6 +234,9 @@ export class ScatterRenderer {
         // fill scatter
         this.layoutCanvasCtx.fillStyle = "white";
         this.layoutCanvasCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+        this.layoutMaskCanvasCtx.globalAlpha = 0.0;
+        this.layoutMaskCanvasCtx.fillStyle = "blue";
+        this.layoutMaskCanvasCtx.fillRect(0, 0, canvasWidth, canvasHeight);
     }
 
     // drawScatterBorders
@@ -322,6 +344,7 @@ export class ScatterRenderer {
                     if (isInRange(pointX, -1, 1) && isInRange(pointY, -1, 1)) {
                         let x = this.windowToCanvasX(pointX);
                         let y = this.windowToCanvasY(pointY);
+                        // draw samples
                         this.layoutCanvasCtx.beginPath();
                         this.layoutCanvasCtx.arc(x, y, 3, 0, 2 * Math.PI, false);
                         this.layoutCanvasCtx.fillStyle = this.dataFacies.colorTable[this.dataFacies.valuesDisplay[i]];
@@ -329,6 +352,13 @@ export class ScatterRenderer {
                         this.layoutCanvasCtx.lineWidth = 1;
                         this.layoutCanvasCtx.strokeStyle = "black";
                         this.layoutCanvasCtx.stroke();
+                        // draw samples mask
+                        this.layoutMaskCanvasCtx.beginPath();
+                        this.layoutMaskCanvasCtx.arc(x, y, 4, 0, 2 * Math.PI, false);
+                        this.layoutMaskCanvasCtx.strokeStyle = decimalColorToHTMLcolor(i);
+                        this.layoutMaskCanvasCtx.fillStyle = decimalColorToHTMLcolor(i);
+                        this.layoutMaskCanvasCtx.globalAlpha = 1;
+                        this.layoutMaskCanvasCtx.fill();
                     }
                 }
             }
@@ -435,8 +465,21 @@ export class ScatterRenderer {
         if (this.displayTypeY === DisplayType.LINEAR)
             return (y + 1) * 0.5 * LAYOUT_SCATTRER_HEIGHT + LAYOUT_SCATTRER_Y;
         else if (this.displayTypeY === DisplayType.LOG)
-            return (1-(Math.log10((-y + 1) * 0.5 * 999 + 1) / 3)) * LAYOUT_SCATTRER_HEIGHT + LAYOUT_SCATTRER_Y;
+            return (1 - (Math.log10((-y + 1) * 0.5 * 999 + 1) / 3)) * LAYOUT_SCATTRER_HEIGHT + LAYOUT_SCATTRER_Y;
 
+    }
+
+    // getMaskValueByCoord
+    public getMaskValueByCoord(x: number, y: number): number {
+        let layoutMaskCanvasData = this.layoutMaskCanvasCtx.getImageData(0, 0, this.layoutMaskCanvas.width, this.layoutMaskCanvas.height);
+        let r = layoutMaskCanvasData.data[y * this.layoutMaskCanvas.width * 4 + x * 4 + 0];
+        let g = layoutMaskCanvasData.data[y * this.layoutMaskCanvas.width * 4 + x * 4 + 1];
+        let b = layoutMaskCanvasData.data[y * this.layoutMaskCanvas.width * 4 + x * 4 + 2];
+        let a = layoutMaskCanvasData.data[y * this.layoutMaskCanvas.width * 4 + x * 4 + 3];
+        if (a === 255)
+            return g << 8 | r;
+        else
+            return -1;
     }
 
     // saveToImageFile
@@ -456,4 +499,24 @@ function lerp(a: number, b: number, t: number) {
 // isInRange
 function isInRange(value: number, min: number, max: number): boolean {
     return (value >= min) && (value <= max);
+}
+
+// decimalColorToHTMLcolor
+function decimalColorToHTMLcolor(val: number): string {
+    //converts to a integer
+    var intnumber = val - 0;
+    // needed since toString does not zero fill on left
+    var template = "#000000";
+    // in the MS Windows world RGB colors
+    // are 0xBBGGRR because of the way Intel chips store bytes
+    let red = (intnumber & 0x0000ff) << 16;
+    let green = intnumber & 0x00ff00;
+    let blue = (intnumber & 0xff0000) >>> 16;
+    // mask out each color and reverse the order
+    intnumber = red | green | blue;
+    // toString converts a number to a hexstring
+    let HTMLcolor: string = intnumber.toString(16);
+    //template adds # for standard HTML #RRGGBB
+    HTMLcolor = template.substring(0, 7 - HTMLcolor.length) + HTMLcolor;
+    return HTMLcolor;
 }
