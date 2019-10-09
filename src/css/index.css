@@ -225,3 +225,22 @@ html, body {
     padding: 0;
     border-radius: 8px;
 }
+
+.facies-menu {
+    width: 120px;
+    position: absolute;
+    display: none;
+    background: white;
+    border: 1px solid red;
+}
+
+.facies-menu-options {
+    padding: 10px 0;
+}
+
+.facies-menu-option {
+    font-weight: 500;
+    font-size: 14px;
+    padding: 10px 40px 10px 20px;
+    cursor: pointer;
+}

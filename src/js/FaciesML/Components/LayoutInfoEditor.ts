@@ -30,6 +30,8 @@ export class LayoutInfoEditor {
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
     private layoutMaskCanvas: HTMLCanvasElement = null;
     private layoutMaskCanvasCtx: CanvasRenderingContext2D = null;
+    // menus
+    private menuFacies: HTMLDivElement = null;
     // events
     public onColorChanged: (this: LayoutInfoEditor, dataFacies: DataFacies) => any = null;
     public onSelectionChanged: (this: LayoutInfoEditor, layoutInfo: LayoutInfo) => any = null;
@@ -56,12 +58,26 @@ export class LayoutInfoEditor {
         this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
         this.layoutCanvas.onmousemove = this.onMouseMove.bind(this);
         this.layoutCanvas.onmousedown = this.onMouseDown.bind(this);
+        this.layoutCanvas.oncontextmenu = this.onContextMenu.bind(this);
         this.layoutCanvas.style.cursor = "row-resize";
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parentPlots.appendChild(this.layoutCanvas);
         this.layoutMaskCanvas = document.createElement("canvas");
         this.layoutMaskCanvasCtx = this.layoutMaskCanvas.getContext('2d');
+        this.menuFacies = document.getElementById("menuFacies") as HTMLDivElement;
         //this.parentPlots.appendChild(this.layoutMaskCanvas);
+    }
+
+    // onContextMenu
+    public onContextMenu(event: MouseEvent): void { 
+        let rect = this.layoutCanvas.getBoundingClientRect();
+        let mousePosX = event.clientX - rect.left;
+        let mousePosY = event.clientY - rect.top;
+        this.menuFacies.style.left = `${event.pageX}px`;
+        this.menuFacies.style.top = `${event.pageY}px`;
+        this.menuFacies.style.display = "block";
+        console.log(this.menuFacies);
+        event.preventDefault();
     }
 
     // onMouseUp
