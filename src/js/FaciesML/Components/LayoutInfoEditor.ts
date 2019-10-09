@@ -28,6 +28,8 @@ export class LayoutInfoEditor {
     // main canvas
     private layoutCanvas: HTMLCanvasElement = null;
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
+    private layoutMaskCanvas: HTMLCanvasElement = null;
+    private layoutMaskCanvasCtx: CanvasRenderingContext2D = null;
     // events
     public onColorChanged: (this: LayoutInfoEditor, dataFacies: DataFacies) => any = null;
     public onSelectionChanged: (this: LayoutInfoEditor, layoutInfo: LayoutInfo) => any = null;
@@ -57,6 +59,9 @@ export class LayoutInfoEditor {
         this.layoutCanvas.style.cursor = "row-resize";
         this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
         this.parentPlots.appendChild(this.layoutCanvas);
+        this.layoutMaskCanvas = document.createElement("canvas");
+        this.layoutMaskCanvasCtx = this.layoutMaskCanvas.getContext('2d');
+        //this.parentPlots.appendChild(this.layoutMaskCanvas);
     }
 
     // onMouseUp
@@ -95,6 +100,18 @@ export class LayoutInfoEditor {
             // redraw stuff
             this.drawCanvas();
             this.drawSelectionRange();
+        }
+
+        // get bounding client rect
+        let rect = this.layoutCanvas.getBoundingClientRect();
+        let mousePosX = event.clientX - rect.left;
+        let mousePosY = event.clientY - rect.top;
+        // check for high resolution region
+        let index = this.getMaskValueByCoord(mousePosX, mousePosY);
+        if (index >= 0) {
+            let faciesDataIndex = Math.trunc(index/1e6);
+            let sampleDataIndex = Math.trunc((index%1e6)/1e4);
+            let sampleIndex = Math.trunc(index%1000);
         }
     }
 
@@ -253,7 +270,8 @@ export class LayoutInfoEditor {
         let columsCount = this.layoutInfo.dataTable.getSelectedCount();
         this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
         this.layoutCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length) * this.scale;
-        this.layoutCanvasCtx = this.layoutCanvas.getContext('2d');
+        this.layoutMaskCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
+        this.layoutMaskCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length) * this.scale;
         this.clearCanvas();
         // draw data ranges
         this.drawLayoutInfoSelections(0);
@@ -279,7 +297,7 @@ export class LayoutInfoEditor {
             for (let dataSamples of dataFacies.dataSamples) {
                 if (dataSamples.selected) {
                     this.drawGridFacies(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
-                    this.drawSamples(dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
+                    this.drawSamples(dataFacies, dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     columnIndex++;
                 }
             }
@@ -314,18 +332,17 @@ export class LayoutInfoEditor {
             }
         }
         this.layoutCanvasCtx.stroke();
-        // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.globalAlpha = 1.0;
     }
 
     // clearCanvas
     private clearCanvas() {
-        this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.globalAlpha = 1.0;
         this.layoutCanvasCtx.fillStyle = "white";
         this.layoutCanvasCtx.fillRect(0, 0, this.layoutCanvas.width, this.layoutCanvas.height);
-        this.layoutCanvasCtx.stroke();
-        // this.layoutCanvasCtx.closePath();
+        this.layoutMaskCanvasCtx.globalAlpha = 0.0;
+        this.layoutMaskCanvasCtx.fillStyle = "blue";
+        this.layoutMaskCanvasCtx.fillRect(0, 0, this.layoutCanvas.width, this.layoutCanvas.height);
     }
 
     // addHeader
@@ -637,10 +654,15 @@ export class LayoutInfoEditor {
     }
 
     // drawSamples
-    private drawSamples(dataSamples: DataSamples, x: number, y: number): void {
+    private drawSamples(dataFacies: DataFacies, dataSamples: DataSamples, x: number, y: number): void {
         this.layoutCanvasCtx.translate(x, y);
+        this.layoutMaskCanvasCtx.translate(x, y);
+        let dataFaciesIndex = this.layoutInfo.dataTable.dataFacies.findIndex(value => value === dataFacies);
+        let dataSamplesIndex = dataFacies.dataSamples.findIndex(value => value === dataSamples);
         for (let i = 0; i < dataSamples.values.length; i++) {
             if (dataSamples.values[i] > 0) {
+                let dataSampleValue = dataFaciesIndex * 1e6 + dataSamplesIndex * 1e4 + i;
+                console.log(dataSampleValue);
                 this.layoutCanvasCtx.textBaseline = "middle";
                 this.layoutCanvasCtx.textAlign = "left";
                 this.layoutCanvasCtx.font = "14px Arial";
@@ -652,8 +674,15 @@ export class LayoutInfoEditor {
                 this.layoutCanvasCtx.beginPath();
                 this.layoutCanvasCtx.arc(10, i * this.scale, 5, 0, 2 * Math.PI);
                 this.layoutCanvasCtx.fill();
+                this.layoutMaskCanvasCtx.beginPath();
+                this.layoutMaskCanvasCtx.arc(10, i * this.scale, 5, 0, 2 * Math.PI);
+                this.layoutMaskCanvasCtx.strokeStyle = decimalColorToHTMLcolor(dataSampleValue);
+                this.layoutMaskCanvasCtx.fillStyle = decimalColorToHTMLcolor(dataSampleValue);
+                this.layoutMaskCanvasCtx.globalAlpha = 1;
+                this.layoutMaskCanvasCtx.fill();
             }
         }
+        this.layoutMaskCanvasCtx.translate(-x, -y);
         this.layoutCanvasCtx.translate(-x, -y);
     }
 
@@ -711,7 +740,7 @@ export class LayoutInfoEditor {
                     this.layoutCanvasCtx.lineTo(xPoint0 * LAYOUT_COLUMN_WIDTH, dataValues.values.length * this.scale);
                     this.layoutCanvasCtx.stroke();
                 }
-                for (let j = LAYOUT_AXES_HINT_STEP; j < dataValues.values.length; j += LAYOUT_AXES_HINT_STEP*2) {
+                for (let j = LAYOUT_AXES_HINT_STEP; j < dataValues.values.length; j += LAYOUT_AXES_HINT_STEP * 2) {
                     let value0 = Math.pow(10, i);
                     let xPoint0 = Math.log10(value0) / numSections;
                     this.layoutCanvasCtx.textBaseline = "bottom";
@@ -731,7 +760,7 @@ export class LayoutInfoEditor {
                 }
             }
         }
-        
+
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
     }
@@ -754,6 +783,19 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.stroke();
         // this.layoutCanvasCtx.closePath();
         this.layoutCanvasCtx.translate(-x, -y);
+    }
+
+    // getMaskValueByCoord
+    public getMaskValueByCoord(x: number, y: number): number {
+        let layoutMaskCanvasData = this.layoutMaskCanvasCtx.getImageData(0, 0, this.layoutMaskCanvas.width, this.layoutMaskCanvas.height);
+        let r = layoutMaskCanvasData.data[y * this.layoutMaskCanvas.width * 4 + x * 4 + 0];
+        let g = layoutMaskCanvasData.data[y * this.layoutMaskCanvas.width * 4 + x * 4 + 1];
+        let b = layoutMaskCanvasData.data[y * this.layoutMaskCanvas.width * 4 + x * 4 + 2];
+        let a = layoutMaskCanvasData.data[y * this.layoutMaskCanvas.width * 4 + x * 4 + 3];
+        if (a === 255)
+            return b << 16 | g << 8 | r;
+        else
+            return -1;
     }
 
     // saveFaciesToImage
@@ -831,4 +873,24 @@ function downloadImage(name: string, canvas: HTMLCanvasElement) {
     link.download = name + ".png";
     link.href = canvas.toDataURL("image/png");
     link.click();
+}
+
+// decimalColorToHTMLcolor
+function decimalColorToHTMLcolor(val: number): string {
+    //converts to a integer
+    var intnumber = val - 0;
+    // needed since toString does not zero fill on left
+    var template = "#000000";
+    // in the MS Windows world RGB colors
+    // are 0xBBGGRR because of the way Intel chips store bytes
+    let red = (intnumber & 0x0000ff) << 16;
+    let green = intnumber & 0x00ff00;
+    let blue = (intnumber & 0xff0000) >>> 16;
+    // mask out each color and reverse the order
+    intnumber = red | green | blue;
+    // toString converts a number to a hexstring
+    let HTMLcolor: string = intnumber.toString(16);
+    //template adds # for standard HTML #RRGGBB
+    HTMLcolor = template.substring(0, 7 - HTMLcolor.length) + HTMLcolor;
+    return HTMLcolor;
 }
