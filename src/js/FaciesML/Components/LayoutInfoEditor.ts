@@ -167,7 +167,6 @@ export class LayoutInfoEditor {
 
     // onInputSelectRangeMaxChange
     private onInputSelectRangeMaxChange(event: Event) {
-        console.log((event.target as HTMLInputElement).value)
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
         let newValue: number = parseFloat((event.target as HTMLInputElement).value);
         dataValues.selectRangeMax = Math.min(Math.max(newValue, dataValues.selectRangeMin), dataValues.max);
@@ -662,7 +661,6 @@ export class LayoutInfoEditor {
         for (let i = 0; i < dataSamples.values.length; i++) {
             if (dataSamples.values[i] > 0) {
                 let dataSampleValue = dataFaciesIndex * 1e6 + dataSamplesIndex * 1e4 + i;
-                console.log(dataSampleValue);
                 this.layoutCanvasCtx.textBaseline = "middle";
                 this.layoutCanvasCtx.textAlign = "left";
                 this.layoutCanvasCtx.font = "14px Arial";

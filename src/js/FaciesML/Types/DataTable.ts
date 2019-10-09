@@ -162,7 +162,6 @@ export class DataTable {
                 let dataSamples = dataFacies.getOrCreateDataSamples(json["num_samples"][value]);
                 dataSamples.recommended = (json["optimized_samples"][value] == 1);
                 dataSamples.loadFromCommaString(json["samples_mask"][value]);
-                console.log(dataFacies.name, "dataSamples", dataSamples.name, ...dataSamples.values);
             }
         });
     }
