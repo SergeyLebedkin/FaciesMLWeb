@@ -230,8 +230,9 @@ html, body {
     width: 120px;
     position: absolute;
     display: none;
+    flex-direction: column;
     background: white;
-    border: 1px solid red;
+    border: 1px solid gray;
 }
 
 .facies-menu-options {
@@ -239,8 +240,11 @@ html, body {
 }
 
 .facies-menu-option {
-    font-weight: 500;
-    font-size: 14px;
-    padding: 10px 40px 10px 20px;
+    width: 100%;
     cursor: pointer;
+}
+
+.facies-menu-option:hover {
+    width: 100%;
+    background: #aaaaaa;
 }

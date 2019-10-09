@@ -18,7 +18,7 @@ export class ScatterRenderer {
     private parent: HTMLDivElement = null;
     // display type
     public displayTypeX: DisplayType = DisplayType.LINEAR;
-    public displayTypeY: DisplayType = DisplayType.LOG;
+    public displayTypeY: DisplayType = DisplayType.LINEAR;
     // axis data
     private dataValuesAxisX: DataValues;
     private dataValuesAxisY: DataValues;
@@ -43,12 +43,14 @@ export class ScatterRenderer {
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
     private layoutMaskCanvas: HTMLCanvasElement = null;
     private layoutMaskCanvasCtx: CanvasRenderingContext2D = null;
+    // menus
+    private menuFacies: HTMLDivElement = null;
     // constructor
     constructor(parent: HTMLDivElement) {
         this.parent = parent;
         // display type
         this.displayTypeX = DisplayType.LINEAR;
-        this.displayTypeY = DisplayType.LOG;
+        this.displayTypeY = DisplayType.LINEAR;
         // axis data
         this.dataValuesAxisX = null;
         this.dataValuesAxisY = null;
@@ -68,6 +70,8 @@ export class ScatterRenderer {
         // visibility
         this.dataValuesVisible = true;
         this.dataSamplesVisible = true;
+        // get menus
+        this.menuFacies = document.getElementById("menuFacies") as HTMLDivElement;
         // create image canvas
         this.layoutCanvas = document.createElement("canvas");
         this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
@@ -119,10 +123,22 @@ export class ScatterRenderer {
 
     // onMouseDown
     public onMouseDown(event: MouseEvent): void {
-        this.draggingStarted = true;
-        // set mouse base coords
-        this.mousePrevDragX = event.screenX;
-        this.mousePrevDragY = event.screenY;
+        // get bounding client rect
+        let rect = this.layoutCanvas.getBoundingClientRect();
+        let mousePosX = event.clientX - rect.left;
+        let mousePosY = event.clientY - rect.top;
+        // check for high resolution region
+        let index = this.getMaskValueByCoord(mousePosX, mousePosY);
+        if (index >= 0) {
+            this.menuFacies.style.left = `${event.pageX}px`;
+            this.menuFacies.style.top = `${event.pageY}px`;
+            this.menuFacies.style.display = "block";
+        }
+        else {
+            this.draggingStarted = true;
+            this.mousePrevDragX = event.screenX;
+            this.mousePrevDragY = event.screenY;
+        }
     }
 
     // onMouseWheel
