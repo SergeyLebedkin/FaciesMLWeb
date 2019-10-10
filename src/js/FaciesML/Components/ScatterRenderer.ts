@@ -46,7 +46,6 @@ export class ScatterRenderer {
     private layoutMaskCanvas: HTMLCanvasElement = null;
     private layoutMaskCanvasCtx: CanvasRenderingContext2D = null;
     // menus
-    private menuFacies: HTMLDivElement = null;
     private faciesPopup: FaciesPopup = null;
     // constructor
     constructor(parent: HTMLDivElement, faciesPopup: FaciesPopup) {
@@ -74,7 +73,6 @@ export class ScatterRenderer {
         this.dataValuesVisible = true;
         this.dataSamplesVisible = true;
         // get menus
-        this.menuFacies = document.getElementById("menuFacies") as HTMLDivElement;
         this.faciesPopup = faciesPopup;
         // create image canvas
         this.layoutCanvas = document.createElement("canvas");
@@ -134,9 +132,6 @@ export class ScatterRenderer {
         // check for high resolution region
         let index = this.getMaskValueByCoord(mousePosX, mousePosY);
         if (index >= 0) {
-            /*this.menuFacies.style.left = `${event.pageX}px`;
-            this.menuFacies.style.top = `${event.pageY}px`;
-            this.menuFacies.style.display = "block";*/
             if (this.faciesPopup) {
                 this.faciesPopup.setDataSamples(this.dataSamples);
                 this.faciesPopup.setDataSamplesIndex(index);

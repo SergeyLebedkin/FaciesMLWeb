@@ -692,8 +692,8 @@ export class LayoutInfoEditor {
                 this.layoutCanvasCtx.strokeStyle = "black";
                 this.layoutCanvasCtx.fillStyle = "black";
                 this.layoutCanvasCtx.fillText(this.layoutInfo.dataTable.dataValues[0].values[i].toString(), 15, i * this.scale)
-                this.layoutCanvasCtx.strokeStyle = "red";
-                this.layoutCanvasCtx.fillStyle = "red";
+                this.layoutCanvasCtx.strokeStyle = dataFacies.colorTable[dataFacies.valuesDisplay[i]];
+                this.layoutCanvasCtx.fillStyle = dataFacies.colorTable[dataFacies.valuesDisplay[i]];
                 this.layoutCanvasCtx.beginPath();
                 this.layoutCanvasCtx.arc(10, i * this.scale, 5, 0, 2 * Math.PI);
                 this.layoutCanvasCtx.fill();
