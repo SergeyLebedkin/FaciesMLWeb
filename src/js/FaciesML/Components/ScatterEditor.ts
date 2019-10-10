@@ -3,6 +3,7 @@ import { DataValues } from "../Types/DataValues";
 import { DisplayType } from "../Types/DataValues";
 import { DataFacies } from "../Types/DataFacies";
 import { ScatterRenderer } from "./ScatterRenderer";
+import { FaciesPopup } from "./FaciesPopup";
 
 // ScatterEditor
 export class ScatterEditor {
@@ -26,13 +27,13 @@ export class ScatterEditor {
     // events
     public onFaciesMerged: (this: ScatterEditor, dataFacies: DataFacies) => any = null;
     // constructor
-    constructor(parentHeadrs: HTMLDivElement, parentScatter: HTMLDivElement) {
+    constructor(parentHeadrs: HTMLDivElement, parentScatter: HTMLDivElement, faciePopup: FaciesPopup) {
         // setup parent
         this.parentHeadrs = parentHeadrs;
         // image parameters
         this.layoutInfo = null;
         // scatter renderer
-        this.scatterRenderer = new ScatterRenderer(parentScatter);
+        this.scatterRenderer = new ScatterRenderer(parentScatter, faciePopup);
 
         // create header markup
         this.parentHeadrs.innerHTML = `

@@ -5,6 +5,8 @@ import { SelectionMode } from "./FaciesML/Types/SelectionMode";
 import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { ScatterEditor } from "./FaciesML/Components/ScatterEditor";
+import { FaciesPopup } from "./FaciesML/Components/FaciesPopup";
+
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -38,6 +40,7 @@ let gLayoutInfoList: Array<LayoutInfo> = null;
 let gLayoutInfoEditor: LayoutInfoEditor = null;
 let gDataTableSelector: DataTableSelector = null;
 let gScatterEditor: ScatterEditor = null;
+let gFaciesPopup: FaciesPopup = null;
 
 // buttonLoadDataOnClick
 function buttonLoadDataOnClick(event: MouseEvent) {
@@ -201,10 +204,12 @@ window.onload = event => {
     gLayoutInfoList = new Array<LayoutInfo>();
     gDataTableSelector = new DataTableSelector(divDataValues, gDataTableList);
     gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
-    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
+    gFaciesPopup = new FaciesPopup();
+    gFaciesPopup.onSamplesRemoved = () => { gLayoutInfoEditor.drawLayoutInfo(); gScatterEditor.drawLayoutInfo(); }
+    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel, gFaciesPopup);
     gLayoutInfoEditor.onColorChanged = dataFacies => gScatterEditor.drawLayoutInfo();
     gLayoutInfoEditor.onSelectionChanged = layoutInfo => gScatterEditor.drawLayoutInfo();
-    gScatterEditor = new ScatterEditor(divScatterHeaders, divScatterPanel);
+    gScatterEditor = new ScatterEditor(divScatterHeaders, divScatterPanel, gFaciesPopup);
     gScatterEditor.onFaciesMerged = dataFacies => gLayoutInfoEditor.drawLayoutInfo();
     // set visibility
     setLayoutInfoEditorVisible(false);

@@ -2,6 +2,8 @@ import { DisplayType } from "../Types/DataValues";
 import { DataValues } from "../Types/DataValues";
 import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
+import { FaciesPopup } from "../Components/FaciesPopup";
+
 
 const LAYOUT_CANVAS_HEIGHT: number = 600;
 const LAYOUT_CANVAS_WIDTH: number = 600;
@@ -45,8 +47,9 @@ export class ScatterRenderer {
     private layoutMaskCanvasCtx: CanvasRenderingContext2D = null;
     // menus
     private menuFacies: HTMLDivElement = null;
+    private faciesPopup: FaciesPopup = null;
     // constructor
-    constructor(parent: HTMLDivElement) {
+    constructor(parent: HTMLDivElement, faciesPopup: FaciesPopup) {
         this.parent = parent;
         // display type
         this.displayTypeX = DisplayType.LINEAR;
@@ -72,6 +75,7 @@ export class ScatterRenderer {
         this.dataSamplesVisible = true;
         // get menus
         this.menuFacies = document.getElementById("menuFacies") as HTMLDivElement;
+        this.faciesPopup = faciesPopup;
         // create image canvas
         this.layoutCanvas = document.createElement("canvas");
         this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
@@ -130,9 +134,14 @@ export class ScatterRenderer {
         // check for high resolution region
         let index = this.getMaskValueByCoord(mousePosX, mousePosY);
         if (index >= 0) {
-            this.menuFacies.style.left = `${event.pageX}px`;
+            /*this.menuFacies.style.left = `${event.pageX}px`;
             this.menuFacies.style.top = `${event.pageY}px`;
-            this.menuFacies.style.display = "block";
+            this.menuFacies.style.display = "block";*/
+            if (this.faciesPopup) {
+                this.faciesPopup.setDataSamples(this.dataSamples);
+                this.faciesPopup.setDataSamplesIndex(index);
+                this.faciesPopup.show(event.pageX, event.pageY);
+            }
         }
         else {
             this.draggingStarted = true;

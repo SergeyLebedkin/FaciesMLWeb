@@ -3,6 +3,7 @@ import { SelectionMode } from "../Types/SelectionMode";
 import { DataValues, DATA_MINIMAL_VALUE, DisplayType } from "../Types/DataValues";
 import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
+import { FaciesPopup } from "./FaciesPopup";
 
 const LAYOUT_HEADER_HEIGHT: number = 50;
 const LAYOUT_LEGENT_HEIGHT: number = 100;
@@ -17,6 +18,7 @@ export class LayoutInfoEditor {
     private parentHeadrs: HTMLDivElement;
     private parentPlots: HTMLDivElement;
     private enabled: boolean = true;
+    private faciesPopup: FaciesPopup;
     // layoutInfo parameters
     public layoutInfo: LayoutInfo = null;
     public scale: number = 1.0;
@@ -39,11 +41,13 @@ export class LayoutInfoEditor {
     constructor(
         parentTitle: HTMLDivElement,
         parentHeadrs: HTMLDivElement,
-        parentPlots: HTMLDivElement) {
+        parentPlots: HTMLDivElement,
+        faciesPopup: FaciesPopup) {
         // setup parent
         this.parentTitle = parentTitle;
         this.parentHeadrs = parentHeadrs;
         this.parentPlots = parentPlots;
+        this.faciesPopup = faciesPopup;
         this.enabled = true;
         // image parameters
         this.layoutInfo = null;
@@ -133,9 +137,12 @@ export class LayoutInfoEditor {
             let faciesDataIndex = Math.trunc(index/1e6);
             let sampleDataIndex = Math.trunc((index%1e6)/1e4);
             let sampleIndex = Math.trunc(index%1000);
-            this.menuFacies.style.left = `${event.pageX}px`;
-            this.menuFacies.style.top = `${event.pageY}px`;
-            this.menuFacies.style.display = "block";
+            if (this.faciesPopup) {
+                this.faciesPopup.setDataFacies(this.layoutInfo.dataTable.dataFacies[faciesDataIndex]);
+                this.faciesPopup.setDataSamples(this.layoutInfo.dataTable.dataFacies[faciesDataIndex].dataSamples[sampleDataIndex]);
+                this.faciesPopup.setDataSamplesIndex(sampleIndex);
+                this.faciesPopup.show(event.pageX, event.pageY);
+            }
         }
         else {
             // get mouse coords
