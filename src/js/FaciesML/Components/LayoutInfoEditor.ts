@@ -105,18 +105,8 @@ export class LayoutInfoEditor {
             this.drawCanvas();
             this.drawSelectionRange();
         }
-
-        // get bounding client rect
-        let rect = this.layoutCanvas.getBoundingClientRect();
-        let mousePosX = event.clientX - rect.left;
-        let mousePosY = event.clientY - rect.top;
-        // check for high resolution region
-        let index = this.getMaskValueByCoord(mousePosX, mousePosY);
-        if (index >= 0) {
-            let faciesDataIndex = Math.trunc(index/1e6);
-            let sampleDataIndex = Math.trunc((index%1e6)/1e4);
-            let sampleIndex = Math.trunc(index%1000);
-        }
+        // handle moue cursor type
+        this.handleMouseCursor(event);
     }
 
     // onMouseDown
@@ -130,9 +120,9 @@ export class LayoutInfoEditor {
         // check for high resolution region
         let index = this.getMaskValueByCoord(mousePosX, mousePosY);
         if (index >= 0) {
-            let faciesDataIndex = Math.trunc(index/1e6);
-            let sampleDataIndex = Math.trunc((index%1e6)/1e4);
-            let sampleIndex = Math.trunc(index%1000);
+            let faciesDataIndex = Math.trunc(index / 1e6);
+            let sampleDataIndex = Math.trunc((index % 1e6) / 1e4);
+            let sampleIndex = Math.trunc(index % 1000);
             if (this.faciesPopup) {
                 this.faciesPopup.setDataFacies(this.layoutInfo.dataTable.dataFacies[faciesDataIndex]);
                 this.faciesPopup.setDataSamples(this.layoutInfo.dataTable.dataFacies[faciesDataIndex].dataSamples[sampleDataIndex]);
@@ -211,12 +201,10 @@ export class LayoutInfoEditor {
 
     // setEnabled
     public setEnabled(enable: boolean) {
-        if (this.enabled !== enable)
+        if (this.enabled !== enable) {
             this.enabled = enable;
-        if (this.enabled)
-            this.layoutCanvas.style.cursor = "row-resize";
-        else
-            this.layoutCanvas.style.cursor = "auto";
+            this.handleMouseCursor(null);
+        }
     }
 
     // setLayoutInfo
@@ -820,6 +808,25 @@ export class LayoutInfoEditor {
             return b << 16 | g << 8 | r;
         else
             return -1;
+    }
+
+    // handleMouseCursor
+    private handleMouseCursor(event: MouseEvent) {
+        if (this.enabled) {
+            if (event) {
+                // get bounding client rect
+                let rect = this.layoutCanvas.getBoundingClientRect();
+                let mousePosX = event.clientX - rect.left;
+                let mousePosY = event.clientY - rect.top;
+                // check for high resolution region
+                let index = this.getMaskValueByCoord(mousePosX, mousePosY);
+                this.layoutCanvas.style.cursor = (index >= 0) ? "pointer" : "row-resize";
+            }
+            else
+                this.layoutCanvas.style.cursor = "row-resize";
+        } else {
+            this.layoutCanvas.style.cursor = "auto";
+        }
     }
 
     // saveFaciesToImage
