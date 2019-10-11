@@ -206,10 +206,12 @@ window.onload = event => {
     gDataTableSelector.onSelectionChanged = () => gLayoutInfoEditor.drawLayoutInfo();
     gFaciesPopup = new FaciesPopup();
     gFaciesPopup.onSamplesRemoved = () => { gLayoutInfoEditor.drawLayoutInfo(); gScatterEditor.drawLayoutInfo(); }
-    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel, gFaciesPopup);
-    gLayoutInfoEditor.onColorChanged = dataFacies => gScatterEditor.drawLayoutInfo();
+    gLayoutInfoEditor = new LayoutInfoEditor(divPlotTitle, divPlotHeaders, divPlotsPanel);
+    gLayoutInfoEditor.setFaciesPopup(gFaciesPopup);
+    gLayoutInfoEditor.onColorChanged = faciesData => gScatterEditor.drawLayoutInfo();
     gLayoutInfoEditor.onSelectionChanged = layoutInfo => gScatterEditor.drawLayoutInfo();
-    gScatterEditor = new ScatterEditor(divScatterHeaders, divScatterPanel, gFaciesPopup);
+    gScatterEditor = new ScatterEditor(divScatterHeaders, divScatterPanel);
+    gScatterEditor.setFaciesPopup(gFaciesPopup);
     gScatterEditor.onFaciesMerged = dataFacies => gLayoutInfoEditor.drawLayoutInfo();
     // set visibility
     setLayoutInfoEditorVisible(false);

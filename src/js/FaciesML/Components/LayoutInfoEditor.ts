@@ -18,7 +18,7 @@ export class LayoutInfoEditor {
     private parentHeadrs: HTMLDivElement;
     private parentPlots: HTMLDivElement;
     private enabled: boolean = true;
-    private faciesPopup: FaciesPopup;
+    private faciesPopup: FaciesPopup = null;
     // layoutInfo parameters
     public layoutInfo: LayoutInfo = null;
     public scale: number = 1.0;
@@ -32,8 +32,6 @@ export class LayoutInfoEditor {
     private layoutCanvasCtx: CanvasRenderingContext2D = null;
     private layoutMaskCanvas: HTMLCanvasElement = null;
     private layoutMaskCanvasCtx: CanvasRenderingContext2D = null;
-    // menus
-    private menuFacies: HTMLDivElement = null;
     // events
     public onColorChanged: (this: LayoutInfoEditor, dataFacies: DataFacies) => any = null;
     public onSelectionChanged: (this: LayoutInfoEditor, layoutInfo: LayoutInfo) => any = null;
@@ -41,14 +39,14 @@ export class LayoutInfoEditor {
     constructor(
         parentTitle: HTMLDivElement,
         parentHeadrs: HTMLDivElement,
-        parentPlots: HTMLDivElement,
-        faciesPopup: FaciesPopup) {
+        parentPlots: HTMLDivElement) {
         // setup parent
         this.parentTitle = parentTitle;
         this.parentHeadrs = parentHeadrs;
         this.parentPlots = parentPlots;
-        this.faciesPopup = faciesPopup;
         this.enabled = true;
+        // pupups
+        this.faciesPopup = null;
         // image parameters
         this.layoutInfo = null;
         this.scale = 1.0;
@@ -57,8 +55,6 @@ export class LayoutInfoEditor {
         this.selectionMode = SelectionMode.ADD;
         this.selectionStart = 0;
         this.selectionEnd = 0;
-        // get menus
-        this.menuFacies = document.getElementById("menuFacies") as HTMLDivElement;
         // create image canvas
         this.layoutCanvas = document.createElement("canvas");
         this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
@@ -244,6 +240,11 @@ export class LayoutInfoEditor {
             this.scale = scale;
             this.drawLayoutInfo();
         }
+    }
+
+    // setFaciesPopup
+    public setFaciesPopup(faciesPopup: FaciesPopup) {
+        this.faciesPopup = faciesPopup;
     }
 
     // clearHeaders

@@ -48,7 +48,7 @@ export class ScatterRenderer {
     // menus
     private faciesPopup: FaciesPopup = null;
     // constructor
-    constructor(parent: HTMLDivElement, faciesPopup: FaciesPopup) {
+    constructor(parent: HTMLDivElement) {
         this.parent = parent;
         // display type
         this.displayTypeX = DisplayType.LINEAR;
@@ -73,7 +73,7 @@ export class ScatterRenderer {
         this.dataValuesVisible = true;
         this.dataSamplesVisible = true;
         // get menus
-        this.faciesPopup = faciesPopup;
+        this.faciesPopup = null;
         // create image canvas
         this.layoutCanvas = document.createElement("canvas");
         this.layoutCanvas.onmouseup = this.onMouseUp.bind(this);
@@ -224,6 +224,11 @@ export class ScatterRenderer {
     public setDataSamplesVisible(visible: boolean) {
         this.dataSamplesVisible = visible;
         this.drawScatter();
+    }
+
+    // setFaciesPopup
+    public setFaciesPopup(faciesPopup: FaciesPopup) {
+        this.faciesPopup = faciesPopup;
     }
 
     // drawScatter

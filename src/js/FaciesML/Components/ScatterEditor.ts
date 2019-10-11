@@ -27,13 +27,13 @@ export class ScatterEditor {
     // events
     public onFaciesMerged: (this: ScatterEditor, dataFacies: DataFacies) => any = null;
     // constructor
-    constructor(parentHeadrs: HTMLDivElement, parentScatter: HTMLDivElement, faciePopup: FaciesPopup) {
+    constructor(parentHeadrs: HTMLDivElement, parentScatter: HTMLDivElement) {
         // setup parent
         this.parentHeadrs = parentHeadrs;
         // image parameters
         this.layoutInfo = null;
         // scatter renderer
-        this.scatterRenderer = new ScatterRenderer(parentScatter, faciePopup);
+        this.scatterRenderer = new ScatterRenderer(parentScatter);
 
         // create header markup
         this.parentHeadrs.innerHTML = `
@@ -208,6 +208,11 @@ export class ScatterEditor {
             this.updateHeader();
             this.scatterRenderer.drawScatter();
         }
+    }
+
+    // setFaciesPopup
+    public setFaciesPopup(faciesPopup: FaciesPopup) {
+        this.scatterRenderer.setFaciesPopup(faciesPopup);
     }
 
     // clearHeaders
