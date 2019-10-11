@@ -171,30 +171,20 @@ export class LayoutInfoEditor {
     // onInputSelectRangeMinChange
     private onInputSelectRangeMinChange(event: Event) {
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
-        let newValue: number = parseFloat((event.target as HTMLInputElement).value);
-        if (dataValues.displayType === DisplayType.LOG) {
-            // get input min and max
-            let inputMin: number = parseFloat((event.target as HTMLInputElement).min);
-            let inputMax: number = parseFloat((event.target as HTMLInputElement).max);
-            let normal = (newValue - inputMin) / (inputMax - inputMin);
-            newValue = (Math.pow(100, normal) - 1)/99 * (dataValues.max-dataValues.min) + dataValues.min;
-        }
-        dataValues.selectRangeMin = Math.min(Math.max(newValue, dataValues.min), dataValues.selectRangeMax);
+        let inputMin: number = parseFloat((event.target as HTMLInputElement).min);
+        let inputMax: number = parseFloat((event.target as HTMLInputElement).max);
+        let inputValue: number = parseFloat((event.target as HTMLInputElement).value);
+        dataValues.selectRangeMin = lerp(dataValues.displayMin, dataValues.displayMax, valueToNormal(inputValue, inputMin, inputMax, dataValues.displayType));
         this.drawCanvas();
     }
 
     // onInputSelectRangeMaxChange
     private onInputSelectRangeMaxChange(event: Event) {
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
-        let newValue: number = parseFloat((event.target as HTMLInputElement).value);
-        if (dataValues.displayType === DisplayType.LOG) {
-            // get input min and max
-            let inputMin: number = parseFloat((event.target as HTMLInputElement).min);
-            let inputMax: number = parseFloat((event.target as HTMLInputElement).max);
-            let normal = (newValue - inputMin) / (inputMax - inputMin);
-            newValue = (Math.pow(100, normal) - 1)/99 * (dataValues.max-dataValues.min) + dataValues.min;
-        }
-        dataValues.selectRangeMax = Math.min(Math.max(newValue, dataValues.selectRangeMin), dataValues.max);
+        let inputMin: number = parseFloat((event.target as HTMLInputElement).min);
+        let inputMax: number = parseFloat((event.target as HTMLInputElement).max);
+        let inputValue: number = parseFloat((event.target as HTMLInputElement).value);
+        dataValues.selectRangeMax = lerp(dataValues.displayMin, dataValues.displayMax, valueToNormal(inputValue, inputMin, inputMax, dataValues.displayType));
         this.drawCanvas();
     }
 
@@ -938,4 +928,17 @@ function decimalColorToHTMLcolor(val: number): string {
     //template adds # for standard HTML #RRGGBB
     HTMLcolor = template.substring(0, 7 - HTMLcolor.length) + HTMLcolor;
     return HTMLcolor;
+}
+
+// valueToNormal
+function valueToNormal(value: number, min: number, max: number, type: DisplayType): number {
+    let normal = Math.max(0.0, Math.min(1.0,(value - min) / (max - min)));
+    if (type === DisplayType.LOG)
+        return Math.pow(1000, normal - 1);
+    return normal;
+}
+
+// lerp
+function lerp(min: number, max: number, t: number): number {
+    return min * (1 - t) + max * t
 }
