@@ -172,6 +172,14 @@ export class LayoutInfoEditor {
     private onInputSelectRangeMinChange(event: Event) {
         let dataValues: DataValues = event.target["dataValues"] as DataValues;
         let newValue: number = parseFloat((event.target as HTMLInputElement).value);
+        if (dataValues.displayType === DisplayType.LOG) {
+            // get input min and max
+            let inputMin: number = parseFloat((event.target as HTMLInputElement).min);
+            let inputMax: number = parseFloat((event.target as HTMLInputElement).max);
+            let normal = (newValue - inputMin) / (inputMax - inputMin);
+            newValue = (Math.pow(100, normal) - 1)/99 * (dataValues.max-dataValues.min) + dataValues.min;
+            console.log(newValue);
+        }
         dataValues.selectRangeMin = Math.min(Math.max(newValue, dataValues.min), dataValues.selectRangeMax);
         this.drawCanvas();
     }
@@ -381,7 +389,7 @@ export class LayoutInfoEditor {
         <div style="display: flex; flex-direction: row; border-top: 1px solid black">
             <input 
                 id="inputRangeValueMin${dataValues.name}" type="range"
-                style="border: none; width: 100%;
+                style="border: none; width: 100%"
                 min="${dataValues.min}" max="${dataValues.max}" step="${(dataValues.max - dataValues.min) / 100}"
                 value="${dataValues.selectRangeMin}">
             </input>
@@ -389,7 +397,7 @@ export class LayoutInfoEditor {
         <div style="display: flex; flex-direction: row; border-top: 1px solid black">
             <input 
                 id="inputRangeValueMax${dataValues.name}" type="range"
-                style="border: none; width: 100%;
+                style="border: none; width: 100%"
                 min="${dataValues.min}" max="${dataValues.max}" step="${(dataValues.max - dataValues.min) / 100}"
                 value="${dataValues.selectRangeMax}">
             </input>
