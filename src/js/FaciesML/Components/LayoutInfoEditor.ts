@@ -617,7 +617,7 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.fillStyle = "black";
-        this.layoutCanvasCtx.fillRect(0, 0, width, this.layoutCanvas.height * this.scale);
+        this.layoutCanvasCtx.fillRect(0, 0, width, this.layoutCanvas.height);
         this.layoutCanvasCtx.stroke();
         // draw header background
         for (let imageInfo of this.layoutInfo.imageInfoList) {
