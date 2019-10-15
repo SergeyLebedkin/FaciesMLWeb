@@ -34,4 +34,12 @@ export class LayoutInfo {
         if (this.scatterFacies)
             this.scatterSamples = this.scatterSamples ? this.scatterSamples : this.scatterFacies.dataSamples[0];
     }
+
+    // getMaxImageWidth
+    public getMaxImageWidth(): number {
+        let maxWidth: number = 0;
+        for (let imageInfo of this.imageInfoList)
+            maxWidth = Math.max(maxWidth, imageInfo.canvasImage.width);
+        return maxWidth;
+    }
 }

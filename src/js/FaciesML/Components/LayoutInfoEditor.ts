@@ -262,9 +262,10 @@ export class LayoutInfoEditor {
             this.clearHeaders();
             // draw depth
             this.addHeaderBase(this.layoutInfo.dataTable.dataValues[0]);
+            let imageWidth = this.layoutInfo.getMaxImageWidth();
             // images header
             if (this.layoutInfo.imageInfoList.length > 0)
-                this.addHeaderImages();
+                this.addHeaderImages(imageWidth);
             // draw selected data values
             for (let dataValues of this.layoutInfo.dataTable.dataValues) {
                 // add value header
@@ -290,10 +291,10 @@ export class LayoutInfoEditor {
         if (!this.layoutInfo) return;
         this.parentTitle.innerText = this.layoutInfo.dataTable.name;
         let columsCount = this.layoutInfo.dataTable.getSelectedCount();
-        if (this.layoutInfo.imageInfoList.length > 0) columsCount++;
-        this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
+        let imageWidth = this.layoutInfo.getMaxImageWidth();
+        this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH + imageWidth;
         this.layoutCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length) * this.scale;
-        this.layoutMaskCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
+        this.layoutMaskCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH + imageWidth;
         this.layoutMaskCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length) * this.scale;
         this.clearCanvas();
         // draw data ranges
@@ -304,16 +305,14 @@ export class LayoutInfoEditor {
         let columnIndex = 1;
         let colorIndex = 1;
         // images column
-        if (this.layoutInfo.imageInfoList.length > 0) {
-            this.drawImages(columnIndex * LAYOUT_COLUMN_WIDTH, 0);
-            columnIndex++;
-        }
+        if (this.layoutInfo.imageInfoList.length > 0)
+            this.drawImages(columnIndex * LAYOUT_COLUMN_WIDTH, 0, imageWidth);
         // add data
         for (let dataValues of this.layoutInfo.dataTable.dataValues) {
             if (dataValues.selected) {
-                this.drawGrid(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
-                this.drawSelectionRanges(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
-                this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0, gColorTable[colorIndex]);
+                this.drawGrid(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH + imageWidth, 0);
+                this.drawSelectionRanges(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH + imageWidth, 0);
+                this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH + imageWidth, 0, gColorTable[colorIndex]);
                 columnIndex++;
                 colorIndex++;
             }
@@ -321,15 +320,15 @@ export class LayoutInfoEditor {
         // draw selected datafacies
         for (let dataFacies of this.layoutInfo.dataTable.dataFacies) {
             if (dataFacies.selected) {
-                this.drawFacies(dataFacies, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
+                this.drawFacies(dataFacies, columnIndex * LAYOUT_COLUMN_WIDTH + imageWidth, 0);
                 columnIndex++;
                 colorIndex++;
             }
             // add samples
             for (let dataSamples of dataFacies.dataSamples) {
                 if (dataSamples.selected) {
-                    this.drawGridFacies(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
-                    this.drawSamples(dataFacies, dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
+                    this.drawGridFacies(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH + imageWidth, 0);
+                    this.drawSamples(dataFacies, dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH + imageWidth, 0);
                     columnIndex++;
                     colorIndex++;
                 }
@@ -465,12 +464,12 @@ export class LayoutInfoEditor {
     }
 
     // addHeaderImages
-    private addHeaderImages(): void {
+    private addHeaderImages(width: number): void {
         // legend sizes
         let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
         // create header
         let divHeader = document.createElement("div");
-        divHeader.style.width = legendWidth.toString() + "px";
+        divHeader.style.width = width.toString() + "px";
         divHeader.style.display = "flex";
         divHeader.style.flexDirection = "column";
         divHeader.style.border = "1px solid black";
@@ -612,20 +611,20 @@ export class LayoutInfoEditor {
     }
 
     // drawImages
-    private drawImages(x: number, y: number) {
+    private drawImages(x: number, y: number, width: number) {
         if (this.layoutInfo.imageInfoList.length === 0) return;
         // start drawing
         this.layoutCanvasCtx.translate(x, y);
         this.layoutCanvasCtx.beginPath();
         this.layoutCanvasCtx.fillStyle = "black";
-        this.layoutCanvasCtx.fillRect(0, 0, LAYOUT_COLUMN_WIDTH, this.layoutCanvas.height);
+        this.layoutCanvasCtx.fillRect(0, 0, width, this.layoutCanvas.height * this.scale);
         this.layoutCanvasCtx.stroke();
         // draw header background
         for (let imageInfo of this.layoutInfo.imageInfoList) {
             let begIndex = this.layoutInfo.dataTable.dataValues[0].values.findIndex(value => value >= imageInfo.minHeight);
             let endIndex = this.layoutInfo.dataTable.dataValues[0].values.findIndex(value => value >= imageInfo.maxHeight);
             if ((begIndex * this.scale < this.layoutCanvas.height) && (endIndex >= 0))
-                this.layoutCanvasCtx.drawImage(imageInfo.canvasImage, 0, begIndex * this.scale, LAYOUT_COLUMN_WIDTH, (endIndex - begIndex) * this.scale);
+                this.layoutCanvasCtx.drawImage(imageInfo.canvasImage, 0, begIndex * this.scale, width, (endIndex - begIndex) * this.scale);
 
         }
         this.layoutCanvasCtx.translate(-x, -y);
