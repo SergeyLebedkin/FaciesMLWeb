@@ -625,7 +625,6 @@ export class LayoutInfoEditor {
             let endIndex = this.layoutInfo.dataTable.dataValues[0].values.findIndex(value => value >= imageInfo.maxHeight);
             if ((begIndex * this.scale < this.layoutCanvas.height) && (endIndex >= 0))
                 this.layoutCanvasCtx.drawImage(imageInfo.canvasImage, 0, begIndex * this.scale, width, (endIndex - begIndex) * this.scale);
-
         }
         this.layoutCanvasCtx.translate(-x, -y);
     }
