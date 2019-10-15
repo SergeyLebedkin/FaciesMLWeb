@@ -153,6 +153,7 @@ export class ScatterEditor {
         this.layoutInfo.scatterSamples = dataFacies.dataSamples[0];
         this.scatterRenderer.setDataFacies(dataFacies);
         this.scatterRenderer.setDataSamples(dataFacies.dataSamples[0]);
+        this.updateHeader();
         this.scatterRenderer.drawScatter();
     }
 
