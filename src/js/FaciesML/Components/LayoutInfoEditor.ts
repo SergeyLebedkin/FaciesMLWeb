@@ -4,6 +4,7 @@ import { DataValues, DATA_MINIMAL_VALUE, DisplayType } from "../Types/DataValues
 import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
 import { FaciesPopup } from "./FaciesPopup";
+import { threadId } from "worker_threads";
 
 const LAYOUT_HEADER_HEIGHT: number = 50;
 const LAYOUT_LEGENT_HEIGHT: number = 100;
@@ -18,6 +19,7 @@ export class LayoutInfoEditor {
     private parentHeadrs: HTMLDivElement;
     private parentPlots: HTMLDivElement;
     private enabled: boolean = true;
+    // popup
     private faciesPopup: FaciesPopup = null;
     // layoutInfo parameters
     public layoutInfo: LayoutInfo = null;
@@ -260,6 +262,9 @@ export class LayoutInfoEditor {
             this.clearHeaders();
             // draw depth
             this.addHeaderBase(this.layoutInfo.dataTable.dataValues[0]);
+            // images header
+            if (this.layoutInfo.imageInfoList.length > 0)
+                this.addHeaderImages();
             // draw selected data values
             for (let dataValues of this.layoutInfo.dataTable.dataValues) {
                 // add value header
@@ -285,6 +290,7 @@ export class LayoutInfoEditor {
         if (!this.layoutInfo) return;
         this.parentTitle.innerText = this.layoutInfo.dataTable.name;
         let columsCount = this.layoutInfo.dataTable.getSelectedCount();
+        if (this.layoutInfo.imageInfoList.length > 0) columsCount++;
         this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
         this.layoutCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length) * this.scale;
         this.layoutMaskCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH;
@@ -296,12 +302,20 @@ export class LayoutInfoEditor {
         this.drawYAxis(this.layoutInfo.dataTable.dataValues[0], 0, 0);
         // draw selected data values
         let columnIndex = 1;
+        let colorIndex = 1;
+        // images column
+        if (this.layoutInfo.imageInfoList.length > 0) {
+            this.drawImages(columnIndex * LAYOUT_COLUMN_WIDTH, 0);
+            columnIndex++;
+        }
+        // add data
         for (let dataValues of this.layoutInfo.dataTable.dataValues) {
             if (dataValues.selected) {
                 this.drawGrid(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                 this.drawSelectionRanges(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
-                this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0, gColorTable[columnIndex]);
+                this.drawPlot(dataValues, columnIndex * LAYOUT_COLUMN_WIDTH, 0, gColorTable[colorIndex]);
                 columnIndex++;
+                colorIndex++;
             }
         }
         // draw selected datafacies
@@ -309,6 +323,7 @@ export class LayoutInfoEditor {
             if (dataFacies.selected) {
                 this.drawFacies(dataFacies, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                 columnIndex++;
+                colorIndex++;
             }
             // add samples
             for (let dataSamples of dataFacies.dataSamples) {
@@ -316,6 +331,7 @@ export class LayoutInfoEditor {
                     this.drawGridFacies(dataSamples.values, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     this.drawSamples(dataFacies, dataSamples, columnIndex * LAYOUT_COLUMN_WIDTH, 0);
                     columnIndex++;
+                    colorIndex++;
                 }
             }
         }
@@ -448,6 +464,24 @@ export class LayoutInfoEditor {
         </div>`;
     }
 
+    // addHeaderImages
+    private addHeaderImages(): void {
+        // legend sizes
+        let legendWidth = LAYOUT_COLUMN_WIDTH - 2;
+        // create header
+        let divHeader = document.createElement("div");
+        divHeader.style.width = legendWidth.toString() + "px";
+        divHeader.style.display = "flex";
+        divHeader.style.flexDirection = "column";
+        divHeader.style.border = "1px solid black";
+        divHeader.style.textAlign = "center";
+        this.parentHeadrs.appendChild(divHeader);
+
+        // create headre elements
+        divHeader.innerHTML = `
+        <div style="text-align: center; border-bottom: 1px solid black; heigth: 100%">Images</div>`;
+    }
+
     // addHeaderFacie
     private addHeaderFacie(dataFacies: DataFacies): void {
         // legend sizes
@@ -574,6 +608,26 @@ export class LayoutInfoEditor {
         this.layoutCanvasCtx.moveTo(xPointMax, 0);
         this.layoutCanvasCtx.lineTo(xPointMax, this.layoutCanvas.height * this.scale);
         this.layoutCanvasCtx.stroke();
+        this.layoutCanvasCtx.translate(-x, -y);
+    }
+
+    // drawImages
+    private drawImages(x: number, y: number) {
+        if (this.layoutInfo.imageInfoList.length === 0) return;
+        // start drawing
+        this.layoutCanvasCtx.translate(x, y);
+        this.layoutCanvasCtx.beginPath();
+        this.layoutCanvasCtx.fillStyle = "black";
+        this.layoutCanvasCtx.fillRect(0, 0, LAYOUT_COLUMN_WIDTH, this.layoutCanvas.height);
+        this.layoutCanvasCtx.stroke();
+        // draw header background
+        for (let imageInfo of this.layoutInfo.imageInfoList) {
+            let begIndex = this.layoutInfo.dataTable.dataValues[0].values.findIndex(value => value >= imageInfo.minHeight);
+            let endIndex = this.layoutInfo.dataTable.dataValues[0].values.findIndex(value => value >= imageInfo.maxHeight);
+            if ((begIndex * this.scale < this.layoutCanvas.height) && (endIndex >= 0))
+                this.layoutCanvasCtx.drawImage(imageInfo.canvasImage, 0, begIndex * this.scale, LAYOUT_COLUMN_WIDTH, (endIndex - begIndex) * this.scale);
+
+        }
         this.layoutCanvasCtx.translate(-x, -y);
     }
 
@@ -932,7 +986,7 @@ function decimalColorToHTMLcolor(val: number): string {
 
 // valueToNormal
 function valueToNormal(value: number, min: number, max: number, type: DisplayType): number {
-    let normal = Math.max(0.0, Math.min(1.0,(value - min) / (max - min)));
+    let normal = Math.max(0.0, Math.min(1.0, (value - min) / (max - min)));
     if (type === DisplayType.LOG)
         return Math.pow(1000, normal - 1);
     return normal;

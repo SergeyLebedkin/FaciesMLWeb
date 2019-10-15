@@ -2,11 +2,13 @@ import { DataTable } from "./DataTable";
 import { DataValues } from "./DataValues";
 import { DataFacies } from "./DataFacies";
 import { DataSamples } from "./DataSamples";
+import { ImageInfo } from "./ImageInfo";
 
 // LayoutInfo - this is a simple data table reference, but it will store some metadata
 export class LayoutInfo {
     // fields
     public dataTable: DataTable = null;
+    public imageInfoList: Array<ImageInfo> = null;
     public scatterXAxis: DataValues = null;
     public scatterYAxis: DataValues = null;
     public scatterFacies: DataFacies = null;
@@ -15,9 +17,11 @@ export class LayoutInfo {
     // constructor
     constructor(dataTable: DataTable) {
         this.dataTable = dataTable;
+        this.imageInfoList = [];
         this.scatterXAxis = null;
         this.scatterYAxis = null;
         this.scatterFacies = null;
+        this.scatterSamples = null;
         this.scatterSamples = null;
         this.resetScatter();
     }

@@ -6,7 +6,7 @@ import { DataTableSelector } from "./FaciesML/Components/DataTableSelector"
 import { LayoutInfoEditor } from "./FaciesML/Components/LayoutInfoEditor";
 import { ScatterEditor } from "./FaciesML/Components/ScatterEditor";
 import { FaciesPopup } from "./FaciesML/Components/FaciesPopup";
-
+import { ImageInfo } from "./FaciesML/Types/ImageInfo";
 
 // elements - left panel
 let inputUsername: HTMLInputElement = null;
@@ -14,6 +14,8 @@ let inputSessionID: HTMLInputElement = null;
 let inputDescription: HTMLInputElement = null;
 let buttonLoadData: HTMLButtonElement = null;
 let inputLoadData: HTMLInputElement = null;
+let buttonLoadImages: HTMLButtonElement = null;
+let inputLoadImages: HTMLInputElement = null;
 let divDataValues: HTMLDivElement = null;
 let radioSelectionModeAdd: HTMLInputElement = null;
 let radioSelectionModeRemove: HTMLInputElement = null;
@@ -59,6 +61,25 @@ function buttonLoadDataOnClick(event: MouseEvent) {
     }
     inputLoadData.click();
 }
+
+// buttonLoadImagesOnClick
+function buttonLoadImagesOnClick(event: MouseEvent) {
+    if (!gLayoutInfoEditor.layoutInfo) return;
+    inputLoadImages.accept = ".png,.jpg";
+    inputLoadImages.onchange = event => {
+        let files: Array<File> = event.currentTarget["files"];
+        for (let file of files) {
+            let imageInfo = new ImageInfo();
+            imageInfo.onloadImageFile = imageInfo => {
+                // add image info
+                gLayoutInfoEditor.layoutInfo.imageInfoList.push(imageInfo);
+                gLayoutInfoEditor.drawLayoutInfo();
+                gScatterEditor.drawLayoutInfo();
+            }
+            imageInfo.loadImageFromFile(file);
+        }
+    }
+    inputLoadImages.click();}
 
 // addLayoutInfo
 function addLayoutInfo(layoutInfo: LayoutInfo) {
@@ -179,6 +200,8 @@ window.onload = event => {
     inputDescription = document.getElementById("inputDescription") as HTMLInputElement;
     buttonLoadData = document.getElementById("buttonLoadData") as HTMLButtonElement;
     inputLoadData = document.getElementById("inputLoadData") as HTMLInputElement;
+    buttonLoadImages = document.getElementById("buttonLoadImages") as HTMLButtonElement;
+    inputLoadImages = document.getElementById("inputLoadImages") as HTMLInputElement;
     divDataValues = document.getElementById("divDataValues") as HTMLDivElement;
     radioSelectionModeAdd = document.getElementById("radioSelectionModeAdd") as HTMLInputElement;
     radioSelectionModeRemove = document.getElementById("radioSelectionModeRemove") as HTMLInputElement;
@@ -220,6 +243,7 @@ window.onload = event => {
     inputSessionID.value = gSessionInfo.sessionID;
     // left panel events
     buttonLoadData.onclick = event => buttonLoadDataOnClick(event);
+    buttonLoadImages.onclick =  event => buttonLoadImagesOnClick(event);
     radioSelectionModeAdd.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.ADD);
     radioSelectionModeRemove.onchange = event => gLayoutInfoEditor.setSelectionMode(SelectionMode.REMOVE);
     checkboxPlotsVisible.onchange = event => setLayoutInfoEditorVisible((event.currentTarget as HTMLInputElement).checked);
