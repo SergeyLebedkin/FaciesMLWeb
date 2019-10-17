@@ -124,7 +124,7 @@ export class LayoutInfoEditor {
         if (index >= 0) {
             let faciesDataIndex = Math.trunc(index / 1e6);
             let sampleDataIndex = Math.trunc((index % 1e6) / 1e4);
-            let sampleIndex = Math.trunc(index % 1000);
+            let sampleIndex = Math.trunc(index % 1e4);
             let depth = this.layoutInfo.dataTable.dataValues[0].values[sampleIndex];
             if (this.faciesPopup) {
                 this.faciesPopup.setDataFacies(this.layoutInfo.dataTable.dataFacies[faciesDataIndex]);
