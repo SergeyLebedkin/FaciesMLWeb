@@ -2,13 +2,13 @@ import { DataTable } from "./DataTable";
 import { DataValues } from "./DataValues";
 import { DataFacies } from "./DataFacies";
 import { DataSamples } from "./DataSamples";
-import { ImageInfo } from "./ImageInfo";
+import { ImageInfoList } from "./ImageInfoList";
 
 // LayoutInfo - this is a simple data table reference, but it will store some metadata
 export class LayoutInfo {
     // fields
     public dataTable: DataTable = null;
-    public imageInfoList: Array<ImageInfo> = null;
+    public imageInfoList: ImageInfoList = null;
     public scatterXAxis: DataValues = null;
     public scatterYAxis: DataValues = null;
     public scatterFacies: DataFacies = null;
@@ -17,7 +17,11 @@ export class LayoutInfo {
     // constructor
     constructor(dataTable: DataTable) {
         this.dataTable = dataTable;
-        this.imageInfoList = [];
+        // create new imageinfo list
+        this.imageInfoList = new ImageInfoList(
+            dataTable.dataValues[0].min,
+            dataTable.dataValues[0].max,
+            dataTable.dataValues[0].values.length);
         this.scatterXAxis = null;
         this.scatterYAxis = null;
         this.scatterFacies = null;
@@ -33,13 +37,5 @@ export class LayoutInfo {
         this.scatterFacies = this.scatterFacies ? this.scatterFacies : this.dataTable.dataFacies[0];
         if (this.scatterFacies)
             this.scatterSamples = this.scatterSamples ? this.scatterSamples : this.scatterFacies.dataSamples[0];
-    }
-
-    // getMaxImageWidth
-    public getMaxImageWidth(): number {
-        let maxWidth: number = 0;
-        for (let imageInfo of this.imageInfoList)
-            maxWidth = Math.max(maxWidth, imageInfo.canvasImage.width);
-        return maxWidth;
     }
 }

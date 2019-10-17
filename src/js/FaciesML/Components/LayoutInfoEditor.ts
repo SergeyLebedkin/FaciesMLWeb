@@ -125,11 +125,14 @@ export class LayoutInfoEditor {
             let faciesDataIndex = Math.trunc(index / 1e6);
             let sampleDataIndex = Math.trunc((index % 1e6) / 1e4);
             let sampleIndex = Math.trunc(index % 1000);
+            let depth = this.layoutInfo.dataTable.dataValues[0].values[sampleIndex];
             if (this.faciesPopup) {
                 this.faciesPopup.setDataFacies(this.layoutInfo.dataTable.dataFacies[faciesDataIndex]);
                 this.faciesPopup.setDataSamples(this.layoutInfo.dataTable.dataFacies[faciesDataIndex].dataSamples[sampleDataIndex]);
                 this.faciesPopup.setDataSamplesIndex(sampleIndex);
                 this.faciesPopup.show(event.pageX, event.pageY);
+                // DEBUG ONLY
+                this.layoutInfo.imageInfoList.grabSubImage(this.faciesPopup.canvasPreview, depth, 50.0);
             }
         }
         else {
@@ -262,10 +265,10 @@ export class LayoutInfoEditor {
             this.clearHeaders();
             // draw depth
             this.addHeaderBase(this.layoutInfo.dataTable.dataValues[0]);
-            let imageWidth = this.layoutInfo.getMaxImageWidth();
+            let imageWidth = this.layoutInfo.imageInfoList.getMaxImageWidth();
             // images header
-            if (this.layoutInfo.imageInfoList.length > 0)
-                this.addHeaderImages(imageWidth);
+            if (this.layoutInfo.imageInfoList.imageInfos.length > 0)
+                this.addHeaderImages(imageWidth-2);
             // draw selected data values
             for (let dataValues of this.layoutInfo.dataTable.dataValues) {
                 // add value header
@@ -291,7 +294,7 @@ export class LayoutInfoEditor {
         if (!this.layoutInfo) return;
         this.parentTitle.innerText = this.layoutInfo.dataTable.name;
         let columsCount = this.layoutInfo.dataTable.getSelectedCount();
-        let imageWidth = this.layoutInfo.getMaxImageWidth();
+        let imageWidth = this.layoutInfo.imageInfoList.getMaxImageWidth();
         this.layoutCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH + imageWidth;
         this.layoutCanvas.height = (this.layoutInfo.dataTable.dataValues[0].values.length) * this.scale;
         this.layoutMaskCanvas.width = (columsCount + 1) * LAYOUT_COLUMN_WIDTH + imageWidth;
@@ -305,7 +308,7 @@ export class LayoutInfoEditor {
         let columnIndex = 1;
         let colorIndex = 1;
         // images column
-        if (this.layoutInfo.imageInfoList.length > 0)
+        if (this.layoutInfo.imageInfoList.imageInfos.length > 0)
             this.drawImages(columnIndex * LAYOUT_COLUMN_WIDTH, 0, imageWidth);
         // add data
         for (let dataValues of this.layoutInfo.dataTable.dataValues) {
@@ -612,20 +615,10 @@ export class LayoutInfoEditor {
 
     // drawImages
     private drawImages(x: number, y: number, width: number) {
-        if (this.layoutInfo.imageInfoList.length === 0) return;
+        if (this.layoutInfo.imageInfoList.imageInfos.length === 0) return;
         // start drawing
         this.layoutCanvasCtx.translate(x, y);
-        this.layoutCanvasCtx.beginPath();
-        this.layoutCanvasCtx.fillStyle = "black";
-        this.layoutCanvasCtx.fillRect(0, 0, width, this.layoutCanvas.height);
-        this.layoutCanvasCtx.stroke();
-        // draw header background
-        for (let imageInfo of this.layoutInfo.imageInfoList) {
-            let begIndex = this.layoutInfo.dataTable.dataValues[0].values.findIndex(value => value >= imageInfo.minHeight);
-            let endIndex = this.layoutInfo.dataTable.dataValues[0].values.findIndex(value => value >= imageInfo.maxHeight);
-            if ((begIndex * this.scale < this.layoutCanvas.height) && (endIndex >= 0))
-                this.layoutCanvasCtx.drawImage(imageInfo.canvasImage, 0, begIndex * this.scale, width, (endIndex - begIndex) * this.scale);
-        }
+        this.layoutCanvasCtx.drawImage(this.layoutInfo.imageInfoList.canvasPreview, 0, 0, this.layoutInfo.imageInfoList.canvasPreview.width, this.layoutInfo.imageInfoList.canvasPreview.height * this.scale);
         this.layoutCanvasCtx.translate(-x, -y);
     }
 

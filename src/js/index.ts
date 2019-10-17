@@ -67,19 +67,14 @@ function buttonLoadImagesOnClick(event: MouseEvent) {
     if (!gLayoutInfoEditor.layoutInfo) return;
     inputLoadImages.accept = ".png,.jpg";
     inputLoadImages.onchange = event => {
-        let files: Array<File> = event.currentTarget["files"];
-        for (let file of files) {
-            let imageInfo = new ImageInfo();
-            imageInfo.onloadImageFile = imageInfo => {
-                // add image info
-                gLayoutInfoEditor.layoutInfo.imageInfoList.push(imageInfo);
-                gLayoutInfoEditor.drawLayoutInfo();
-                gScatterEditor.drawLayoutInfo();
-            }
-            imageInfo.loadImageFromFile(file);
+        gLayoutInfoEditor.layoutInfo.imageInfoList.onloadImageFile = imageInfo => {
+            gLayoutInfoEditor.drawLayoutInfo();
+            gScatterEditor.drawLayoutInfo();
         }
+        gLayoutInfoEditor.layoutInfo.imageInfoList.loadImagesFromFiles(event.currentTarget["files"]);
     }
-    inputLoadImages.click();}
+    inputLoadImages.click();
+}
 
 // addLayoutInfo
 function addLayoutInfo(layoutInfo: LayoutInfo) {
@@ -265,7 +260,7 @@ function addDefaultLayout() {
     gDataTableList.push(dataTable);
     let layoutInfo: LayoutInfo = new LayoutInfo(dataTable);
     layoutInfo.resetScatter();
-    addLayoutInfo(new LayoutInfo(dataTable));
+    addLayoutInfo(layoutInfo);
 }
 
 // updateTablesFromJson

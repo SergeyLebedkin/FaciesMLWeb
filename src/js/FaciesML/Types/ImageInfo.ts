@@ -4,8 +4,8 @@ export class ImageInfo {
     public fileRef: File = null;
     public baseName: String = null;
     // propertis
-    public minHeight: number = null;
-    public maxHeight: number = null;
+    public minDepth: number = null;
+    public maxDepth: number = null;
     // canvases
     public canvasImage: HTMLCanvasElement = null;
     // events
@@ -16,8 +16,8 @@ export class ImageInfo {
         // file reference
         this.fileRef = null;
         // propertis
-        this.minHeight = 0;
-        this.maxHeight = 0;
+        this.minDepth = 0;
+        this.maxDepth = 0;
         // canvases
         this.canvasImage = document.createElement("canvas");
         // events
@@ -31,8 +31,8 @@ export class ImageInfo {
         // store name
         this.fileRef = file;
         this.baseName = this.fileRef.name.split('.').slice(0, -1).join('.');
-        this.minHeight = parseFloat(this.baseName.split('-')[0]);
-        this.maxHeight = parseFloat(this.baseName.split('-')[1]);
+        this.minDepth = parseFloat(this.baseName.split('-')[0]);
+        this.maxDepth = parseFloat(this.baseName.split('-')[1]);
         // read file
         var fileReader = new FileReader();
         fileReader.onload = event => {

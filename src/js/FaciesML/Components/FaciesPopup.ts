@@ -11,6 +11,7 @@ export class FaciesPopup {
     private dataSamplesIndex: number = -1;
     // controls
     private divRemove: HTMLDivElement = null;
+    public canvasPreview: HTMLCanvasElement = null;
     // flags
     private canHide: boolean = false;
     // events
@@ -21,10 +22,13 @@ export class FaciesPopup {
         this.mainDiv.className = "facies-menu";
         this.mainDiv.innerHTML = `
             <div class="facies-menu-option" id="itemFaciesRemove">Remove</div>
+            <canvas id="itemFacieCanvasPreview">Remove</div>
         `;
         document.body.appendChild(this.mainDiv);
         // get elements IDs
         this.divRemove = document.getElementById("itemFaciesRemove") as HTMLDivElement;
+        this.canvasPreview = document.getElementById("itemFacieCanvasPreview") as HTMLCanvasElement;
+        // add events
         this.divRemove.addEventListener("click", this.onRemoveClick.bind(this));
         // set global event
         document.addEventListener("click", this.onDocumentClick.bind(this));
