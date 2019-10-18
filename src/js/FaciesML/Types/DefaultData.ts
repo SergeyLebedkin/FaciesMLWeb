@@ -23,21 +23,21 @@ export function createRandomDataTable(): DataTable {
     dataValuesAE20.values = Array.from(defaultAE20);
     dataValuesAE20.name = "AE20";
     dataValuesAE20.unit = "OHMM";
-    dataValuesAE20.selected = true;
+    dataValuesAE20.selected = false;
     dataValuesAE20.updateMinMax();
     // dataValuesAE30
     let dataValuesAE30 = new DataValues();
     dataValuesAE30.values = Array.from(defaultAE30);
     dataValuesAE30.name = "AE30";
     dataValuesAE30.unit = "OHMM";
-    dataValuesAE30.selected = true;
+    dataValuesAE30.selected = false;
     dataValuesAE30.updateMinMax();
     // dataValuesAE60
     let dataValuesAE60 = new DataValues();
     dataValuesAE60.values = Array.from(defaultAE60);
     dataValuesAE60.name = "AE60";
     dataValuesAE60.unit = "OHMM";
-    dataValuesAE60.selected = true;
+    dataValuesAE60.selected = false;
     dataValuesAE60.updateMinMax();
     // dataValuesAE90
     let dataValuesAE90 = new DataValues();
@@ -55,7 +55,7 @@ export function createRandomDataTable(): DataTable {
     // create data samples 3 - 135
     let dataSamples3_135 = new DataSamples();
     dataSamples3_135.name = "135";
-    dataSamples3_135.selected = false;
+    dataSamples3_135.selected = true;
     dataSamples3_135.recommended = true;
     dataSamples3_135.values = Array.from(defaultSamples9_150);
     dataFacies3.dataSamples.push(dataSamples3_135);

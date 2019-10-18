@@ -57,21 +57,73 @@ export class ImageInfoList {
         return maxWidth;
     }
 
+    // getMinPixelValue
+    public getMinPixelValue(): number {
+        let minValue: number = Infinity;
+        for (let imageInfo of this.imageInfos)
+            minValue = Math.min(minValue, imageInfo.dpf);
+        return minValue;
+    }
+
     // grabSubImage
     // depth and height - fits
     public grabSubImage(targetCanvas: HTMLCanvasElement, depth: number, height: number): void {
         if (targetCanvas) {
+            // get actual image infos
+            let minDepth = depth - height / 2;
+            let maxDepth = depth + height / 2;
+            // get actual image infos
+            let actualImageInfos: ImageInfo[] = [];
+            for (let imageInfo of this.imageInfos) 
+                if ((imageInfo.minDepth < maxDepth) && (imageInfo.maxDepth > minDepth))
+                    actualImageInfos.push(imageInfo);
+            // get target dpf
+            let targetDpf = 0.0;
+            for (let imageInfo of actualImageInfos) 
+                targetDpf =+ imageInfo.dpf / actualImageInfos.length;
+            // het target height
+            let targetHeight = Math.floor(targetDpf * height);
+            // reseze canvas
+            targetCanvas.height = targetHeight;
+            targetCanvas.width = this.canvasPreview.width;
+            // clear canvas
+            let targetCanvasCtx = targetCanvas.getContext("2d");
+            targetCanvasCtx.fillStyle = "black";
+            targetCanvasCtx.fillRect(0, 0, targetCanvas.width, targetCanvas.height);
+            // draw target canvas
+            for (let imageInfo of actualImageInfos) {
+                // constants
+                let sx = 0.0;
+                let dx = 0.0;
+                let sw = imageInfo.canvasImage.width;
+                let dw = targetCanvas.width;
+                // calculations
+                let sy = (Math.max(minDepth, imageInfo.minDepth) - imageInfo.minDepth) * imageInfo.dpf;
+                let dy = (Math.max(minDepth, imageInfo.minDepth) - minDepth) * targetDpf;
+                let sh = (Math.min(maxDepth, imageInfo.maxDepth) - imageInfo.minDepth) * imageInfo.dpf - sy;
+                let dh = (Math.min(maxDepth, imageInfo.maxDepth) - minDepth) * targetDpf - dy;
+                sy = Math.floor(sy);
+                dy = Math.floor(dy);
+                sh = Math.floor(sh);
+                dh = Math.floor(dh);
+                // draw
+                targetCanvasCtx.drawImage(imageInfo.canvasImage,
+                    sx, sy, sw, sh,
+                    dx, dy, dw, dh);
+            }
+            /*
             // get canvas parameters
             let step = (this.maxDepth - this.minDepth) / this.height;
             let begIndex = Math.floor((depth - this.minDepth - height / 2) / step);
             let endIndex = Math.floor((depth - this.minDepth + height / 2) / step);
             // create canvas
-            let targetCanvasCtx = targetCanvas.getContext("2d");
             targetCanvas.height = endIndex - begIndex;
-            targetCanvas.width = this.canvasPreview.width + 1;
+            targetCanvas.width = this.canvasPreview.width;
+            let targetCanvasCtx = targetCanvas.getContext("2d");
             targetCanvasCtx.drawImage(this.canvasPreview,
                 0, begIndex, targetCanvas.width, targetCanvas.height,
                 0, 0, targetCanvas.width, targetCanvas.height);
+            */
         }
     }
 

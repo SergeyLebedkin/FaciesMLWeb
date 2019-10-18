@@ -4,8 +4,9 @@ export class ImageInfo {
     public fileRef: File = null;
     public baseName: String = null;
     // propertis
-    public minDepth: number = null;
-    public maxDepth: number = null;
+    public minDepth: number = 0.0;
+    public maxDepth: number = 0.0;
+    public dpf: number = 0.0;
     // canvases
     public canvasImage: HTMLCanvasElement = null;
     // events
@@ -16,8 +17,9 @@ export class ImageInfo {
         // file reference
         this.fileRef = null;
         // propertis
-        this.minDepth = 0;
-        this.maxDepth = 0;
+        this.minDepth = 0.0;
+        this.maxDepth = 0.0;
+        this.dpf = 0.0;
         // canvases
         this.canvasImage = document.createElement("canvas");
         // events
@@ -44,6 +46,9 @@ export class ImageInfo {
                 this.canvasImage.height = image.height;
                 let canvasImageCtx = this.canvasImage.getContext("2d") as CanvasRenderingContext2D;
                 canvasImageCtx.drawImage(image, 0, 0);
+                // update depth value
+                this.dpf = this.canvasImage.height / (this.maxDepth - this.minDepth);
+                console.log(this.baseName + " dpf: " + this.dpf)
                 // call event
                 if (this.onloadImageFile != null)
                     this.onloadImageFile(this);

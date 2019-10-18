@@ -131,8 +131,7 @@ export class LayoutInfoEditor {
                 this.faciesPopup.setDataSamples(this.layoutInfo.dataTable.dataFacies[faciesDataIndex].dataSamples[sampleDataIndex]);
                 this.faciesPopup.setDataSamplesIndex(sampleIndex);
                 this.faciesPopup.show(event.pageX, event.pageY);
-                // DEBUG ONLY
-                this.layoutInfo.imageInfoList.grabSubImage(this.faciesPopup.canvasPreview, depth, 50.0);
+                this.layoutInfo.imageInfoList.grabSubImage(this.faciesPopup.canvasPreview, depth, 1.0);
             }
         }
         else {
