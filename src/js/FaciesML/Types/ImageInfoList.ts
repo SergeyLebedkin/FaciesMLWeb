@@ -111,19 +111,6 @@ export class ImageInfoList {
                     sx, sy, sw, sh,
                     dx, dy, dw, dh);
             }
-            /*
-            // get canvas parameters
-            let step = (this.maxDepth - this.minDepth) / this.height;
-            let begIndex = Math.floor((depth - this.minDepth - height / 2) / step);
-            let endIndex = Math.floor((depth - this.minDepth + height / 2) / step);
-            // create canvas
-            targetCanvas.height = endIndex - begIndex;
-            targetCanvas.width = this.canvasPreview.width;
-            let targetCanvasCtx = targetCanvas.getContext("2d");
-            targetCanvasCtx.drawImage(this.canvasPreview,
-                0, begIndex, targetCanvas.width, targetCanvas.height,
-                0, 0, targetCanvas.width, targetCanvas.height);
-            */
         }
     }
 
