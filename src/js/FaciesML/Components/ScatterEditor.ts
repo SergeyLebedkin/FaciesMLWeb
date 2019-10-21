@@ -201,11 +201,13 @@ export class ScatterEditor {
         // setup new image info
         if (this.layoutInfo != layoutInfo) {
             this.layoutInfo = layoutInfo;
+            this.scatterRenderer.setDataDepth(layoutInfo.dataTable.dataValues[0]);
             this.scatterRenderer.setDataValuesAxisX(layoutInfo.scatterXAxis);
             this.scatterRenderer.setDataValuesAxisY(layoutInfo.scatterYAxis);
             this.scatterRenderer.setDataFacies(layoutInfo.scatterFacies);
             this.scatterRenderer.setDataSamples(layoutInfo.scatterSamples);
             this.scatterRenderer.setSelections(layoutInfo.dataTable.selections);
+            this.scatterRenderer.setImageInfoList(layoutInfo.imageInfoList);
             this.updateHeader();
             this.scatterRenderer.drawScatter();
         }

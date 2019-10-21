@@ -1,5 +1,6 @@
 import { DisplayType } from "../Types/DataValues";
 import { DataValues } from "../Types/DataValues";
+import { ImageInfoList } from "../Types/ImageInfoList";
 import { DataFacies } from "../Types/DataFacies";
 import { DataSamples } from "../Types/DataSamples";
 import { FaciesPopup } from "../Components/FaciesPopup";
@@ -22,11 +23,13 @@ export class ScatterRenderer {
     public displayTypeX: DisplayType = DisplayType.LINEAR;
     public displayTypeY: DisplayType = DisplayType.LINEAR;
     // axis data
+    private dataDepth: DataValues;
     private dataValuesAxisX: DataValues;
     private dataValuesAxisY: DataValues;
     private dataFacies: DataFacies;
     private dataSamples: DataSamples;
     private selections: Array<number>;
+    private imageInfoList: ImageInfoList;
     // render properties
     private windowScale: number = 0.0;
     private windowWidth: number = 0.0;
@@ -54,11 +57,13 @@ export class ScatterRenderer {
         this.displayTypeX = DisplayType.LINEAR;
         this.displayTypeY = DisplayType.LINEAR;
         // axis data
+        this.dataDepth = null;
         this.dataValuesAxisX = null;
         this.dataValuesAxisY = null;
         this.dataFacies = null;
         this.dataSamples = null;
         this.selections = null;
+        this.imageInfoList = null;
         // render properties
         this.windowScale = 1.0;
         this.windowWidth = 0.0;
@@ -133,9 +138,11 @@ export class ScatterRenderer {
         let index = this.getMaskValueByCoord(mousePosX, mousePosY);
         if (index >= 0) {
             if (this.faciesPopup) {
+                this.faciesPopup.setDataFacies(this.dataFacies);
                 this.faciesPopup.setDataSamples(this.dataSamples);
                 this.faciesPopup.setDataSamplesIndex(index);
                 this.faciesPopup.show(event.pageX, event.pageY);
+                this.imageInfoList.grabSubImage(this.faciesPopup.canvasPreview, this.dataDepth.values[index], 1.0);
             }
         }
         else {
@@ -229,6 +236,16 @@ export class ScatterRenderer {
     // setFaciesPopup
     public setFaciesPopup(faciesPopup: FaciesPopup) {
         this.faciesPopup = faciesPopup;
+    }
+
+    // setDataDepth
+    public setDataDepth(dataDepth: DataValues) {
+        this.dataDepth = dataDepth;
+    }
+
+    // setImageInfoList
+    public setImageInfoList(imageInfoList: ImageInfoList) {
+        this.imageInfoList = imageInfoList;
     }
 
     // drawScatter

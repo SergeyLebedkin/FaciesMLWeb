@@ -84,8 +84,8 @@ export class ImageInfoList {
             // het target height
             let targetHeight = Math.floor(targetDpf * height);
             // reseze canvas
-            targetCanvas.height = targetHeight;
-            targetCanvas.width = this.canvasPreview.width;
+            targetCanvas.height = targetHeight*2;
+            targetCanvas.width = this.canvasPreview.width*2;
             // clear canvas
             let targetCanvasCtx = targetCanvas.getContext("2d");
             targetCanvasCtx.fillStyle = "black";
@@ -96,7 +96,7 @@ export class ImageInfoList {
                 let sx = 0.0;
                 let dx = 0.0;
                 let sw = imageInfo.canvasImage.width;
-                let dw = targetCanvas.width;
+                let dw = this.canvasPreview.width;
                 // calculations
                 let sy = (Math.max(minDepth, imageInfo.minDepth) - imageInfo.minDepth) * imageInfo.dpf;
                 let dy = (Math.max(minDepth, imageInfo.minDepth) - minDepth) * targetDpf;
@@ -109,7 +109,7 @@ export class ImageInfoList {
                 // draw
                 targetCanvasCtx.drawImage(imageInfo.canvasImage,
                     sx, sy, sw, sh,
-                    dx, dy, dw, dh);
+                    dx*2, dy*2, dw*2, dh*2);
             }
         }
     }
