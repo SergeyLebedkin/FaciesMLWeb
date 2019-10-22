@@ -141,6 +141,10 @@ export class ScatterRenderer {
                 this.faciesPopup.setDataFacies(this.dataFacies);
                 this.faciesPopup.setDataSamples(this.dataSamples);
                 this.faciesPopup.setDataSamplesIndex(index);
+                this.faciesPopup.setLabel(`Depth:${this.dataDepth.values[index]}
+                    ${this.dataValuesAxisX.name}:${this.dataValuesAxisX.values[index]}
+                    ${this.dataValuesAxisY.name}:${this.dataValuesAxisY.values[index]}
+                `);
                 this.faciesPopup.show(event.pageX, event.pageY);
                 this.imageInfoList.grabSubImage(this.faciesPopup.canvasPreview, this.dataDepth.values[index], 1.0);
             }

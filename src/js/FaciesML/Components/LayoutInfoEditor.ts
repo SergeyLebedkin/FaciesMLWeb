@@ -127,9 +127,15 @@ export class LayoutInfoEditor {
             let sampleIndex = Math.trunc(index % 1e4);
             let depth = this.layoutInfo.dataTable.dataValues[0].values[sampleIndex];
             if (this.faciesPopup) {
+                let label: string = `Depth: ${depth}\n`;
+                for(let dataValues of this.layoutInfo.dataTable.dataValues) {
+                    if (dataValues.selected)
+                        label += `${dataValues.name}:${dataValues.values[sampleIndex]}\n`
+                }
                 this.faciesPopup.setDataFacies(this.layoutInfo.dataTable.dataFacies[faciesDataIndex]);
                 this.faciesPopup.setDataSamples(this.layoutInfo.dataTable.dataFacies[faciesDataIndex].dataSamples[sampleDataIndex]);
                 this.faciesPopup.setDataSamplesIndex(sampleIndex);
+                this.faciesPopup.setLabel(label);
                 this.faciesPopup.show(event.pageX, event.pageY);
                 this.layoutInfo.imageInfoList.grabSubImage(this.faciesPopup.canvasPreview, depth, 1.0);
             }

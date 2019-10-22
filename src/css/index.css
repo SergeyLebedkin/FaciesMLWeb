@@ -227,16 +227,12 @@ html, body {
 }
 
 .facies-menu {
-    width: 120px;
+    width: auto;
     position: absolute;
     display: none;
     flex-direction: column;
     background: white;
     border: 1px solid gray;
-}
-
-.facies-menu-options {
-    padding: 10px 0;
 }
 
 .facies-menu-option {
